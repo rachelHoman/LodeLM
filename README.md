@@ -1,10 +1,10 @@
 To run the servers and code first compile the java classes:
 
-javac Client.java
+`javac Client.java`
 
-javac ClientHandler.java
+`javac ClientHandler.java`
 
-javac Server.java
+`javac Server.java`
 
 
 Then start up the Server.java with:
