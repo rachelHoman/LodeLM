@@ -15,31 +15,18 @@ public class Client {
             // Prompt the user for username
             System.out.print("Enter your username: ");
             String username = userInput.readLine();
+            out.println(username); // Send username to server
 
-            // Send username to the server
-            out.println(username);
+            // Prompt the user for password
+            System.out.print("Enter your password: ");
+            String password = userInput.readLine();
+            out.println(password); // Send password to server
 
-            // Receive and print the greeting message from the server
-            String greeting = in.readLine();
-            System.out.println(greeting);
-
-            String userMessage;
-            while ((userMessage = userInput.readLine()) != null) {
-                out.println(userMessage);
-
-                // Exit loop if user types 'exit'
-                if (userMessage.equalsIgnoreCase("exit")) {
-                    break;
-                }
-
-                // Print server responses
-                String response;
-                while ((response = in.readLine()) != null) {
-                    System.out.println(response);
-
-                    // Break out of inner loop to return to waiting for user input
-                    break;
-                }
+            // Receive response from server
+            String response;
+            while ((response = in.readLine()) != null) {
+                System.out.println(response);
+                break; // Exit loop after receiving response
             }
 
             // Close connections
