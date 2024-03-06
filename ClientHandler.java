@@ -23,12 +23,14 @@ public class ClientHandler implements Runnable {
             System.out.println("Received username: " + this.username);
 
             // Initialize project list for the user
+            // TODO: connect username to user database object and pull in associated user projects from there, not the server class
             List<String> userProjects = Server.getUserProjects().computeIfAbsent(username, k -> new ArrayList<>());
 
             // Send greeting message to client
             out.println("Hi " + this.username);
 
             // Handle client requests
+            // TODO: give the users a list of things they can do on the server to prompt them
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
                 System.out.println("Received from client: " + inputLine);
@@ -67,7 +69,8 @@ public class ClientHandler implements Runnable {
 
     private boolean createProject(String projectName, List<String> userProjects) {
         try {
-            // Create the "projects" directory if it doesn't exist
+            // TODO: make this a projects object not directory bc we don't want to save this on our local devices
+            // Create the "projects" directory if it doesn't exist 
             File projectsDir = new File(Server.PROJECTS_DIRECTORY);
             if (!projectsDir.exists()) {
                 projectsDir.mkdirs(); // mkdirs() will create parent directories if necessary
