@@ -35,14 +35,20 @@ public class Client {
             while ((userMessage = userInput.readLine()) != null) {
 
                 out.println(userMessage);
-                
+
                 if (userMessage.equals("send file")) {
                     FileHandler fileHandler = new FileHandler("client_data/file1.txt");
                     fileHandler.sendFile(dataOutputStream);
                 }
 
+                else if (userMessage.equals("download file")) {
+                    FileHandler fileHandler = new FileHandler("client_data/file1.txt");
+                    fileHandler.receiveFile(dataInputStream);
+                    System.out.println("File downloaded");
+                }
+
                 // Exit loop if user types 'exit'
-                if (userMessage.equalsIgnoreCase("exit")) {
+                else if (userMessage.equalsIgnoreCase("exit")) {
                     break;
                 }
 

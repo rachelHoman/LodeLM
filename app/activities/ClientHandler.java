@@ -60,7 +60,11 @@ public class ClientHandler implements Runnable {
                 else if (inputLine.equals("send file")) {
                     FileHandler fileHandler = new FileHandler("server_data/file1.txt");
                     fileHandler.receiveFile(dataInputStream);
-                    out.println("File is Received");
+                    out.println("File has been received by server");
+                }
+                else if (inputLine.equals("download file")) {
+                    FileHandler fileHandler = new FileHandler("server_data/file1.txt");
+                    fileHandler.sendFile(dataOutputStream);
                 }
                 else {
                     // Example of responding to client
