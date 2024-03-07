@@ -57,22 +57,25 @@ public class ClientHandler implements Runnable {
                 else if (inputLine.equals("list projects")) {
                     out.println("Your projects: " + userProjects.toString());
                 }
-                else if (inputLine.equals("send file")) {
-                    FileHandler fileHandler = new FileHandler("server_data/file1.txt");
+                else if (inputLine.startsWith("send ")) {
+                    String fileName = inputLine.substring(5);
+                    FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                     fileHandler.receiveFile(dataInputStream);
-                    out.println("File has been received by server");
+                    out.println(fileName + " has been received by server");
                 }
-                else if (inputLine.equals("download file")) {
-                    FileHandler fileHandler = new FileHandler("server_data/file1.txt");
+                else if (inputLine.startsWith("download ")) {
+                    String fileName = inputLine.substring(9);
+                    FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                     fileHandler.sendFile(dataOutputStream);
                 }
-                else if (inputLine.equals("delete file")) {
-                    FileHandler fileHandler = new FileHandler("server_data/file1.txt");
+                else if (inputLine.startsWith("delete ")) {
+                    String fileName = inputLine.substring(7);
+                    FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                     boolean deleted = fileHandler.deleteFile();
                     if (deleted) {
-                        out.println("File has been deleted.");
+                        out.println(fileName + " has been deleted.");
                     } else {
-                        out.println("File has not been deleted...for some reason.");
+                        out.println(fileName + " has not been deleted...for some reason.");
                     }
                 }
                 else {

@@ -36,13 +36,15 @@ public class Client {
 
                 out.println(userMessage);
 
-                if (userMessage.equals("send file")) {
-                    FileHandler fileHandler = new FileHandler("client_data/file1.txt");
+                if (userMessage.startsWith("send ")) {
+                    String fileName = userMessage.substring(5);
+                    FileHandler fileHandler = new FileHandler("client_data/" + fileName);
                     fileHandler.sendFile(dataOutputStream);
                 }
 
-                else if (userMessage.equals("download file")) {
-                    FileHandler fileHandler = new FileHandler("client_data/file1.txt");
+                else if (userMessage.startsWith("download ")) {
+                    String fileName = userMessage.substring(9);
+                    FileHandler fileHandler = new FileHandler("client_data/" + fileName);
                     fileHandler.receiveFile(dataInputStream);
                     System.out.println("File downloaded");
                 }
