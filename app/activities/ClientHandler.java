@@ -1,13 +1,19 @@
+package app.activities;
+
 import java.io.*;
 import java.net.*;
 import java.util.List;
 import java.util.ArrayList;
+import app.utils.FileHandler;
 
 public class ClientHandler implements Runnable {
     private Socket clientSocket;
     private PrintWriter out;
     private BufferedReader in;
     private String username;
+
+    DataInputStream dataInputStream;
+    DataOutputStream dataOutputStream;
 
     public ClientHandler(Socket socket) {
         this.clientSocket = socket;
@@ -17,6 +23,9 @@ public class ClientHandler implements Runnable {
         try {
             out = new PrintWriter(clientSocket.getOutputStream(), true);
             in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+
+            dataInputStream = new DataInputStream(clientSocket.getInputStream());
+            dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
 
             // Receive username from client
             this.username = in.readLine();
@@ -48,6 +57,32 @@ public class ClientHandler implements Runnable {
                 else if (inputLine.equals("list projects")) {
                     out.println("Your projects: " + userProjects.toString());
                 }
+                else if (inputLine.startsWith("send ")) {
+                    String fileName = inputLine.substring(5);
+                    FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                    fileHandler.receiveFile(dataInputStream);
+                    out.println(fileName + " has been received by server");
+                }
+                else if (inputLine.startsWith("download ")) {
+                    String fileName = inputLine.substring(9);
+                    FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                    fileHandler.sendFile(dataOutputStream);
+                }
+                else if (inputLine.startsWith("delete ")) {
+                    String fileName = inputLine.substring(7);
+                    FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                    boolean deleted = fileHandler.deleteFile();
+                    if (deleted) {
+                        out.println(fileName + " has been deleted.");
+                    } else {
+                        out.println(fileName + " has not been deleted...either the file does not exist or something else went wrong.");
+                    }
+                }
+                else if (inputLine.equals("list")) {
+                    FileHandler fileHandler = new FileHandler("server_data/");
+                    String output = fileHandler.listFiles();
+                    out.println(output);
+                }
                 else {
                     // Example of responding to client
                     //out.println("Server received: " + inputLine);
@@ -60,6 +95,8 @@ public class ClientHandler implements Runnable {
                 // Close connections
                 in.close();
                 out.close();
+                dataInputStream.close();
+                dataOutputStream.close();
                 clientSocket.close();
             } catch (IOException e) {
                 e.printStackTrace();
