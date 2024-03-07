@@ -1,26 +1,26 @@
 import javax.crypto.*;
-import javax.crypto.spec.PBEKeySpec;
-import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.spec.*;
 import java.io.*;
 import java.net.*;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.security.spec.KeySpec;
 
 public class Server {
     private static final int PORT = 12345;
     public static final String PROJECTS_DIRECTORY = "projects/";
-    private static final Map<String, byte[]> userSecretKeys = new HashMap<>();
-    private static final Map<String, String> userPasswords = new HashMap<>();
+    private static Map<String, byte[]> userSecretKeys = new HashMap<>();
+    private static Map<String, String> userPasswords = new HashMap<>();
+
+    static {
+        // Load user secret keys and passwords from files (or initialize them)
+        loadUserSecretKeys();
+        loadUserPasswords();
+    }
 
     public static void main(String[] args) {
         try {
-            // Load user secret keys and passwords from files (or initialize them)
-            loadUserSecretKeys();
-            loadUserPasswords();
-
             ServerSocket serverSocket = new ServerSocket(PORT);
             System.out.println("Server started. Waiting for clients...");
 
@@ -75,7 +75,7 @@ public class Server {
             SecretKeyFactory skf = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA512");
             PBEKeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, 128);
             byte[] hash = skf.generateSecret(spec).getEncoded();
-    
+
             // Combine the salt and hash into a single string for storage
             return Base64.getEncoder().encodeToString(salt) + ":" + Base64.getEncoder().encodeToString(hash);
         } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
@@ -84,7 +84,59 @@ public class Server {
         }
     }
 
-    private static boolean verifyPassword(String providedPassword, String storedPassword) {
+    private static byte[] encryptSecretKey(byte[] secretKey, String password) {
+        try {
+            // Derive a secret key from the password
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            KeySpec spec = new PBEKeySpec(password.toCharArray(), new byte[16], 65536, 256);
+            SecretKey tmp = factory.generateSecret(spec);
+            SecretKey secretKeySpec = new SecretKeySpec(tmp.getEncoded(), "AES");
+
+            // Encrypt the secret key using AES
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+            return cipher.doFinal(secretKey);
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
+                | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static byte[] decryptSecretKey(byte[] encryptedSecretKey, String password) {
+        try {
+            // Derive a secret key from the password
+            SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+            KeySpec spec = new PBEKeySpec(password.toCharArray(), new byte[16], 65536, 256);
+            SecretKey tmp = factory.generateSecret(spec);
+            SecretKey secretKeySpec = new SecretKeySpec(tmp.getEncoded(), "AES");
+    
+            // Initialize the cipher with the derived key and IV
+            Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(new byte[cipher.getBlockSize()]);
+            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
+    
+            // Decrypt the secret key using AES
+            byte[] decryptedSecretKey = cipher.doFinal(encryptedSecretKey);
+            return decryptedSecretKey;
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
+                | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
+    // Helper method to convert byte array to hex string
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X", b));
+        }
+        return sb.toString();
+    }
+    
+
+    public static boolean verifyPassword(String providedPassword, String storedPassword) {
         try {
             // Split the stored password string into salt and hash
             String[] parts = storedPassword.split(":");
