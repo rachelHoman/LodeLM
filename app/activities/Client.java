@@ -2,7 +2,11 @@ package app.activities;
 
 import java.io.*;
 import java.net.*;
+<<<<<<< HEAD:Client.java
+import java.util.Base64;
+=======
 import app.utils.*;
+>>>>>>> master:app/activities/Client.java
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
@@ -23,10 +27,23 @@ public class Client {
             // Prompt the user for username
             System.out.print("Enter your username: ");
             String username = userInput.readLine();
+            out.println(username); // Send username to server
 
-            // Send username to the server
-            out.println(username);
+            // Prompt the user for password
+            System.out.print("Enter your password: ");
+            String password = userInput.readLine();
+            // Encrypt the password
+            byte[] encryptedPassword = encryptPassword(password);
+            System.out.println("Encrypted password: " + Base64.getEncoder().encodeToString(encryptedPassword));
+            out.println(Base64.getEncoder().encodeToString(encryptedPassword)); // Send encrypted password to server
 
+<<<<<<< HEAD:Client.java
+            // Receive response from server
+            String response;
+            while ((response = in.readLine()) != null) {
+                System.out.println(response);
+                break; // Exit loop after receiving response
+=======
             // Receive and print the greeting message from the server
             String greeting = in.readLine();
             System.out.println(greeting);
@@ -62,6 +79,7 @@ public class Client {
                     // Break out of inner loop to return to waiting for user input
                     break;
                 }
+>>>>>>> master:app/activities/Client.java
             }
 
             // Close connections
@@ -72,5 +90,10 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private static byte[] encryptPassword(String password) {
+        // Implement password encryption here
+        return password.getBytes(); // For demonstration, return password as bytes
     }
 }
