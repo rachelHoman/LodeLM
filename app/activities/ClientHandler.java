@@ -66,6 +66,15 @@ public class ClientHandler implements Runnable {
                     FileHandler fileHandler = new FileHandler("server_data/file1.txt");
                     fileHandler.sendFile(dataOutputStream);
                 }
+                else if (inputLine.equals("delete file")) {
+                    FileHandler fileHandler = new FileHandler("server_data/file1.txt");
+                    boolean deleted = fileHandler.deleteFile();
+                    if (deleted) {
+                        out.println("File has been deleted.");
+                    } else {
+                        out.println("File has not been deleted...for some reason.");
+                    }
+                }
                 else {
                     // Example of responding to client
                     //out.println("Server received: " + inputLine);
