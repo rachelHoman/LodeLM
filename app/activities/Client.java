@@ -56,7 +56,7 @@ public class Client {
 
                 // Print server responses
                 String response;
-                while ((response = in.readLine()) != null) {
+                while ((response = in.readLine()) != null) { // TODO: this shouldn't go line by line bc if a response has multiple lines then it has to be prompted multiple times to get the full response
                     System.out.println(response);
 
                     // Break out of inner loop to return to waiting for user input
