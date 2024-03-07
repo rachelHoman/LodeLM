@@ -1,5 +1,10 @@
+<<<<<<< HEAD:Server.java
 import javax.crypto.*;
 import javax.crypto.spec.*;
+=======
+package app.activities;
+
+>>>>>>> master:app/activities/Server.java
 import java.io.*;
 import java.net.*;
 import java.security.*;
