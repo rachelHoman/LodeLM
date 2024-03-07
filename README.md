@@ -36,3 +36,19 @@ The user can then create a project file with
 The user can view their projects by typing
 
 `list projects`
+
+The user can send a file to the server
+
+`send <file_name>`
+
+The user can download a file from the server
+
+`download <file_name>`
+
+The user can delete a file on the server
+
+`delete <file_name>`
+
+The user can list the files on the server
+
+`list`
