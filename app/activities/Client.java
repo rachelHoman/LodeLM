@@ -2,11 +2,8 @@ package app.activities;
 
 import java.io.*;
 import java.net.*;
-<<<<<<< HEAD:Client.java
 import java.util.Base64;
-=======
-import app.utils.*;
->>>>>>> master:app/activities/Client.java
+import app.utils.FileHandler;
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
@@ -37,13 +34,6 @@ public class Client {
             System.out.println("Encrypted password: " + Base64.getEncoder().encodeToString(encryptedPassword));
             out.println(Base64.getEncoder().encodeToString(encryptedPassword)); // Send encrypted password to server
 
-<<<<<<< HEAD:Client.java
-            // Receive response from server
-            String response;
-            while ((response = in.readLine()) != null) {
-                System.out.println(response);
-                break; // Exit loop after receiving response
-=======
             // Receive and print the greeting message from the server
             String greeting = in.readLine();
             System.out.println(greeting);
@@ -79,7 +69,7 @@ public class Client {
                     // Break out of inner loop to return to waiting for user input
                     break;
                 }
->>>>>>> master:app/activities/Client.java
+
             }
 
             // Close connections
