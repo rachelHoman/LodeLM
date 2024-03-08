@@ -44,7 +44,7 @@ public class ClientHandler implements Runnable {
             //List<String> userProjects = Server.getUserProjects().computeIfAbsent(username, k -> new ArrayList<>());
 
             // Send greeting message to client
-            out.println("Hi " + username);
+            //out.println("Hi " + username);
 
             // Handle client requests
             // TODO: give the users a list of things they can do on the server to prompt them

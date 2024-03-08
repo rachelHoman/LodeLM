@@ -11,7 +11,7 @@ or with new file system: `javac ./app/activities/Client.java`
 
 `javac ClientHandler.java`
 
-or with new file system: javac `./app/activities/ClientHandler.java`
+or with new file system: `javac ./app/activities/ClientHandler.java`
 
 `javac Server.java`
 
