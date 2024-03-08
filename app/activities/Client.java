@@ -1,12 +1,9 @@
 package app.activities;
 import java.io.*;
 import java.net.*;
-import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
+import java.security.MessageDigest;
 import java.util.Base64;
 import app.utils.FileHandler;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
@@ -32,17 +29,12 @@ public class Client {
             // Prompt the user for password
             System.out.print("Enter your password: ");
             String password = userInput.readLine();
-
             // Hash the password
-            byte[] passwordHash = hashPassword(password);
-            System.out.println("Encrypted password: " + Base64.getEncoder().encodeToString(passwordHash));
-
-            // Debugging: Print password bytes
-            System.out.println("Password bytes: " + Arrays.toString(password.getBytes(StandardCharsets.UTF_8)));
-            String base64PasswordHash = Base64.getEncoder().encodeToString(passwordHash);
-            System.out.println("Base64 Encoded Password Hash: " + base64PasswordHash);
-
-            out.println(Base64.getEncoder().encodeToString(passwordHash)); // Send hashed password to server
+            byte[] hashedPassword = hashPassword(password);
+            // Encrypt the hashed password
+            byte[] encryptedPassword = encryptPassword(hashedPassword);
+            System.out.println("Encrypted password: " + Base64.getEncoder().encodeToString(encryptedPassword));
+            out.println(Base64.getEncoder().encodeToString(encryptedPassword)); // Send encrypted password to server
 
             // Receive and print the greeting message from the server
             String greeting = in.readLine();
@@ -95,16 +87,15 @@ public class Client {
     private static byte[] hashPassword(String password) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            return digest.digest(password.getBytes(StandardCharsets.UTF_8));
-        } catch (NoSuchAlgorithmException e) {
+            return digest.digest(password.getBytes());
+        } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
-      
 
-    public static byte[] encryptPassword(String password) {
+    private static byte[] encryptPassword(byte[] password) {
         // Implement password encryption here
-        return password.getBytes(); // For demonstration, return password as bytes
+        return password; // For demonstration, return password as bytes
     }
 }
