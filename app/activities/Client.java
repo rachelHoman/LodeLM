@@ -2,6 +2,7 @@ package app.activities;
 import java.io.*;
 import java.net.*;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Base64;
 import app.utils.FileHandler;
 import java.security.MessageDigest;
@@ -31,9 +32,16 @@ public class Client {
             // Prompt the user for password
             System.out.print("Enter your password: ");
             String password = userInput.readLine();
+
             // Hash the password
             byte[] passwordHash = hashPassword(password);
             System.out.println("Encrypted password: " + Base64.getEncoder().encodeToString(passwordHash));
+
+            // Debugging: Print password bytes
+            System.out.println("Password bytes: " + Arrays.toString(password.getBytes(StandardCharsets.UTF_8)));
+            String base64PasswordHash = Base64.getEncoder().encodeToString(passwordHash);
+            System.out.println("Base64 Encoded Password Hash: " + base64PasswordHash);
+
             out.println(Base64.getEncoder().encodeToString(passwordHash)); // Send hashed password to server
 
             // Receive and print the greeting message from the server

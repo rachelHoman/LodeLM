@@ -124,6 +124,23 @@ public class Server {
     //     }
     // }
 
+    // public static byte[] encryptSecretKey(byte[] secretKey, byte[] password) {
+    //     try {
+    //         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+    //         KeySpec spec = new PBEKeySpec(new String(password, StandardCharsets.UTF_8).toCharArray(), new byte[16], 65536, 256);
+    //         SecretKey tmp = factory.generateSecret(spec);
+    //         SecretKey secretKeySpec = new SecretKeySpec(tmp.getEncoded(), "AES");
+    
+    //         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+    //         cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+    //         return cipher.doFinal(secretKey);
+    //     } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
+    //             | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+    //         e.printStackTrace();
+    //         return null;
+    //     }
+    // }
+
     public static byte[] encryptSecretKey(byte[] secretKey, byte[] password) {
         try {
             SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
@@ -132,15 +149,53 @@ public class Server {
             SecretKey secretKeySpec = new SecretKeySpec(tmp.getEncoded(), "AES");
     
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
-            return cipher.doFinal(secretKey);
+            
+            // Generate a random IV
+            SecureRandom random = new SecureRandom();
+            byte[] ivBytes = new byte[cipher.getBlockSize()];
+            random.nextBytes(ivBytes);
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
+            
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec, ivParameterSpec);
+            
+            // Prepend IV to the encrypted data
+            byte[] encryptedDataWithIV = cipher.doFinal(secretKey);
+            byte[] encryptedData = new byte[ivBytes.length + encryptedDataWithIV.length];
+            System.arraycopy(ivBytes, 0, encryptedData, 0, ivBytes.length);
+            System.arraycopy(encryptedDataWithIV, 0, encryptedData, ivBytes.length, encryptedDataWithIV.length);
+    
+            return encryptedData;
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
-                | InvalidKeyException | BadPaddingException | IllegalBlockSizeException e) {
+                | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
             e.printStackTrace();
             return null;
         }
     }
+    
 
+    // public static byte[] decryptSecretKey(byte[] encryptedSecretKey, byte[] password) {
+    //     try {
+    //         // Derive a secret key from the password
+    //         SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+    //         KeySpec spec = new PBEKeySpec(new String(password).toCharArray(), new byte[16], 65536, 256);
+    //         SecretKey tmp = factory.generateSecret(spec);
+    //         SecretKey secretKeySpec = new SecretKeySpec(tmp.getEncoded(), "AES");
+    
+    //         // Initialize the cipher with the derived key and IV
+    //         Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+    //         IvParameterSpec ivParameterSpec = new IvParameterSpec(new byte[cipher.getBlockSize()]);
+    //         cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
+    
+    //         // Decrypt the secret key using AES
+    //         byte[] decryptedSecretKey = cipher.doFinal(encryptedSecretKey);
+    //         return decryptedSecretKey;
+    //     } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
+    //             | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
+    //         e.printStackTrace();
+    //         return null;
+    //     }
+    // }
+    
     public static byte[] decryptSecretKey(byte[] encryptedSecretKey, byte[] password) {
         try {
             // Derive a secret key from the password
@@ -151,11 +206,15 @@ public class Server {
     
             // Initialize the cipher with the derived key and IV
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
-            IvParameterSpec ivParameterSpec = new IvParameterSpec(new byte[cipher.getBlockSize()]);
+            
+            // Extract IV from the encrypted data
+            byte[] ivBytes = Arrays.copyOfRange(encryptedSecretKey, 0, cipher.getBlockSize());
+            IvParameterSpec ivParameterSpec = new IvParameterSpec(ivBytes);
+            
+            // Decrypt the data using AES
             cipher.init(Cipher.DECRYPT_MODE, secretKeySpec, ivParameterSpec);
+            byte[] decryptedSecretKey = cipher.doFinal(encryptedSecretKey, cipher.getBlockSize(), encryptedSecretKey.length - cipher.getBlockSize());
     
-            // Decrypt the secret key using AES
-            byte[] decryptedSecretKey = cipher.doFinal(encryptedSecretKey);
             return decryptedSecretKey;
         } catch (NoSuchAlgorithmException | InvalidKeySpecException | NoSuchPaddingException
                 | InvalidKeyException | BadPaddingException | IllegalBlockSizeException | InvalidAlgorithmParameterException e) {
@@ -177,6 +236,9 @@ public class Server {
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.ENCRYPT_MODE, secretKey);
 
+            System.out.println("ecryptPassword password: " + password.toString());
+            System.out.println("cipher.doFinal(password): " + cipher.doFinal(password));
+
             // Encrypt the password
             return cipher.doFinal(password);
         } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
@@ -195,6 +257,9 @@ public class Server {
             // Initialize the cipher with the generated key
             Cipher cipher = Cipher.getInstance("AES");
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
+            
+            System.out.println("decryptedPassword: " + encryptedPassword.toString());
+            System.out.println("cipher.doFinal(encryptedPassword): " + cipher.doFinal(encryptedPassword));
 
             // Decrypt the password
             return cipher.doFinal(encryptedPassword);

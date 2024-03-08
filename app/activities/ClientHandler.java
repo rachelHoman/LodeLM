@@ -45,6 +45,7 @@ public class ClientHandler implements Runnable {
                 out.println("Login successful. Welcome, " + username + "!");
                 // If authentication successful, obtain the secret key for the user
                 byte[] secretKey = Server.getUserSecretKeys().get(username);
+                System.out.println("secretKey: " + secretKey);
                 // Encrypt the secret key and send it to the client
                 out.println(Base64.getEncoder().encodeToString(encryptSecretKey(secretKey, password)));
             } else {
@@ -141,19 +142,43 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    // private String decryptPassword(byte[] encryptedPassword) {
+    //     // Convert the password string to a byte array
+    //     // TODO: change this to not be hard coded for alice's password but rather user input
+    //     byte[] passwordBytes = "password123".getBytes(StandardCharsets.UTF_8);
+    //     System.out.println("passwordBytes:" + passwordBytes.toString());
+        
+    //     // Implement password decryption here
+    //     System.out.println("here1");
+    //     byte[] decryptedPasswordBytes = Server.decryptSecretKey(encryptedPassword, passwordBytes);
+    //     System.out.println("decryptedPasswordBytes: " + decryptedPasswordBytes.toString());
+        
+    //     System.out.println("here2");
+    //     // Convert the decrypted byte array back to a string
+    //     String decryptedPassword = new String(decryptedPasswordBytes, StandardCharsets.UTF_8);
+    //     System.out.println("decryptedPassword: " + decryptedPassword);
+        
+    //     return decryptedPassword;
+    // }
+
     private String decryptPassword(byte[] encryptedPassword) {
-        // Convert the password string to a byte array
-        // TODO: change this to not be hard coded for alice's password but rather user input
-        byte[] passwordBytes = "password123".getBytes(StandardCharsets.UTF_8);
-        
+        // Use the server's preconfigured password for decryption
+        String serverPassword = "your_server_password_here";
+        byte[] passwordBytes = serverPassword.getBytes(StandardCharsets.UTF_8);
+        System.out.println("Password bytes: " + Arrays.toString(passwordBytes));
+    
         // Implement password decryption here
+        System.out.println("Decryption started...");
         byte[] decryptedPasswordBytes = Server.decryptSecretKey(encryptedPassword, passwordBytes);
-        
+        System.out.println("Decrypted password bytes: " + Arrays.toString(decryptedPasswordBytes));
+    
         // Convert the decrypted byte array back to a string
         String decryptedPassword = new String(decryptedPasswordBytes, StandardCharsets.UTF_8);
-        
+        System.out.println("Decrypted password: " + decryptedPassword);
+    
         return decryptedPassword;
     }
+    
     
 
     private byte[] encryptSecretKey(byte[] secretKey, String password) {
