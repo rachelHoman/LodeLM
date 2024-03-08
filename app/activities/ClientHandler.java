@@ -30,9 +30,10 @@ public class ClientHandler implements Runnable {
             String username = in.readLine();
             // Receive encrypted password from client
             String encryptedPasswordBase64 = in.readLine();
-            byte[] encryptedPassword = Base64.getDecoder().decode(encryptedPasswordBase64);
+            // byte[] encryptedPassword = Base64.getDecoder().decode(encryptedPasswordBase64);
+            byte[] password = Base64.getDecoder().decode(encryptedPasswordBase64);
             // Decrypt the password
-            String password = decryptPassword(encryptedPassword);
+            // String password = decryptPassword(encryptedPassword);
             // Validate username and password
             if (authenticateUser(username, password)) {
                 out.println("Login successful. Welcome, " + username + "!");
@@ -62,7 +63,7 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private boolean authenticateUser(String username, String password) {
+    private boolean authenticateUser(String username, byte[] password) {
         // Validate username and password using server's logic
         return Server.verifyPassword(password, Server.getUserPasswords().get(username));
     }
@@ -72,8 +73,8 @@ public class ClientHandler implements Runnable {
         return new String(encryptedPassword); // For demonstration, return decrypted password as string
     }
 
-    private byte[] encryptSecretKey(byte[] secretKey, String password) {
-        return Server.encryptSecretKey(secretKey, password.getBytes());
+    private byte[] encryptSecretKey(byte[] secretKey, byte[] password) {
+        return Server.encryptSecretKey(secretKey, password);
     }
 }
 

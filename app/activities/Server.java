@@ -82,8 +82,12 @@ public class Server {
         }
     }
 
-    public static boolean verifyPassword(String providedPassword, byte[] storedPasswordHash) {
-        byte[] providedPasswordHash = hashPassword(providedPassword);
+    // public static boolean verifyPassword(String providedPassword, byte[] storedPasswordHash) {
+    //     byte[] providedPasswordHash = hashPassword(providedPassword);
+    //     return Arrays.equals(providedPasswordHash, storedPasswordHash);
+    // }
+    public static boolean verifyPassword(byte[] providedPasswordHash, byte[] storedPasswordHash) {
+        // Compare the provided password hash with the stored password hash
         return Arrays.equals(providedPasswordHash, storedPasswordHash);
     }
 
