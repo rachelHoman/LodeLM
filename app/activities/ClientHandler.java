@@ -1,9 +1,14 @@
 package app.activities;
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import app.utils.FileHandler;
 
 public class ClientHandler implements Runnable {
@@ -30,24 +35,23 @@ public class ClientHandler implements Runnable {
             String username = in.readLine();
             // Receive encrypted password from client
             String encryptedPasswordBase64 = in.readLine();
+            System.out.println("encryptedPasswordBase64: " + encryptedPasswordBase64);
             byte[] encryptedPassword = Base64.getDecoder().decode(encryptedPasswordBase64);
             // Decrypt the password
             String password = decryptPassword(encryptedPassword);
+            System.out.println("password after decryption: " + password);
             // Validate username and password
             if (authenticateUser(username, password)) {
                 out.println("Login successful. Welcome, " + username + "!");
+                // If authentication successful, obtain the secret key for the user
+                byte[] secretKey = Server.getUserSecretKeys().get(username);
+                // Encrypt the secret key and send it to the client
+                out.println(Base64.getEncoder().encodeToString(encryptSecretKey(secretKey, password)));
             } else {
                 out.println("Invalid username or password.");
             }
-            // Initialize project list for the user
-            // TODO: connect username to user database object and pull in associated user projects from there, not the server class
-            //List<String> userProjects = Server.getUserProjects().computeIfAbsent(username, k -> new ArrayList<>());
-
-            // Send greeting message to client
-            //out.println("Hi " + username);
-
+            
             // Handle client requests
-            // TODO: give the users a list of things they can do on the server to prompt them
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
                 System.out.println("Received from client: " + inputLine);
@@ -112,24 +116,47 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private boolean authenticateUser(String username, String password) {
-        // Validate username and password (you may use your authentication logic here)
-        // For demo purposes, let's just check if the username is "alice" and password is "password123"
-        return username.equals("alice") && password.equals("password123");
+    private boolean authenticateUser(String username, String providedPassword) {
+        // Retrieve the stored hashed password for the provided username
+        byte[] storedPasswordHash = Server.getUserPasswords().get(username);
+        if (storedPasswordHash == null) {
+            System.out.println("Username not found: " + username);
+            return false; // Username not found
+        }
+    
+        // Hash the provided password
+        byte[] hashedProvidedPassword = hashPassword(providedPassword);
+    
+        // Compare the hashed provided password with the stored password hash using a secure comparison method
+        return MessageDigest.isEqual(hashedProvidedPassword, storedPasswordHash);
     }
 
-    // private boolean createProject(String projectName, List<String> userProjects) {
-    //     try {
-    //         // TODO: make this a projects object not directory bc we don't want to save this on our local devices
-    //         // Create the "projects" directory if it doesn't exist 
-    //         File projectsDir = new File(Server.PROJECTS_DIRECTORY);
-    //         if (!projectsDir.exists()) {
-    //             projectsDir.mkdirs(); // mkdirs() will create parent directories if necessary
-    //         }
+    private byte[] hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return digest.digest(password.getBytes());
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
 
     private String decryptPassword(byte[] encryptedPassword) {
+        // Convert the password string to a byte array
+        // TODO: change this to not be hard coded for alice's password but rather user input
+        byte[] passwordBytes = "password123".getBytes(StandardCharsets.UTF_8);
+        
         // Implement password decryption here
-        return new String(encryptedPassword); // For demonstration, return decrypted password as string
+        byte[] decryptedPasswordBytes = Server.decryptSecretKey(encryptedPassword, passwordBytes);
+        
+        // Convert the decrypted byte array back to a string
+        String decryptedPassword = new String(decryptedPasswordBytes, StandardCharsets.UTF_8);
+        
+        return decryptedPassword;
+    }
+    
+
+    private byte[] encryptSecretKey(byte[] secretKey, String password) {
+        return Server.encryptSecretKey(secretKey, Client.encryptPassword(password));
     }
 }
-
