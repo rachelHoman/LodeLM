@@ -1,3 +1,8 @@
+# LodeLM
+**A large language model collaboration platform**
+
+By Anika Gupta, Rachel Homan, and Christy Marchese
+
 To run the servers and code first compile the java classes:
 
 `javac Client.java`
