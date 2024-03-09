@@ -50,9 +50,7 @@ public class Server {
 
     private static void loadUserPasswords() {
         // Load hashed passwords from a file or database
-        // For demo purposes, let's initialize with some sample passwords
-        // In practice, you would securely store hashed passwords
-        // Using a secure hashing algorithm like bcrypt or PBKDF2
+        // TODO: with database make this not hard coded
         userPasswords.put("alice", hashPassword("password123"));
         userPasswords.put("bob", hashPassword("secret456"));
     }
@@ -82,10 +80,6 @@ public class Server {
         }
     }
 
-    // public static boolean verifyPassword(String providedPassword, byte[] storedPasswordHash) {
-    //     byte[] providedPasswordHash = hashPassword(providedPassword);
-    //     return Arrays.equals(providedPasswordHash, storedPasswordHash);
-    // }
     public static boolean verifyPassword(byte[] providedPasswordHash, byte[] storedPasswordHash) {
         // Compare the provided password hash with the stored password hash
         return Arrays.equals(providedPasswordHash, storedPasswordHash);

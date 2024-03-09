@@ -96,6 +96,8 @@ public class Client {
 
     private static byte[] encryptPassword(byte[] password) {
         // Implement password encryption here
-        return password; // For demonstration, return password as bytes
+        // For demonstration, return password as bytes
+        // TODO: make sure that this is secure
+        return password; 
     }
 }
