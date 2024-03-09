@@ -1,7 +1,7 @@
 package app.activities;
-
 import java.io.*;
 import java.net.*;
+import java.security.MessageDigest;
 import java.util.Base64;
 import app.utils.FileHandler;
 
@@ -29,8 +29,10 @@ public class Client {
             // Prompt the user for password
             System.out.print("Enter your password: ");
             String password = userInput.readLine();
-            // Encrypt the password
-            byte[] encryptedPassword = encryptPassword(password);
+            // Hash the password
+            byte[] hashedPassword = hashPassword(password);
+            // Encrypt the hashed password
+            byte[] encryptedPassword = encryptPassword(hashedPassword);
             System.out.println("Encrypted password: " + Base64.getEncoder().encodeToString(encryptedPassword));
             out.println(Base64.getEncoder().encodeToString(encryptedPassword)); // Send encrypted password to server
 
@@ -82,8 +84,18 @@ public class Client {
         }
     }
 
-    private static byte[] encryptPassword(String password) {
+    private static byte[] hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return digest.digest(password.getBytes());
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    private static byte[] encryptPassword(byte[] password) {
         // Implement password encryption here
-        return password.getBytes(); // For demonstration, return password as bytes
+        return password; // For demonstration, return password as bytes
     }
 }
