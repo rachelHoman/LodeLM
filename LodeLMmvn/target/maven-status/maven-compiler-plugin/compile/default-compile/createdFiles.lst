@@ -1,1 +1,5 @@
+utils/FileHandler.class
 com/security/App.class
+activities/ClientHandler.class
+activities/Server.class
+activities/Client.class

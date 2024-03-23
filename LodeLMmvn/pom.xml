@@ -17,6 +17,7 @@
         <configuration>
           <archive>
             <manifest>
+              <!-- <mainClass>activities.Server</mainClass> -->
               <mainClass>com.security.App</mainClass>
             </manifest>
           </archive>
