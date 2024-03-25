@@ -34,6 +34,8 @@ public class ClientHandler implements Runnable {
             String encryptedPasswordBase64 = in.readLine();
             byte[] password = Base64.getDecoder().decode(encryptedPasswordBase64);
 
+            System.out.println(System.getProperty("user.dir"));
+
             
             // Validate username and password
             if (authenticateUser(username, password)) {
@@ -120,4 +122,3 @@ public class ClientHandler implements Runnable {
         return Server.encryptSecretKey(secretKey, password);
     }
 }
-
