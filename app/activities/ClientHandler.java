@@ -4,6 +4,8 @@ import java.net.*;
 import java.util.Base64;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
+
 import app.utils.FileHandler;
 
 public class ClientHandler implements Runnable {
@@ -33,16 +35,21 @@ public class ClientHandler implements Runnable {
             String encryptedPasswordBase64 = in.readLine();
             byte[] password = Base64.getDecoder().decode(encryptedPasswordBase64);
 
-            
             // Validate username and password
             if (authenticateUser(username, password)) {
-                out.println("Login successful. Welcome, " + username + "!");
                 // If authentication successful, obtain the secret key for the user
                 byte[] secretKey = Server.getUserSecretKeys().get(username);
                 // Encrypt the secret key and send it to the client
-                out.println(Base64.getEncoder().encodeToString(encryptSecretKey(secretKey, password)));
+                //out.println(Base64.getEncoder().encodeToString(encryptSecretKey(secretKey, password)));
+                
+                out.flush();
+
+                out.println("Login successful. Welcome, " + username + "!");
+                
             } else {
                 out.println("Invalid username or password.");
+                clientSocket.close();
+                return;
             }
             
             // Handle client requests
@@ -88,6 +95,7 @@ public class ClientHandler implements Runnable {
                     out.println(output);
                 }
             }
+            clientSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -104,9 +112,21 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private boolean authenticateUser(String username, byte[] password) {
+    private boolean authenticateUser(String username, byte[] providedPassword) {
         // Validate username and password using server's logic
-        return Server.verifyPassword(password, Server.getUserPasswords().get(username));
+        //return Server.verifyPassword(password, Server.getUserPasswords().get(username));
+        // Get the stored password hash for the given username
+        byte[] storedPasswordHash = Server.getUserPasswords().get(username);
+
+        if (storedPasswordHash == null) {
+            return false; // User not found
+        }
+
+        // Hash the provided password
+        byte[] providedPasswordHash = Server.hashPassword(new String(providedPassword)); // Convert byte[] to String before hashing
+
+        // Compare the hashed passwords
+        return Arrays.equals(providedPasswordHash, storedPasswordHash);
     }
 
     private String decryptPassword(byte[] encryptedPassword) {
