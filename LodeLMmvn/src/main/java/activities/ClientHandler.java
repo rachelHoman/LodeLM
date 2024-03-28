@@ -1,10 +1,16 @@
 package LodeLMmvn.src.main.java.activities;
+
 import java.io.*;
 import java.net.*;
 import java.util.Base64;
-import java.util.List;
-import java.util.ArrayList;
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+
 import LodeLMmvn.src.main.java.utils.FileHandler;
+import LodeLMmvn.src.main.java.utils.MACUtils;
 
 public class ClientHandler implements Runnable {
     private Socket clientSocket;
@@ -33,7 +39,6 @@ public class ClientHandler implements Runnable {
             String encryptedPasswordBase64 = in.readLine();
             byte[] password = Base64.getDecoder().decode(encryptedPasswordBase64);
 
-            
             // Validate username and password
             if (authenticateUser(username, password)) {
                 // If authentication successful, obtain the secret key for the user
@@ -97,6 +102,7 @@ public class ClientHandler implements Runnable {
                     out.println(output);
                 }
             }
+            clientSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -113,19 +119,27 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private boolean authenticateUser(String username, byte[] password) {
+    private boolean authenticateUser(String username, byte[] providedPassword) {
         // Validate username and password using server's logic
-        return Server.verifyPassword(password, Server.getUserPasswords().get(username));
-    }
+        // return Server.verifyPassword(password, Server.getUserPasswords().get(username));
 
-    private String decryptPassword(byte[] encryptedPassword) {
-        // Implement password decryption here
-        // For demonstration, return decrypted password as string
-        return new String(encryptedPassword); 
+        // Get the stored password hash for the given username
+        byte[] storedPasswordHash = Server.getUserPasswords().get(username);
+
+        if (storedPasswordHash == null) {
+            return false; // User not found
+        }
+
+        // Hash the provided password
+        byte[] providedPasswordHash = Server.hashPassword(new String(providedPassword));
+
+        // Compare the hashed passwords
+        return Arrays.equals(providedPasswordHash, storedPasswordHash);
     }
 
     private byte[] encryptSecretKey(byte[] secretKey, byte[] password) {
-        return Server.encryptSecretKey(secretKey, password);
+        // Implement secret key encryption here
+        // For demonstration, just return the secret key
+        return secretKey;
     }
 }
-

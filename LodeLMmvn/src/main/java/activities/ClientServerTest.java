@@ -1,4 +1,4 @@
-package app.activities;
+package LodeLMmvn.src.main.java.activities;
 import org.junit.*;
 
 import static org.junit.Assert.assertEquals;

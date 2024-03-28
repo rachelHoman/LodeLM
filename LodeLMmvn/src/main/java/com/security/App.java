@@ -1,6 +1,6 @@
 // import FirebaseInit;
 
-package com.security;
+package LodeLMmvn.src.main.java.com.security;
 
 /**
  * Hello world!

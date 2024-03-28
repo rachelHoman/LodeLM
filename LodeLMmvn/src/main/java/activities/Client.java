@@ -1,9 +1,9 @@
-package activities;
+package LodeLMmvn.src.main.java.activities;
+
 import java.io.*;
 import java.net.*;
-import java.security.MessageDigest;
 import java.util.Base64;
-import utils.FileHandler;
+import LodeLMmvn.src.main.java.utils.FileHandler;
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
@@ -29,11 +29,8 @@ public class Client {
             // Prompt the user for password
             System.out.print("Enter your password: ");
             String password = userInput.readLine();
-            // Hash the password
-            byte[] hashedPassword = hashPassword(password);
-            // Encrypt the hashed password
-            byte[] encryptedPassword = encryptPassword(hashedPassword);
-            System.out.println("Encrypted password: " + Base64.getEncoder().encodeToString(encryptedPassword));
+            // Encrypt the password
+            byte[] encryptedPassword = encryptPassword(password);
             out.println(Base64.getEncoder().encodeToString(encryptedPassword)); // Send encrypted password to server
 
             // Receive and print the greeting message from the server
@@ -84,20 +81,8 @@ public class Client {
         }
     }
 
-    private static byte[] hashPassword(String password) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            return digest.digest(password.getBytes());
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    private static byte[] encryptPassword(byte[] password) {
+    private static byte[] encryptPassword(String password) {
         // Implement password encryption here
-        // For demonstration, return password as bytes
-        // TODO: make sure that this is secure
-        return password; 
+        return password.getBytes(); // For demonstration, return password as bytes
     }
 }

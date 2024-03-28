@@ -1,4 +1,4 @@
-package app.utils;
+package LodeLMmvn.src.main.java.utils;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;

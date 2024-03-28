@@ -1,4 +1,4 @@
-package activities;
+package LodeLMmvn.src.main.java.activities;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 
@@ -9,7 +9,12 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.security.spec.KeySpec;
 
-// import FirebaseInit;
+// import com.google.auth.oauth2.GoogleCredentials;
+// import com.google.firebase.FirebaseApp;
+// import com.google.firebase.FirebaseOptions;
+// import com.google.firebase.database.DatabaseReference;
+// import com.google.firebase.database.FirebaseDatabase;
+
 
 public class Server {
     private static final int PORT = 12345;
@@ -26,7 +31,14 @@ public class Server {
 
     public static void main(String[] args) {
 
-        // FirebaseInitializer.initialize();
+        // FileInputStream serviceAccount =
+        // new FileInputStream("path/to/serviceAccountKey.json");
+
+        // FirebaseOptions options = new FirebaseOptions.Builder()
+        // .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+        // .build();
+
+        // FirebaseApp.initializeApp(options);
 
         try {
             ServerSocket serverSocket = new ServerSocket(PORT);
@@ -62,7 +74,7 @@ public class Server {
 
     private static void loadUserSecretKeysFromFile() {
         // Load encrypted secret keys from a file
-        try (BufferedReader reader = new BufferedReader(new FileReader("src/main/java/activities/secret_keys.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("app/activities/secret_keys.txt"))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(":");
