@@ -1,11 +1,10 @@
-package activities;
-
+package LodeLMmvn.src.main.java.activities;
 import java.io.*;
 import java.net.*;
 import java.util.Base64;
 import java.util.List;
 import java.util.ArrayList;
-import utils.FileHandler;
+import LodeLMmvn.src.main.java.utils.FileHandler;
 
 public class ClientHandler implements Runnable {
     private Socket clientSocket;
@@ -34,18 +33,25 @@ public class ClientHandler implements Runnable {
             String encryptedPasswordBase64 = in.readLine();
             byte[] password = Base64.getDecoder().decode(encryptedPasswordBase64);
 
-            System.out.println(System.getProperty("user.dir"));
-
             
             // Validate username and password
             if (authenticateUser(username, password)) {
-                out.println("Login successful. Welcome, " + username + "!");
                 // If authentication successful, obtain the secret key for the user
                 byte[] secretKey = Server.getUserSecretKeys().get(username);
-                // Encrypt the secret key and send it to the client
-                out.println(Base64.getEncoder().encodeToString(encryptSecretKey(secretKey, password)));
+
+                // Send encrypted secret key and MAC to client
+                byte[] encryptedSecretKey = encryptSecretKey(secretKey, password);
+                byte[] mac = MACUtils.createMAC(encryptedSecretKey, password);
+
+                dataOutputStream.write(encryptedSecretKey);
+                dataOutputStream.write(mac);
+
+                out.println("Authentication successful. Proceeding with connection...");
+                
             } else {
                 out.println("Invalid username or password.");
+                clientSocket.close();
+                return;
             }
             
             // Handle client requests
@@ -122,3 +128,4 @@ public class ClientHandler implements Runnable {
         return Server.encryptSecretKey(secretKey, password);
     }
 }
+
