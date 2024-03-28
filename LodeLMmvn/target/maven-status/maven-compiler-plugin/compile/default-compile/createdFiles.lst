@@ -1,4 +1,5 @@
 utils/FileHandler.class
+FirebaseInit.class
 com/security/App.class
 activities/ClientHandler.class
 activities/Server.class
