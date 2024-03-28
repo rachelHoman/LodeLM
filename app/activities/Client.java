@@ -33,17 +33,14 @@ public class Client {
             // Hash the password
             byte[] hashedPassword = hashPassword(password);
             // Encrypt the hashed password
-            byte[] encryptedPassword = encryptPassword(hashedPassword);
-            //System.out.println("Encrypted password: " + Base64.getEncoder().encodeToString(encryptedPassword));
-            out.println(Base64.getEncoder().encodeToString(encryptedPassword)); // Send encrypted password to server
+            //byte[] encryptedPassword = encryptPassword(hashedPassword);
+            //out.println(Base64.getEncoder().encodeToString(encryptedPassword)); // Send encrypted password to server
 
             // Send username and hashed password to the server
             out.println(username);
-            //out.println(Base64.getEncoder().encodeToString(hashedPassword));
 
             // Receive response from the server
             String response = in.readLine();
-            System.out.println("response: " + response);
 
             // Check if authentication was successful
             if (response.equals("Authentication successful")) {
