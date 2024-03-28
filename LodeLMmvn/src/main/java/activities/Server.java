@@ -74,7 +74,7 @@ public class Server {
 
     private static void loadUserSecretKeysFromFile() {
         // Load encrypted secret keys from a file
-        try (BufferedReader reader = new BufferedReader(new FileReader("app/activities/secret_keys.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("src/main/java/activities/secret_keys.txt"))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(":");
