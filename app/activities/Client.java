@@ -4,6 +4,7 @@ import java.net.*;
 import java.security.MessageDigest;
 import java.util.Base64;
 import app.utils.FileHandler;
+import app.utils.MACUtils;
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
@@ -33,56 +34,54 @@ public class Client {
             byte[] hashedPassword = hashPassword(password);
             // Encrypt the hashed password
             byte[] encryptedPassword = encryptPassword(hashedPassword);
-            System.out.println("Encrypted password: " + Base64.getEncoder().encodeToString(encryptedPassword));
+            //System.out.println("Encrypted password: " + Base64.getEncoder().encodeToString(encryptedPassword));
             out.println(Base64.getEncoder().encodeToString(encryptedPassword)); // Send encrypted password to server
 
-            // Receive and print the greeting message from the server
-            String greeting = in.readLine();
-            System.out.println(greeting);
+            // Send username and hashed password to the server
+            out.println(username);
+            //out.println(Base64.getEncoder().encodeToString(hashedPassword));
 
-            String userMessage;
-            while ((userMessage = userInput.readLine()) != null) {
+            // Receive response from the server
+            String response = in.readLine();
+            System.out.println("response: " + response);
 
-                out.println(userMessage);
+            // Check if authentication was successful
+            if (response.equals("Authentication successful")) {
+                System.out.println("Authentication successful. Proceeding with connection...");
+                // Receive encrypted secret key and MAC from server
+                byte[] encryptedSecretKey = new byte[128]; 
+                byte[] mac = new byte[32]; 
 
-                if (userMessage.startsWith("send ")) {
-                    String fileName = userMessage.substring(5);
-                    FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-                    fileHandler.sendFile(dataOutputStream);
+                dataInputStream.readFully(encryptedSecretKey);
+                dataInputStream.readFully(mac);
+
+                // Verify MAC to ensure integrity of received data
+                if (MACUtils.verifyMAC(encryptedSecretKey, mac, hashedPassword)) {
+                    out.println("Secret key verified. Proceeding with connection...");
+                    // Now the client can proceed with further actions
+                } else {
+                    out.println("Secret key verification failed. Closing connection.");
+                    // Handle failed verification (e.g., close connection)
+                    socket.close();
                 }
-
-                else if (userMessage.startsWith("download ")) {
-                    String fileName = userMessage.substring(9);
-                    FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-                    fileHandler.receiveFile(dataInputStream);
-                    System.out.println("File downloaded");
-                }
-
-                // Exit loop if user types 'exit'
-                else if (userMessage.equalsIgnoreCase("exit")) {
-                    break;
-                }
-
-                // Print server responses
-                String response;
-                while ((response = in.readLine()) != null) { // TODO: this shouldn't go line by line bc if a response has multiple lines then it has to be prompted multiple times to get the full response
-                    System.out.println(response);
-
-                    // Break out of inner loop to return to waiting for user input
-                    break;
-                }
-
+            } else {
+                // Authentication failed, handle this case as needed (e.g., terminate connection)
+                out.println("Authentication failed. Closing connection.");
+                socket.close();
             }
 
             // Close connections
             userInput.close();
             in.close();
             out.close();
+            dataInputStream.close();
+            dataOutputStream.close();
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+
 
     private static byte[] hashPassword(String password) {
         try {
