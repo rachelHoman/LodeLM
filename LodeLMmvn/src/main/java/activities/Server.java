@@ -1,4 +1,4 @@
-package LodeLMmvn.src.main.java.activities;
+package activities;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 

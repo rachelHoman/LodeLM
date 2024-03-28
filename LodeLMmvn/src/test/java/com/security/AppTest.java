@@ -1,4 +1,4 @@
-package LodeLMmvn.src.test.java.com.security;
+package com.security;
 
 import junit.framework.Test;
 import junit.framework.TestCase;
