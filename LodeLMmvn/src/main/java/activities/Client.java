@@ -1,9 +1,9 @@
-package app.activities;
+package activities;
 
 import java.io.*;
 import java.net.*;
 import java.util.Base64;
-import app.utils.FileHandler;
+import utils.FileHandler;
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";

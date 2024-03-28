@@ -3,6 +3,18 @@
 
 By Anika Gupta, Rachel Homan, and Christy Marchese
 
+to compile, package, and execute the maven project:
+
+- mvn compile: compiles the main Java source code located in the src/
+- mvn test-compile: compiles the test Java source code located in the src/test/
+- mvn package: compiles the main source code and packages it into a JAR (Java Archive) file
+
+java -jar target/LodeLMmvn-1.0-SNAPSHOT.jar
+
+to override the main class: 
+- runs Client.java: mvn exec:java -Dexec.mainClass="activities.Client"
+- runs Server.java: mvn exec:java -Dexec.mainClass="activities.Server"
+
 To run the servers and code first compile the java classes:
 
 `javac Client.java`

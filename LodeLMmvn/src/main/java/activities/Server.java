@@ -1,4 +1,4 @@
-package app.activities;
+package activities;
 import javax.crypto.*;
 import javax.crypto.spec.*;
 

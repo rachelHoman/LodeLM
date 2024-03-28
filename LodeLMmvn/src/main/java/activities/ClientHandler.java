@@ -1,4 +1,4 @@
-package app.activities;
+package activities;
 
 import java.io.*;
 import java.net.*;
@@ -8,9 +8,8 @@ import javax.crypto.spec.SecretKeySpec;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-
-import app.utils.FileHandler;
-import app.utils.MACUtils;
+import utils.FileHandler;
+import utils.MACUtils;
 
 public class ClientHandler implements Runnable {
     private Socket clientSocket;
@@ -37,7 +36,7 @@ public class ClientHandler implements Runnable {
 
             // Receive encrypted password from client
             String encryptedPasswordBase64 = in.readLine();
-            byte[] password = Base64.getDecoder().decode(encryptedPasswordBase64);
+            byte[] password = Base64.getDecoder().decode(encryptedPasswordBase64); //TODO: this line prints but is vital to the functionality
 
             // Validate username and password
             if (authenticateUser(username, password)) {
