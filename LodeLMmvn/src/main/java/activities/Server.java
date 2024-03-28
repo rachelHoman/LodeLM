@@ -15,7 +15,6 @@ import java.security.spec.KeySpec;
 // import com.google.firebase.database.DatabaseReference;
 // import com.google.firebase.database.FirebaseDatabase;
 
-
 public class Server {
     private static final int PORT = 12345;
     public static final String PROJECTS_DIRECTORY = "projects/";
