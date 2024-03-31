@@ -12,8 +12,8 @@ to compile, package, and execute the maven project:
 java -jar target/LodeLMmvn-1.0-SNAPSHOT.jar
 
 to override the main class: 
-- runs Client.java: mvn exec:java -Dexec.mainClass="activities.Client"
 - runs Server.java: mvn exec:java -Dexec.mainClass="activities.Server"
+- runs Client.java: mvn exec:java -Dexec.mainClass="activities.Client"
 
 To run the servers and code first compile the java classes:
 

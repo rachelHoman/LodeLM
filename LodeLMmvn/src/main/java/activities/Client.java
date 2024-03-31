@@ -72,6 +72,7 @@ public class Client {
             }
 
             // Close connections
+            out.println("Client disconnected");
             userInput.close();
             in.close();
             out.close();

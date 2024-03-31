@@ -36,7 +36,13 @@ public class ClientHandler implements Runnable {
 
             // Receive encrypted password from client
             String encryptedPasswordBase64 = in.readLine();
-            byte[] password = Base64.getDecoder().decode(encryptedPasswordBase64); //TODO: this line prints but is vital to the functionality
+            // Ensure proper padding by adding '=' characters if necessary
+            int padding = encryptedPasswordBase64.length() % 4;
+            if (padding > 0) {
+                encryptedPasswordBase64 += "====".substring(padding);
+            }
+
+            byte[] password = Base64.getDecoder().decode(encryptedPasswordBase64);
 
             // Validate username and password
             if (authenticateUser(username, password)) {
@@ -47,8 +53,8 @@ public class ClientHandler implements Runnable {
                 byte[] encryptedSecretKey = encryptSecretKey(secretKey, password);
                 byte[] mac = MACUtils.createMAC(encryptedSecretKey, password);
 
-                dataOutputStream.write(encryptedSecretKey);
-                dataOutputStream.write(mac);
+                //dataOutputStream.write(encryptedSecretKey);
+                //dataOutputStream.write(mac);
 
                 out.println("Authentication successful. Proceeding with connection...");
                 
