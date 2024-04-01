@@ -5,11 +5,11 @@ import java.net.*;
 import java.util.Base64;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
-import utils.FileHandler;
-import utils.MACUtils;
+import utils.*;
 
 public class ClientHandler implements Runnable {
     private Socket clientSocket;
@@ -22,6 +22,8 @@ public class ClientHandler implements Runnable {
     public ClientHandler(Socket socket) {
         this.clientSocket = socket;
     }
+
+    DatabHandler dbhandler = new DatabHandler();
 
     public void run() {
         try {
@@ -85,6 +87,11 @@ public class ClientHandler implements Runnable {
                     FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                     fileHandler.receiveFile(dataInputStream);
                     out.println(fileName + " has been received by server");
+
+                    //send to database
+                    dbhandler.sendFile("server_data/" + fileName, fileName);
+                    // DatabHandler dbhandler = new DatabHandler();
+                    // dbHandler.uploadFile("server_data/" + fileName, fileName);
                 }
                 else if (inputLine.startsWith("download ")) {
                     String fileName = inputLine.substring(9);
