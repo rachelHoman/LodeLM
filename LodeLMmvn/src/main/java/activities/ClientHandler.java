@@ -106,6 +106,11 @@ public class ClientHandler implements Runnable {
                         out.println(fileName + " has not been deleted...either the file does not exist or something else went wrong.");
                     }
                 }
+                else if (inputLine.equals("pwd")) {
+                    FileHandler fileHandler = new FileHandler("server_data/");
+                    String output = fileHandler.pwd();
+                    out.println(output);
+                }
                 else if (inputLine.equals("list")) {
                     FileHandler fileHandler = new FileHandler("server_data/");
                     String output = fileHandler.listFiles();

@@ -72,6 +72,21 @@ public class FileHandler {
         return deleted;
     }
 
+    /***
+     * Outputs current working directory
+     * 
+     * return: (String) output to print to user
+     */
+    public String pwd() {
+        String output = "Working Directory: " + System.getProperty("user.dir") + "/" + this.path;
+        return output;
+    }
+
+    /***
+     * Lists files in server directory
+     * 
+     * return: (String) output to print to user
+     */
     public String listFiles() {
         File directory = new File(this.path);
 
