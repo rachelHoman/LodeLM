@@ -46,13 +46,13 @@ or with new file system: `java app/activities/Client`
 The Client will first be prompted to enter a username. After the user puts in their uid the Server recieves that, and tells the Client hi.
 
 
-The user can then create a project file with
+;; The user can then create a project file with
 
-`create <project_file_name>`
+;; `create <project_file_name>`
 
-The user can view their projects by typing
+;; The user can view their projects by typing
 
-`list projects`
+;; `list projects`
 
 The user can send a file to the server
 
