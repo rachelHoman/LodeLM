@@ -9,12 +9,6 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.security.spec.KeySpec;
 
-// import com.google.auth.oauth2.GoogleCredentials;
-// import com.google.firebase.FirebaseApp;
-// import com.google.firebase.FirebaseOptions;
-// import com.google.firebase.database.DatabaseReference;
-// import com.google.firebase.database.FirebaseDatabase;
-
 public class Server {
     private static final int PORT = 12345;
     public static final String PROJECTS_DIRECTORY = "projects/";
@@ -29,15 +23,6 @@ public class Server {
     }
 
     public static void main(String[] args) {
-
-        // FileInputStream serviceAccount =
-        // new FileInputStream("path/to/serviceAccountKey.json");
-
-        // FirebaseOptions options = new FirebaseOptions.Builder()
-        // .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-        // .build();
-
-        // FirebaseApp.initializeApp(options);
 
         try {
             ServerSocket serverSocket = new ServerSocket(PORT);

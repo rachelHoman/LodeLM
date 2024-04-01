@@ -72,6 +72,7 @@ public class Client {
             }
 
             // Close connections
+            out.println("Client disconnected");
             userInput.close();
             in.close();
             out.close();
@@ -80,7 +81,7 @@ public class Client {
             e.printStackTrace();
         }
     }
-
+    
     private static byte[] encryptPassword(String password) {
         // Implement password encryption here
         return password.getBytes(); // For demonstration, return password as bytes

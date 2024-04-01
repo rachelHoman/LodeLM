@@ -5,11 +5,9 @@ import java.net.*;
 import java.util.Base64;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
+
 import java.util.Arrays;
-import utils.FileHandler;
-import utils.MACUtils;
+import utils.*;
 
 public class ClientHandler implements Runnable {
     private Socket clientSocket;
@@ -22,6 +20,8 @@ public class ClientHandler implements Runnable {
     public ClientHandler(Socket socket) {
         this.clientSocket = socket;
     }
+
+    DatabHandler dbhandler = new DatabHandler();
 
     public void run() {
         try {
@@ -36,7 +36,13 @@ public class ClientHandler implements Runnable {
 
             // Receive encrypted password from client
             String encryptedPasswordBase64 = in.readLine();
-            byte[] password = Base64.getDecoder().decode(encryptedPasswordBase64); //TODO: this line prints but is vital to the functionality
+            // Ensure proper padding by adding '=' characters if necessary
+            int padding = encryptedPasswordBase64.length() % 4;
+            if (padding > 0) {
+                encryptedPasswordBase64 += "====".substring(padding);
+            }
+
+            byte[] password = Base64.getDecoder().decode(encryptedPasswordBase64);
 
             // Validate username and password
             if (authenticateUser(username, password)) {
@@ -47,8 +53,8 @@ public class ClientHandler implements Runnable {
                 byte[] encryptedSecretKey = encryptSecretKey(secretKey, password);
                 byte[] mac = MACUtils.createMAC(encryptedSecretKey, password);
 
-                dataOutputStream.write(encryptedSecretKey);
-                dataOutputStream.write(mac);
+                //dataOutputStream.write(encryptedSecretKey);
+                //dataOutputStream.write(mac);
 
                 out.println("Authentication successful. Proceeding with connection...");
                 
@@ -79,6 +85,11 @@ public class ClientHandler implements Runnable {
                     FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                     fileHandler.receiveFile(dataInputStream);
                     out.println(fileName + " has been received by server");
+
+                    //send to database
+                    dbhandler.sendFile("server_data/" + fileName, fileName);
+                    // DatabHandler dbhandler = new DatabHandler();
+                    // dbHandler.uploadFile("server_data/" + fileName, fileName);
                 }
                 else if (inputLine.startsWith("download ")) {
                     String fileName = inputLine.substring(9);
