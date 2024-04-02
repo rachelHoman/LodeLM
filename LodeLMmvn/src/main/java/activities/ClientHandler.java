@@ -5,6 +5,7 @@ import java.net.*;
 import java.util.Base64;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
+import java.security.*;
 
 import java.util.Arrays;
 import utils.*;
@@ -83,7 +84,11 @@ public class ClientHandler implements Runnable {
                 else if (inputLine.startsWith("send ")) {
                     String fileName = inputLine.substring(5);
                     FileHandler fileHandler = new FileHandler("server_data/" + fileName);
-                    fileHandler.receiveFile(dataInputStream);
+                    try {
+                        fileHandler.receiveFile(dataInputStream);
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
                     out.println(fileName + " has been received by server");
 
                     //send to database
@@ -105,6 +110,11 @@ public class ClientHandler implements Runnable {
                     } else {
                         out.println(fileName + " has not been deleted...either the file does not exist or something else went wrong.");
                     }
+                }
+                else if (inputLine.equals("pwd")) {
+                    FileHandler fileHandler = new FileHandler("server_data/");
+                    String output = fileHandler.pwd();
+                    out.println(output);
                 }
                 else if (inputLine.equals("list")) {
                     FileHandler fileHandler = new FileHandler("server_data/");

@@ -1,6 +1,16 @@
 package utils;
 
 import java.io.*;
+import java.security.*;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.BadPaddingException;
+
+import java.io.FileWriter;
+import java.util.Base64;
+
+import com.opencsv.CSVWriter;
+import javax.crypto.SecretKey;
 
 public class FileHandler {
     String path;
@@ -24,6 +34,7 @@ public class FileHandler {
     public void sendFile(DataOutputStream dataOutputStream) throws FileNotFoundException, IOException {
         int bytes = 0;
         File file = new File(this.path);
+
         FileInputStream fileInputStream = new FileInputStream(file);
 
         // Read in file and write to destination
@@ -44,9 +55,10 @@ public class FileHandler {
      * 
      * return: none
      */
-    public void receiveFile(DataInputStream dataInputStream) throws FileNotFoundException, IOException {
+    public void receiveFile(DataInputStream dataInputStream) throws NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException {
         int bytes = 0;
         FileOutputStream fileOutputStream = new FileOutputStream(this.path);
+        File file = new File(this.path);
  
         // Read file in
         long size = dataInputStream.readLong();
@@ -57,6 +69,16 @@ public class FileHandler {
             size -= bytes;
             max_bytes = (int) Math.min(buffer.length, size);
         }
+
+        FileEncryption fe = new FileEncryption();
+        fe.encryptFile(file);
+        byte[] iv = fe.getIV();
+        SecretKey sk = fe.getSK();
+
+        // Store file decryption info
+        String encodedKey = Base64.getEncoder().encodeToString(sk.getEncoded());
+        String [] fileKeyInfo = (this.path + ',' + (new String(iv)) + ',' + encodedKey).split(",");
+        this.appendFileKeyCSV(fileKeyInfo);
 
         fileOutputStream.close();
     }
@@ -72,6 +94,21 @@ public class FileHandler {
         return deleted;
     }
 
+    /***
+     * Outputs current working directory
+     * 
+     * return: (String) output to print to user
+     */
+    public String pwd() {
+        String output = "Working Directory: " + System.getProperty("user.dir") + "/" + this.path;
+        return output;
+    }
+
+    /***
+     * Lists files in server directory
+     * 
+     * return: (String) output to print to user
+     */
     public String listFiles() {
         File directory = new File(this.path);
 
@@ -93,4 +130,11 @@ public class FileHandler {
         }
         return output;
     }
+
+    public void appendFileKeyCSV(String[] fileKeyInfo) throws IOException {
+        String csv = "server_data/file_keys.csv";
+        CSVWriter writer = new CSVWriter(new FileWriter(csv, true));
+        writer.writeNext(fileKeyInfo);
+        writer.close();
+   }
 }
