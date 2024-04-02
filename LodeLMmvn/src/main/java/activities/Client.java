@@ -4,12 +4,16 @@ import java.io.*;
 import java.net.*;
 import java.util.Base64;
 import utils.FileHandler;
+import java.security.*;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.BadPaddingException;
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
     private static final int SERVER_PORT = 12345;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, NoSuchProviderException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
         try {
             Socket socket = new Socket(SERVER_IP, SERVER_PORT);
             System.out.println("Connected to Server");
@@ -51,6 +55,7 @@ public class Client {
                 else if (userMessage.startsWith("download ")) {
                     String fileName = userMessage.substring(9);
                     FileHandler fileHandler = new FileHandler("client_data/" + fileName);
+
                     fileHandler.receiveFile(dataInputStream);
                     System.out.println("File downloaded");
                 }
