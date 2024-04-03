@@ -53,9 +53,6 @@ public class FileEncryption {
         fileContent = Arrays.copyOfRange(fileContent, 16, fileContent.length);
         byte[] cipherText = this.AESDecrypt(fileContent, key, iv_cipher);
         return cipherText;
-        // FileOutputStream outputStream = new FileOutputStream(file);
-        // outputStream.write(cipherText);
-        // outputStream.close();
     }
 
 

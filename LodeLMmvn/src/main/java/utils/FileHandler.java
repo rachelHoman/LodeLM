@@ -1,6 +1,8 @@
 package utils;
 
 import java.io.*;
+import java.util.List;
+
 import java.security.*;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -13,6 +15,7 @@ import java.util.Base64;
 
 import com.opencsv.CSVWriter;
 import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvException;
 import com.opencsv.exceptions.CsvValidationException;
 
 public class FileHandler {
@@ -79,7 +82,7 @@ public class FileHandler {
      * 
      * return: none
      */
-    public void receiveFile(DataInputStream dataInputStream, boolean isServer) throws NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException {
+    public void receiveFile(DataInputStream dataInputStream, boolean isServer) throws CsvException, CsvValidationException, NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException {
         
         int bytes = 0;
         FileOutputStream fileOutputStream = new FileOutputStream(this.path);
@@ -109,8 +112,7 @@ public class FileHandler {
 
             // Store file decryption info
             String encodedKey = Base64.getEncoder().encodeToString(sk.getEncoded());
-            String [] fileKeyInfo = {this.path, encodedKey};
-            this.appendFileKeyCSV(fileKeyInfo);
+            this.appendFileKeyCSV(encodedKey);
         }
         fileOutputStream.close();
     }
@@ -163,9 +165,19 @@ public class FileHandler {
         return output;
     }
 
-    public void appendFileKeyCSV(String[] fileKeyInfo) throws IOException {
+    // TODO: FIX THIS SO THAT DELETES PAST FILE KEY
+    public void appendFileKeyCSV(String encodedKey) throws IOException, CsvException, CsvValidationException {
         String csv = "server_data/file_keys.csv";
         CSVWriter writer = new CSVWriter(new FileWriter(csv, true));
+
+        // See if already in file 
+        int row = this.searchFilenameCSV(csv, this.path);
+        if (row != -1) {
+            // Delete line
+            this.deleteFileKeyCSV(csv, row);
+        }
+        
+        String [] fileKeyInfo = {this.path, encodedKey};
         writer.writeNext(fileKeyInfo);
         writer.close();
     }
@@ -176,7 +188,7 @@ public class FileHandler {
             FileReader filereader = new FileReader(csv); 
         
             CSVReader csvReader = new CSVReader(filereader); 
-            String[] nextRecord; 
+            String[] nextRecord = {}; 
   
             // we are going to read data line by line 
             while ((nextRecord = csvReader.readNext()) != null) { 
@@ -190,5 +202,34 @@ public class FileHandler {
         }
         System.out.println("File Access Denied");
         return null;
+    }
+
+    public int searchFilenameCSV(String csv, String filename) throws IOException, CsvValidationException {
+        try {
+            CSVReader csvReader = new CSVReader(new FileReader(csv)); 
+            String[] nextRecord = {}; 
+            int row = 0;
+            // we are going to read data line by line 
+            while ((nextRecord = csvReader.readNext()) != null) { 
+                if (nextRecord.length > 0 && nextRecord[0].equals(this.path)) {
+                    return row;
+                }
+                row++;
+            }
+        }
+        catch (IOException io) {
+            System.out.println(io);
+        }
+        return -1;
+    }
+
+    public void deleteFileKeyCSV(String csv, int rowNumber) throws IOException, CsvException, CsvValidationException {
+        CSVReader reader = new CSVReader(new FileReader(csv));
+        List<String[]> allElements = reader.readAll();
+        allElements.remove(rowNumber);
+        FileWriter sw = new FileWriter(csv);
+        CSVWriter writer = new CSVWriter(sw);
+        writer.writeAll(allElements);
+        writer.close();
     }
 }
