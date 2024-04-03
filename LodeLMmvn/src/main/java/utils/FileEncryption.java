@@ -1,6 +1,8 @@
 package utils;
 
 import java.io.*;
+import java.util.Arrays;
+
 import java.security.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.OAEPParameterSpec;
@@ -13,6 +15,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import java.io.File;
 import java.nio.file.Files;
+
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 public class FileEncryption {
@@ -37,21 +40,19 @@ public class FileEncryption {
         return this.sk;
     }
 
-    public void encryptFile(File file) throws IOException, FileNotFoundException, NoSuchProviderException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] encryptFile(File file) throws IOException, FileNotFoundException, NoSuchProviderException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
         byte[] fileContent = Files.readAllBytes(file.toPath());
         this.sk = this.getAESKey();
         byte[] cipherText = this.AESEncrypt(fileContent, this.sk);
-        FileOutputStream outputStream = new FileOutputStream(file);
-        outputStream.write(cipherText);
-        outputStream.close();
+        return cipherText;
     }
 
-    public void decryptFile(File file, SecretKey key, byte[] iv_cipher) throws IOException, FileNotFoundException, NoSuchProviderException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
+    public byte[] decryptFile(File file, SecretKey key) throws IOException, FileNotFoundException, NoSuchProviderException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
         byte[] fileContent = Files.readAllBytes(file.toPath());
+        byte[] iv_cipher = Arrays.copyOfRange(fileContent, 0, 16);
+        fileContent = Arrays.copyOfRange(fileContent, 16, fileContent.length);
         byte[] cipherText = this.AESDecrypt(fileContent, key, iv_cipher);
-        FileOutputStream outputStream = new FileOutputStream(file);
-        outputStream.write(cipherText);
-        outputStream.close();
+        return cipherText;
     }
 
 

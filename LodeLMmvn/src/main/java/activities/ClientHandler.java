@@ -69,6 +69,7 @@ public class ClientHandler implements Runnable {
             // TODO: give the users a list of things they can do on the server to prompt them
             String inputLine;
             while ((inputLine = in.readLine()) != null) {
+
                 System.out.println("Received from client: " + inputLine);
 
                 // Handle create project command
@@ -85,7 +86,7 @@ public class ClientHandler implements Runnable {
                     String fileName = inputLine.substring(5);
                     FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                     try {
-                        fileHandler.receiveFile(dataInputStream);
+                        fileHandler.receiveFile(dataInputStream, true);
                     } catch (Exception e) {
                         System.out.println(e);
                     }
@@ -99,7 +100,12 @@ public class ClientHandler implements Runnable {
                 else if (inputLine.startsWith("download ")) {
                     String fileName = inputLine.substring(9);
                     FileHandler fileHandler = new FileHandler("server_data/" + fileName);
-                    fileHandler.sendFile(dataOutputStream);
+                    try {
+                        fileHandler.sendFile(dataOutputStream, true);
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
+                    out.println("File Downloaded");
                 }
                 else if (inputLine.startsWith("delete ")) {
                     String fileName = inputLine.substring(7);
@@ -116,10 +122,17 @@ public class ClientHandler implements Runnable {
                     String output = fileHandler.pwd();
                     out.println(output);
                 }
-                else if (inputLine.equals("list")) {
-                    FileHandler fileHandler = new FileHandler("server_data/");
+                else if (inputLine.startsWith("list")) {
+                    String folder = inputLine.substring(4).strip();
+                    if (folder.length() == 0) {
+                        folder = "server_data/";
+                    }
+                    FileHandler fileHandler = new FileHandler(folder);
                     String output = fileHandler.listFiles();
                     out.println(output);
+                }
+                else {
+                    out.println("No command like that available");
                 }
             }
             clientSocket.close();

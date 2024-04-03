@@ -13,7 +13,7 @@ public class Client {
     private static final String SERVER_IP = "127.0.0.1";
     private static final int SERVER_PORT = 12345;
 
-    public static void main(String[] args) throws InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, NoSuchProviderException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException{
+    public static void main(String[] args) {
         try {
             Socket socket = new Socket(SERVER_IP, SERVER_PORT);
             System.out.println("Connected to Server");
@@ -49,15 +49,21 @@ public class Client {
                 if (userMessage.startsWith("send ")) {
                     String fileName = userMessage.substring(5);
                     FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-                    fileHandler.sendFile(dataOutputStream);
+                    try {
+                        fileHandler.sendFile(dataOutputStream, false);
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
                 }
 
                 else if (userMessage.startsWith("download ")) {
                     String fileName = userMessage.substring(9);
                     FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-
-                    fileHandler.receiveFile(dataInputStream);
-                    System.out.println("File downloaded");
+                    try {
+                        fileHandler.receiveFile(dataInputStream, false);
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
                 }
 
                 // Exit loop if user types 'exit'
