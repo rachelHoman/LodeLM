@@ -4,6 +4,10 @@ import java.io.*;
 import java.net.*;
 import java.util.Base64;
 import utils.FileHandler;
+import java.security.*;
+import javax.crypto.NoSuchPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.BadPaddingException;
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
@@ -45,14 +49,21 @@ public class Client {
                 if (userMessage.startsWith("send ")) {
                     String fileName = userMessage.substring(5);
                     FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-                    fileHandler.sendFile(dataOutputStream);
+                    try {
+                        fileHandler.sendFile(dataOutputStream, false);
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
                 }
 
                 else if (userMessage.startsWith("download ")) {
                     String fileName = userMessage.substring(9);
                     FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-                    fileHandler.receiveFile(dataInputStream);
-                    System.out.println("File downloaded");
+                    try {
+                        fileHandler.receiveFile(dataInputStream, false);
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
                 }
 
                 // Exit loop if user types 'exit'
