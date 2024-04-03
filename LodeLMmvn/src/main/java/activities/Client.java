@@ -45,7 +45,6 @@ public class Client {
             while ((userMessage = userInput.readLine()) != null) {
 
                 out.println(userMessage);
-                System.out.print(userMessage);
 
                 if (userMessage.startsWith("send ")) {
                     String fileName = userMessage.substring(5);
@@ -65,7 +64,6 @@ public class Client {
                     } catch (Exception e) {
                         System.out.println(e);
                     }
-                    System.out.println("File downloaded");
                 }
 
                 // Exit loop if user types 'exit'

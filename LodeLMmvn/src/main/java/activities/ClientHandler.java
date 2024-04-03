@@ -105,6 +105,7 @@ public class ClientHandler implements Runnable {
                     } catch (Exception e) {
                         System.out.println(e);
                     }
+                    out.println("File Downloaded");
                 }
                 else if (inputLine.startsWith("delete ")) {
                     String fileName = inputLine.substring(7);
@@ -130,8 +131,10 @@ public class ClientHandler implements Runnable {
                     String output = fileHandler.listFiles();
                     out.println(output);
                 }
+                else {
+                    out.println("No command like that available");
+                }
             }
-            System.out.println("here");
             clientSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
