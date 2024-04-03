@@ -123,7 +123,7 @@ public class ClientHandler implements Runnable {
                     out.println(output);
                 }
                 else if (inputLine.startsWith("list")) {
-                    String folder = inputLine.substring(4).strip();
+                    String folder = inputLine.substring(4).trim();
                     if (folder.length() == 0) {
                         folder = "server_data/";
                     }
