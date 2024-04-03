@@ -68,7 +68,7 @@ The user can delete a file on the server
 
 The user can list the files on the server
 
-`list`
+`list <folder_name>`
 
 The user can see what directory they are in
 

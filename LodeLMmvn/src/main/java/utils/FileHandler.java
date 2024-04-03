@@ -5,12 +5,15 @@ import java.security.*;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.BadPaddingException;
+import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.SecretKey;
 
 import java.io.FileWriter;
 import java.util.Base64;
 
 import com.opencsv.CSVWriter;
-import javax.crypto.SecretKey;
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
 
 public class FileHandler {
     String path;
@@ -31,21 +34,42 @@ public class FileHandler {
      * 
      * return: none
      */
-    public void sendFile(DataOutputStream dataOutputStream) throws FileNotFoundException, IOException {
+    public void sendFile(DataOutputStream dataOutputStream, boolean isServer) throws CsvValidationException, NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException {
         int bytes = 0;
         File file = new File(this.path);
 
-        FileInputStream fileInputStream = new FileInputStream(file);
+        if (isServer) {
+            // Decrypt the file before sending to client
+            FileEncryption fe = new FileEncryption();
+            String[] fileDecryptInfo = this.retrieveFileKeyCSV();
 
-        // Read in file and write to destination
-        dataOutputStream.writeLong(file.length());
-        byte[] buffer = new byte[4096];
-        while ((bytes = fileInputStream.read(buffer)) != -1) {
-            dataOutputStream.write(buffer, 0, bytes);
+            if (fileDecryptInfo != null && fileDecryptInfo.length == 2) {
+                // Decode the base64 encoded string
+                byte[] decodedKey = Base64.getDecoder().decode(fileDecryptInfo[1]);
+                // Rebuild key using SecretKeySpec
+                SecretKey key = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES"); 
+                byte[] text = fe.decryptFile(file, key);
+
+                dataOutputStream.writeLong(text.length);
+                dataOutputStream.write(text, 0, text.length);
+
+                dataOutputStream.flush();
+            } else {
+                System.out.println("Decryption Error");
+            }
         }
-        
-        dataOutputStream.flush();
-        fileInputStream.close();
+        else {
+            FileInputStream fileInputStream = new FileInputStream(file);
+
+            // Read in file and write to destination
+            dataOutputStream.writeLong(file.length());
+            byte[] buffer = new byte[4096];
+            while ((bytes = fileInputStream.read(buffer)) != -1) {
+                dataOutputStream.write(buffer, 0, bytes);
+            }
+            dataOutputStream.flush();
+            fileInputStream.close();
+        }
     }
 
     /***
@@ -55,10 +79,10 @@ public class FileHandler {
      * 
      * return: none
      */
-    public void receiveFile(DataInputStream dataInputStream) throws NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException {
+    public void receiveFile(DataInputStream dataInputStream, boolean isServer) throws NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException {
+        
         int bytes = 0;
         FileOutputStream fileOutputStream = new FileOutputStream(this.path);
-        File file = new File(this.path);
  
         // Read file in
         long size = dataInputStream.readLong();
@@ -70,16 +94,24 @@ public class FileHandler {
             max_bytes = (int) Math.min(buffer.length, size);
         }
 
-        FileEncryption fe = new FileEncryption();
-        fe.encryptFile(file);
-        byte[] iv = fe.getIV();
-        SecretKey sk = fe.getSK();
+        if (isServer) {
+            // Encrypt file
+            FileEncryption fe = new FileEncryption();
+            File file = new File(this.path);
+            byte[] cipherText = fe.encryptFile(file);
+            byte[] iv = fe.getIV();
+            SecretKey sk = fe.getSK();
 
-        // Store file decryption info
-        String encodedKey = Base64.getEncoder().encodeToString(sk.getEncoded());
-        String [] fileKeyInfo = (this.path + ',' + (new String(iv)) + ',' + encodedKey).split(",");
-        this.appendFileKeyCSV(fileKeyInfo);
+            FileOutputStream outputStream = new FileOutputStream(file);
+            outputStream.write(iv);
+            outputStream.write(cipherText);
+            outputStream.close();
 
+            // Store file decryption info
+            String encodedKey = Base64.getEncoder().encodeToString(sk.getEncoded());
+            String [] fileKeyInfo = {this.path, encodedKey};
+            this.appendFileKeyCSV(fileKeyInfo);
+        }
         fileOutputStream.close();
     }
 
@@ -136,5 +168,27 @@ public class FileHandler {
         CSVWriter writer = new CSVWriter(new FileWriter(csv, true));
         writer.writeNext(fileKeyInfo);
         writer.close();
-   }
+    }
+
+    public String[] retrieveFileKeyCSV() throws IOException, CsvValidationException {
+        String csv = "server_data/file_keys.csv";
+        try {
+            FileReader filereader = new FileReader(csv); 
+        
+            CSVReader csvReader = new CSVReader(filereader); 
+            String[] nextRecord; 
+  
+            // we are going to read data line by line 
+            while ((nextRecord = csvReader.readNext()) != null) { 
+                if (nextRecord.length > 0 && nextRecord[0].equals(this.path)) {
+                    return nextRecord;
+                }
+            }
+        }
+        catch (IOException io) {
+            System.out.println(io);
+        }
+        System.out.println("File Access Denied");
+        return null;
+    }
 }
