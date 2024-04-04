@@ -49,6 +49,12 @@ public class Client {
                 // Prompt the user for username
                 System.out.print("Enter your username: ");
                 String username = userInput.readLine();
+                // Prompt the user for email
+                System.out.print("Enter your email: ");
+                String email = userInput.readLine();
+                // Prompt the user for recovery question
+                System.out.print("Recovery question: Who is your favorite teacher? ");
+                String answer = userInput.readLine();
                 out.println("alice");
                 byte[] encryptedPassword = encryptPassword("password123");
                 out.println(Base64.getEncoder().encodeToString(encryptedPassword));
@@ -66,17 +72,19 @@ public class Client {
                 // Prompt the user for username
                 System.out.print("Enter your username: ");
                 String username = userInput.readLine();
-                //out.println(username); // Send username to server
+                out.println(username); // Send username to server
 
                 // Prompt the user for password
                 System.out.print("Enter your password: ");
                 String password = userInput.readLine();
 
-                // Generate a secret key for the new account
-                byte[] secretKey = generateSecretKey();
+                // Prompt the user for email
+                System.out.print("Enter your email: ");
+                String email = userInput.readLine();
 
-                // Write the username and secret key to secret_keys.txt file
-                writeToSecretKeysFile(username, secretKey);
+                // Prompt the user for recovery question
+                System.out.print("Recovery Question: Who is your favorite teacher? ");
+                String teacher = userInput.readLine();
 
                 // Encrypt the password
                 byte[] encryptedPassword = encryptPassword(password);

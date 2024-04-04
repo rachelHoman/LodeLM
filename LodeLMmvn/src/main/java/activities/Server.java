@@ -81,6 +81,36 @@ public class Server {
         }
     }
 
+    // public static byte[] hashPassword(String password) {
+    //     try {
+    //         // Generate a random salt
+    //         byte[] salt = generateRandomBytes(16);
+            
+    //         // Combine salt and password
+    //         byte[] saltedPassword = concatenateByteArrays(salt, password.getBytes());
+            
+    //         // Hash the salted password
+    //         MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    //         return digest.digest(saltedPassword);
+    //     } catch (NoSuchAlgorithmException e) {
+    //         e.printStackTrace();
+    //         return null;
+    //     }
+    // }
+
+    private static byte[] concatenateByteArrays(byte[] a, byte[] b) {
+        byte[] result = new byte[a.length + b.length];
+        System.arraycopy(a, 0, result, 0, a.length);
+        System.arraycopy(b, 0, result, a.length, b.length);
+        return result;
+    }
+
+    private static byte[] generateRandomBytes(int length) {
+        byte[] bytes = new byte[length];
+        new SecureRandom().nextBytes(bytes);
+        return bytes;
+    }
+
     public static boolean verifyPassword(byte[] providedPasswordHash, byte[] storedPasswordHash) {
         // Compare the provided password hash with the stored password hash
         return Arrays.equals(providedPasswordHash, storedPasswordHash);
