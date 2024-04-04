@@ -53,7 +53,6 @@ public class Client {
             // Prompt the user for username
             System.out.print("Enter your username: ");
             String username = userInput.readLine();
-            // out.println(username);
             EncryptedCom.sendMessage(username, aesKey, fe, dataOutputStream); // Send username to server
 
             // Prompt the user for password
@@ -69,7 +68,7 @@ public class Client {
             String userMessage;
             while ((userMessage = userInput.readLine()) != null) {
 
-                out.println(userMessage);
+                EncryptedCom.sendMessage(userMessage, aesKey, fe, dataOutputStream);
 
                 if (userMessage.startsWith("send ")) {
                     String fileName = userMessage.substring(5);
@@ -98,7 +97,7 @@ public class Client {
 
                 // Print server responses
                 String response;
-                while ((response = in.readLine()) != null) { // TODO: this shouldn't go line by line bc if a response has multiple lines then it has to be prompted multiple times to get the full response
+                while ((response = EncryptedCom.receiveMessage(aesKey, fe, dataInputStream)) != null) { // TODO: this shouldn't go line by line bc if a response has multiple lines then it has to be prompted multiple times to get the full response
                     System.out.println(response);
 
                     // Break out of inner loop to return to waiting for user input

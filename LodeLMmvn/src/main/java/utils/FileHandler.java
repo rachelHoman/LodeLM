@@ -20,6 +20,7 @@ import com.opencsv.exceptions.CsvValidationException;
 
 public class FileHandler {
     String path;
+    String csv = "server_data/file_keys.csv";
 
     /***
      * Constructor for FileHandler
@@ -122,9 +123,16 @@ public class FileHandler {
      * 
      * return: (boolean) whether or not the file was deleted
      */
-    public boolean deleteFile() {
+    public boolean deleteFile() throws IOException, CsvValidationException, CsvException {
         File file = new File(this.path);
         boolean deleted = file.delete();
+        if (deleted) {
+            int row = this.searchFilenameCSV();
+            if (row != -1) {
+                // Delete line
+                this.deleteFileKeyCSV(row);
+            }
+        }
         return deleted;
     }
 
@@ -165,16 +173,14 @@ public class FileHandler {
         return output;
     }
 
-    // TODO: FIX THIS SO THAT DELETES PAST FILE KEY
     public void appendFileKeyCSV(String encodedKey) throws IOException, CsvException, CsvValidationException {
-        String csv = "server_data/file_keys.csv";
-        CSVWriter writer = new CSVWriter(new FileWriter(csv, true));
+        CSVWriter writer = new CSVWriter(new FileWriter(this.csv, true));
 
         // See if already in file 
-        int row = this.searchFilenameCSV(csv, this.path);
+        int row = this.searchFilenameCSV();
         if (row != -1) {
             // Delete line
-            this.deleteFileKeyCSV(csv, row);
+            this.deleteFileKeyCSV(row);
         }
         
         String [] fileKeyInfo = {this.path, encodedKey};
@@ -183,9 +189,8 @@ public class FileHandler {
     }
 
     public String[] retrieveFileKeyCSV() throws IOException, CsvValidationException {
-        String csv = "server_data/file_keys.csv";
         try {
-            FileReader filereader = new FileReader(csv); 
+            FileReader filereader = new FileReader(this.csv); 
         
             CSVReader csvReader = new CSVReader(filereader); 
             String[] nextRecord = {}; 
@@ -204,9 +209,9 @@ public class FileHandler {
         return null;
     }
 
-    public int searchFilenameCSV(String csv, String filename) throws IOException, CsvValidationException {
+    public int searchFilenameCSV() throws IOException, CsvValidationException {
         try {
-            CSVReader csvReader = new CSVReader(new FileReader(csv)); 
+            CSVReader csvReader = new CSVReader(new FileReader(this.csv)); 
             String[] nextRecord = {}; 
             int row = 0;
             // we are going to read data line by line 
@@ -223,11 +228,11 @@ public class FileHandler {
         return -1;
     }
 
-    public void deleteFileKeyCSV(String csv, int rowNumber) throws IOException, CsvException, CsvValidationException {
-        CSVReader reader = new CSVReader(new FileReader(csv));
+    public void deleteFileKeyCSV(int rowNumber) throws IOException, CsvException, CsvValidationException {
+        CSVReader reader = new CSVReader(new FileReader(this.csv));
         List<String[]> allElements = reader.readAll();
         allElements.remove(rowNumber);
-        FileWriter sw = new FileWriter(csv);
+        FileWriter sw = new FileWriter(this.csv);
         CSVWriter writer = new CSVWriter(sw);
         writer.writeAll(allElements);
         writer.close();

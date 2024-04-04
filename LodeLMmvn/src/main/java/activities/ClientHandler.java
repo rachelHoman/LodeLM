@@ -99,74 +99,81 @@ public class ClientHandler implements Runnable {
             
             // Handle client requests
             // TODO: give the users a list of things they can do on the server to prompt them
-            String inputLine;
-            while ((inputLine = in.readLine()) != null) {
+            try {
+                String inputLine;
+                while ((inputLine = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream)) != null) {
 
-                System.out.println("Received from client: " + inputLine);
+                    System.out.println("Received from client: " + inputLine);
 
-                // Handle create project command
-                if (inputLine.startsWith("create ")) {
-                    String projectName = inputLine.substring(7); // Extract project name
-                    // TODO: don't need this with databse -- delete
-                } 
-                // Handle list projects command
-                else if (inputLine.equals("list projects")) {
-                    // TODO: don't need this with databse --> delete
-                    
-                }
-                else if (inputLine.startsWith("send ")) {
-                    String fileName = inputLine.substring(5);
-                    FileHandler fileHandler = new FileHandler("server_data/" + fileName);
-                    try {
-                        fileHandler.receiveFile(dataInputStream, true);
-                    } catch (Exception e) {
-                        System.out.println(e);
+                    // Handle create project command
+                    if (inputLine.startsWith("create ")) {
+                        String projectName = inputLine.substring(7); // Extract project name
+                        // TODO: don't need this with databse -- delete
+                    } 
+                    // Handle list projects command
+                    else if (inputLine.equals("list projects")) {
+                        // TODO: don't need this with databse --> delete
+                        
                     }
-                    out.println(fileName + " has been received by server");
+                    else if (inputLine.startsWith("send ")) {
+                        String fileName = inputLine.substring(5);
+                        FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                        try {
+                            fileHandler.receiveFile(dataInputStream, true);
+                        } catch (Exception e) {
+                            System.out.println(e);
+                        }
+                        EncryptedCom.sendMessage(fileName + " has been received by server", aesSecretKey, fe, dataOutputStream);
 
-                    //send to database
-                    dbhandler.sendFile("server_data/" + fileName, fileName);
-                    // DatabHandler dbhandler = new DatabHandler();
-                    // dbHandler.uploadFile("server_data/" + fileName, fileName);
-                }
-                else if (inputLine.startsWith("download ")) {
-                    String fileName = inputLine.substring(9);
-                    FileHandler fileHandler = new FileHandler("server_data/" + fileName);
-                    try {
-                        fileHandler.sendFile(dataOutputStream, true);
-                    } catch (Exception e) {
-                        System.out.println(e);
+                        //send to database
+                        dbhandler.sendFile("server_data/" + fileName, fileName);
+                        // DatabHandler dbhandler = new DatabHandler();
+                        // dbHandler.uploadFile("server_data/" + fileName, fileName);
                     }
-                    out.println("File Downloaded");
-                }
-                else if (inputLine.startsWith("delete ")) {
-                    String fileName = inputLine.substring(7);
-                    FileHandler fileHandler = new FileHandler("server_data/" + fileName);
-                    boolean deleted = fileHandler.deleteFile();
-                    if (deleted) {
-                        out.println(fileName + " has been deleted.");
-                    } else {
-                        out.println(fileName + " has not been deleted...either the file does not exist or something else went wrong.");
+                    else if (inputLine.startsWith("download ")) {
+                        String fileName = inputLine.substring(9);
+                        FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                        try {
+                            fileHandler.sendFile(dataOutputStream, true);
+                        } catch (Exception e) {
+                            System.out.println(e);
+                        }
+                        EncryptedCom.sendMessage("File Downloaded", aesSecretKey, fe, dataOutputStream);
+                    }
+                    else if (inputLine.startsWith("delete ")) {
+                        String fileName = inputLine.substring(7);
+                        FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                        boolean deleted = fileHandler.deleteFile();
+                        if (deleted) {
+                            EncryptedCom.sendMessage(fileName + " has been deleted.", aesSecretKey, fe, dataOutputStream);
+                        } else {
+                            EncryptedCom.sendMessage(fileName + " has not been deleted...either does not exist or something else went wrong.", aesSecretKey, fe, dataOutputStream);
+                        }
+                    }
+                    else if (inputLine.equals("pwd")) {
+                        FileHandler fileHandler = new FileHandler("server_data/");
+                        String output = fileHandler.pwd();
+                        EncryptedCom.sendMessage(output, aesSecretKey, fe, dataOutputStream);
+                    }
+                    else if (inputLine.startsWith("list")) {
+                        String folder = inputLine.substring(4).trim();
+                        if (folder.length() == 0) {
+                            folder = "server_data/";
+                        }
+                        FileHandler fileHandler = new FileHandler(folder);
+                        String output = fileHandler.listFiles();
+                        EncryptedCom.sendMessage(output, aesSecretKey, fe, dataOutputStream);
+                    }
+                    else if (inputLine.equals("exit")) {
+                        break;
+                    }
+                    else {
+                        EncryptedCom.sendMessage("No command like that available", aesSecretKey, fe, dataOutputStream);
                     }
                 }
-                else if (inputLine.equals("pwd")) {
-                    FileHandler fileHandler = new FileHandler("server_data/");
-                    String output = fileHandler.pwd();
-                    out.println(output);
-                }
-                else if (inputLine.startsWith("list")) {
-                    String folder = inputLine.substring(4).trim();
-                    if (folder.length() == 0) {
-                        folder = "server_data/";
-                    }
-                    FileHandler fileHandler = new FileHandler(folder);
-                    String output = fileHandler.listFiles();
-                    out.println(output);
-                }
-                else {
-                    out.println("No command like that available");
-                }
-            }
+            } catch(Exception e) {
+                System.out.println(e);
+            } 
             clientSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
