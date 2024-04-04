@@ -37,7 +37,7 @@ public class ClientHandler implements Runnable {
 
             dataInputStream = new DataInputStream(clientSocket.getInputStream());
             dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-            
+
             FileEncryption fe = new FileEncryption();
 
             // Receive AES Key
@@ -56,7 +56,7 @@ public class ClientHandler implements Runnable {
             // Receive login or create account signal from client
             String action = in.readLine();
 
-            if (action.equals("createAccount")) {
+            if (action.equals("Create Account") || action.equals("3")) {
                 // Receive username from client
                 byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
                 String username = new String(usernameByte, StandardCharsets.UTF_8);
@@ -74,13 +74,12 @@ public class ClientHandler implements Runnable {
                 }
 
                 byte[] password = Base64.getDecoder().decode(sub);
-              
-                // Create account and store credentials
+
                 createAccount(username, password);
                 out.println("Account creation successful. Proceeding with connection...");
-            } else {
-                // User is logging in or forgot password
-                // TODO: forgot password check with recovery question
+
+            }
+            else {
                 // Receive username from client
                 byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
                 String username = new String(usernameByte, StandardCharsets.UTF_8);
@@ -98,24 +97,19 @@ public class ClientHandler implements Runnable {
                 }
 
                 byte[] password = Base64.getDecoder().decode(sub);
-
 
                 // Validate username and password
                 if (authenticateUser(username, password)) {
                     // If authentication successful, obtain the secret key for the user
                     byte[] secretKey = Server.getUserSecretKeys().get(username);
 
-                    // Send encrypted secret key and MAC to client
-                    byte[] encryptedSecretKey = encryptSecretKey(secretKey, password);
-                    byte[] mac = MACUtils.createMAC(encryptedSecretKey, password);
-                  
                     try {
                         String authenticationSuccess = "Authentication successful. Proceeding with connection...";
                         EncryptedCom.sendMessage(authenticationSuccess.getBytes(), aesSecretKey, fe, dataOutputStream);
                     } catch(Exception e) {
                         System.out.println(e);
                     } 
-                
+                    
                 } else {
                     try {
                         String authenticationFailure = "Invalid username or password.";
@@ -228,13 +222,13 @@ public class ClientHandler implements Runnable {
     }
 
     private boolean authenticateUser(String username, byte[] providedPassword) {
-        // Validate username and password using server's login
+        // Validate username and password using server's logic
+        // return Server.verifyPassword(password, Server.getUserPasswords().get(username));
 
         // Get the stored password hash for the given username
         byte[] storedPasswordHash = Server.getUserPasswords().get(username);
 
         if (storedPasswordHash == null) {
-            System.out.println("User not found for username: " + username);
             return false; // User not found
         }
 
@@ -242,19 +236,7 @@ public class ClientHandler implements Runnable {
         byte[] providedPasswordHash = Server.hashPassword(new String(providedPassword));
 
         // Compare the hashed passwords
-        boolean isAuthenticated = Arrays.equals(providedPasswordHash, storedPasswordHash);
-
-        if (!isAuthenticated) {
-            System.out.println("Invalid password for username: " + username);
-        }
-
-        return isAuthenticated;
-    }
-
-    private byte[] encryptSecretKey(byte[] secretKey, byte[] password) {
-        // Implement secret key encryption here
-        // For demonstration, just return the secret key
-        return secretKey;
+        return Arrays.equals(providedPasswordHash, storedPasswordHash);
     }
 
     private static void createAccount(String username, byte[] password) {
@@ -279,7 +261,7 @@ public class ClientHandler implements Runnable {
         random.nextBytes(secretKey);
         return secretKey;
     }
-    
+
     private static void writeToSecretKeysFile(String username, byte[] secretKey) {
         // TODO: fix this so that it is only on the server and not my laptop
         File file = new File("/Users/rachelhoman/Documents/CSCI 181 S PO/LodeLM-M3/LodeLM/LodeLMmvn/src/main/java/activities/secret_keys.txt");

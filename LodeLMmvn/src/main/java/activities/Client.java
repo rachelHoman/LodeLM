@@ -29,7 +29,7 @@ public class Client {
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())); //server input stream
             BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in)); //user input stream
-          
+            
             DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
             DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
 
@@ -57,7 +57,7 @@ public class Client {
             String login = userInput.readLine();
             if (login.equals("1") || login.equalsIgnoreCase("Login")) {
                 // sending action to server
-                out.println("login");
+                EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
                 // Prompt the user for username
                 System.out.print("Enter your username: ");
                 String username = userInput.readLine();
@@ -71,7 +71,7 @@ public class Client {
             }
             else if (login.equals("2") || login.equalsIgnoreCase("Forgot Password")) {
                 // sending action to server
-                out.println("forgotPassword");
+                EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
                 // Prompt the user for username
                 System.out.print("Enter your username: ");
                 //String username = userInput.readLine();
@@ -99,7 +99,7 @@ public class Client {
             }
             else if (login.equals("3") || login.equalsIgnoreCase("Create Account")) {
                 // Send a signal to the server indicating account creation
-                out.println("createAccount");
+                EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
                 // Prompt the user for username
                 System.out.print("Enter your username: ");
                 String username = userInput.readLine();
@@ -129,6 +129,8 @@ public class Client {
                 in.close();
                 out.close();
                 socket.close();
+                dataInputStream.close();
+                dataOutputStream.close();
             }
 
             // Receive and print the greeting message from the server
