@@ -6,11 +6,17 @@ import java.util.Base64;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
+import java.nio.charset.StandardCharsets;
 
 import java.util.Arrays;
 import utils.*;
+import javax.crypto.SecretKey;
 
 public class ClientHandler implements Runnable {
+    private int AES_KEY_LENGTH = 32;
+    private int MAC_KEY_LENGTH = 32; // 256 bits to 32 bytes
+    private int BUFFER_SIZE = 4096;
+
     private Socket clientSocket;
     private PrintWriter out;
     private BufferedReader in;
@@ -32,8 +38,24 @@ public class ClientHandler implements Runnable {
             dataInputStream = new DataInputStream(clientSocket.getInputStream());
             dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
 
+            FileEncryption fe = new FileEncryption();
+
+            // Receive AES Key
+            byte[] aesKey = new byte[AES_KEY_LENGTH];
+            dataInputStream.read(aesKey, 0, AES_KEY_LENGTH);
+            // aesKey = decryptRSA(aesKey, rsaKey);
+            SecretKey aesSecretKey = new SecretKeySpec(aesKey, 0, AES_KEY_LENGTH, "AES");
+            System.out.println("AES Key Received");
+
+            // Receive MAC Key
+            byte[] macKey = new byte[MAC_KEY_LENGTH];
+            dataInputStream.read(macKey, 0, MAC_KEY_LENGTH);
+            // macKey = decryptRSA(macKey, rsaKey);
+            System.out.println("MAC Key Received");
+
             // Receive username from client
-            String username = in.readLine();
+            // String username = in.readLine();
+            String username = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
 
             // Receive encrypted password from client
             String encryptedPasswordBase64 = in.readLine();
@@ -123,7 +145,7 @@ public class ClientHandler implements Runnable {
                     out.println(output);
                 }
                 else if (inputLine.startsWith("list")) {
-                    String folder = inputLine.substring(4).strip();
+                    String folder = inputLine.substring(4).trim();
                     if (folder.length() == 0) {
                         folder = "server_data/";
                     }
@@ -138,7 +160,8 @@ public class ClientHandler implements Runnable {
             clientSocket.close();
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
+        } 
+        finally {
             try {
                 // Close connections
                 in.close();

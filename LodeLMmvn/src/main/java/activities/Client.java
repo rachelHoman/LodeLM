@@ -1,6 +1,7 @@
 package activities;
 
 import java.io.*;
+import java.nio.charset.StandardCharsets;
 import java.net.*;
 import java.util.Base64;
 import utils.FileHandler;
@@ -9,33 +10,58 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.BadPaddingException;
 
+import utils.*;
+import javax.crypto.SecretKey;
+
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
     private static final int SERVER_PORT = 12345;
+    private int BUFFER_SIZE = 4096;
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException {
         try {
             Socket socket = new Socket(SERVER_IP, SERVER_PORT);
             System.out.println("Connected to Server");
-
-            DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
-            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
 
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
             BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())); //server input stream
             BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in)); //user input stream
 
+            DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
+            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+
+            FileEncryption fe = new FileEncryption();
+            SecretKey aesKey;
+            SecretKey macKey;
+
+            // AES KEY Communication
+            aesKey = fe.getAESKey();
+            byte[] keyData =  aesKey.getEncoded();
+            //TODO: Encrypt keydata
+            dataOutputStream.write(keyData);
+            dataOutputStream.flush();
+            System.out.println("Secret Key Shared");
+
+            macKey = fe.getHmacKey();
+            byte[] macKeyData =  macKey.getEncoded();
+            //TODO: Encrypt keydata
+            dataOutputStream.write(macKeyData);
+            dataOutputStream.flush();
+            System.out.println("MAC Key Shared");
+
+
             // Prompt the user for username
             System.out.print("Enter your username: ");
             String username = userInput.readLine();
-            out.println(username); // Send username to server
+            // out.println(username);
+            EncryptedCom.sendMessage(username, aesKey, fe, dataOutputStream); // Send username to server
 
             // Prompt the user for password
             System.out.print("Enter your password: ");
             String password = userInput.readLine();
             // Encrypt the password
-            byte[] encryptedPassword = encryptPassword(password);
-            out.println(Base64.getEncoder().encodeToString(encryptedPassword)); // Send encrypted password to server
+            System.out.println(Base64.getEncoder().encodeToString(password.getBytes()));
+            out.println(Base64.getEncoder().encodeToString(password.getBytes())); // Send encrypted password to server
 
             // Receive and print the greeting message from the server
             String greeting = in.readLine();
@@ -91,10 +117,5 @@ public class Client {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-    
-    private static byte[] encryptPassword(String password) {
-        // Implement password encryption here
-        return password.getBytes(); // For demonstration, return password as bytes
     }
 }
