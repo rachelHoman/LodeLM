@@ -74,7 +74,7 @@ public class DatabHandler {
 
     private static void initializeFirebase() {
         try {
-            FileInputStream serviceAccount = new FileInputStream("/workspaces/LodeLM/serviceAccountKey.json");
+            FileInputStream serviceAccount = new FileInputStream("/Users/rachelhoman/Documents/CSCI 181 S PO/LodeLM-M3/LodeLM/LodeLMmvn/src/main/java/utils/serviceAccountKey.json");
 
             FirebaseOptions options = new FirebaseOptions.Builder()
                     .setCredentials(GoogleCredentials.fromStream(serviceAccount))

@@ -121,10 +121,14 @@ public class Server {
             return null;
         }
     }
+    
+    // public void writeToSecretKeysFile(String username, byte[] secretKey) {
+    //     try (FileWriter writer = new FileWriter("LodeLMmvn/src/main/java/activities/secret_keys.txt", true)) {
+    //         writer.write(username + ":" + Base64.getEncoder().encodeToString(secretKey) + "\n");
+    //     } catch (IOException e) {
+    //         e.printStackTrace();
+    //     }
+    // }
 
-    private static byte[] generateRandomBytes(int length) {
-        byte[] bytes = new byte[length];
-        new SecureRandom().nextBytes(bytes);
-        return bytes;
-    }
+    
 }

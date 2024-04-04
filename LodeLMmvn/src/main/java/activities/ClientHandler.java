@@ -122,15 +122,15 @@ public class ClientHandler implements Runnable {
                     String output = fileHandler.pwd();
                     out.println(output);
                 }
-                else if (inputLine.startsWith("list")) {
-                    String folder = inputLine.substring(4).strip();
-                    if (folder.length() == 0) {
-                        folder = "server_data/";
-                    }
-                    FileHandler fileHandler = new FileHandler(folder);
-                    String output = fileHandler.listFiles();
-                    out.println(output);
-                }
+                // else if (inputLine.startsWith("list")) {
+                //     String folder = inputLine.substring(4).strip();
+                //     if (folder.length() == 0) {
+                //         folder = "server_data/";
+                //     }
+                //     FileHandler fileHandler = new FileHandler(folder);
+                //     String output = fileHandler.listFiles();
+                //     out.println(output);
+                // }
                 else {
                     out.println("No command like that available");
                 }
@@ -174,5 +174,13 @@ public class ClientHandler implements Runnable {
         // Implement secret key encryption here
         // For demonstration, just return the secret key
         return secretKey;
+    }
+
+    public void createAccount(String username, byte[] password) {
+        // Hash the password
+        byte[] hashedPassword = Server.hashPassword(new String(password));
+    
+        // Store the hashed password in the server's userPasswords map
+        Server.getUserPasswords().put(username, hashedPassword);
     }
 }
