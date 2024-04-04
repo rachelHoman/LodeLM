@@ -26,8 +26,6 @@ public class Client {
             Socket socket = new Socket(SERVER_IP, SERVER_PORT);
             System.out.println("Connected to Server");
 
-            PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream())); //server input stream
             BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in)); //user input stream
             
             DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
@@ -124,10 +122,7 @@ public class Client {
             else {
                 System.out.println("Not a valid login method");
                 // Close connections
-                out.println("Client disconnected");
                 userInput.close();
-                in.close();
-                out.close();
                 socket.close();
                 dataInputStream.close();
                 dataOutputStream.close();
@@ -180,10 +175,7 @@ public class Client {
             }
 
             // Close connections
-            out.println("Client disconnected");
             userInput.close();
-            in.close();
-            out.close();
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
