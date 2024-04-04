@@ -18,8 +18,6 @@ public class ClientHandler implements Runnable {
     private int BUFFER_SIZE = 4096;
 
     private Socket clientSocket;
-    private PrintWriter out;
-    private BufferedReader in;
 
     DataInputStream dataInputStream;
     DataOutputStream dataOutputStream;
@@ -32,8 +30,6 @@ public class ClientHandler implements Runnable {
 
     public void run() {
         try {
-            out = new PrintWriter(clientSocket.getOutputStream(), true);
-            in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 
             dataInputStream = new DataInputStream(clientSocket.getInputStream());
             dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
@@ -54,7 +50,8 @@ public class ClientHandler implements Runnable {
             System.out.println("MAC Key Received");
 
             // Receive login or create account signal from client
-            String action = in.readLine();
+            byte[] actionByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+            String action = new String(actionByte, StandardCharsets.UTF_8);
 
             if (action.equals("Create Account") || action.equals("3")) {
                 // Receive username from client
@@ -64,6 +61,7 @@ public class ClientHandler implements Runnable {
                 // Receive encrypted password from client
                 byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
                 String passwordString = new String(passwordByte, StandardCharsets.UTF_8);
+                System.out.println(passwordString);
 
                 String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());
 
@@ -76,8 +74,12 @@ public class ClientHandler implements Runnable {
                 byte[] password = Base64.getDecoder().decode(sub);
 
                 createAccount(username, password);
-                out.println("Account creation successful. Proceeding with connection...");
-
+                String accountCreation = "Account creation successful. Proceeding with connection...";
+                try {
+                    EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
             }
             else {
                 // Receive username from client
@@ -210,8 +212,6 @@ public class ClientHandler implements Runnable {
         finally {
             try {
                 // Close connections
-                in.close();
-                out.close();
                 dataInputStream.close();
                 dataOutputStream.close();
                 clientSocket.close();
@@ -264,7 +264,7 @@ public class ClientHandler implements Runnable {
 
     private static void writeToSecretKeysFile(String username, byte[] secretKey) {
         // TODO: fix this so that it is only on the server and not my laptop
-        File file = new File("/Users/rachelhoman/Documents/CSCI 181 S PO/LodeLM-M3/LodeLM/LodeLMmvn/src/main/java/activities/secret_keys.txt");
+        File file = new File("src/main/java/activities/secret_keys.txt");
         try (FileReader fr = new FileReader(file);
              BufferedReader br = new BufferedReader(fr)) {
             String line;
