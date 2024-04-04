@@ -72,7 +72,6 @@ public class Client {
                 // Prompt the user for username
                 System.out.print("Enter your username: ");
                 String username = userInput.readLine();
-                out.println(username); // Send username to server
 
                 // Prompt the user for password
                 System.out.print("Enter your password: ");
@@ -89,6 +88,7 @@ public class Client {
                 // Encrypt the password
                 byte[] encryptedPassword = encryptPassword(password);
                 createAccount(username, encryptedPassword);
+                out.println(username); // Send username to server
                 out.println(Base64.getEncoder().encodeToString(encryptedPassword));
             }
             else {
