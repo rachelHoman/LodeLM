@@ -55,10 +55,12 @@ public class ClientHandler implements Runnable {
 
             // Receive username from client
             // String username = in.readLine();
-            String username = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+            byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+            String username = new String(usernameByte, StandardCharsets.UTF_8);
 
             // Receive encrypted password from client
-            String passwordString = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+            byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+            String passwordString = new String(passwordByte, StandardCharsets.UTF_8);
 
             String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());
 
@@ -82,14 +84,16 @@ public class ClientHandler implements Runnable {
                 //dataOutputStream.write(encryptedSecretKey);
                 //dataOutputStream.write(mac);
                 try {
-                    EncryptedCom.sendMessage("Authentication successful. Proceeding with connection...", aesSecretKey, fe, dataOutputStream);
+                    String authenticationSuccess = "Authentication successful. Proceeding with connection...";
+                    EncryptedCom.sendMessage(authenticationSuccess.getBytes(), aesSecretKey, fe, dataOutputStream);
                 } catch(Exception e) {
                     System.out.println(e);
                 } 
                 
             } else {
                 try {
-                    EncryptedCom.sendMessage("Invalid username or password.", aesSecretKey, fe, dataOutputStream);
+                    String authenticationFailure = "Invalid username or password.";
+                    EncryptedCom.sendMessage(authenticationFailure.getBytes(), aesSecretKey, fe, dataOutputStream);
                 } catch(Exception e) {
                     System.out.println(e);
                 } 
@@ -100,8 +104,9 @@ public class ClientHandler implements Runnable {
             // Handle client requests
             // TODO: give the users a list of things they can do on the server to prompt them
             try {
+                String output;
                 String inputLine;
-                while ((inputLine = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream)) != null) {
+                while ((inputLine = new String(EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) {
 
                     System.out.println("Received from client: " + inputLine);
 
@@ -119,11 +124,12 @@ public class ClientHandler implements Runnable {
                         String fileName = inputLine.substring(5);
                         FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                         try {
-                            fileHandler.receiveFile(dataInputStream, true);
+                            fileHandler.receiveFile(dataInputStream, aesSecretKey, true);
                         } catch (Exception e) {
                             System.out.println(e);
                         }
-                        EncryptedCom.sendMessage(fileName + " has been received by server", aesSecretKey, fe, dataOutputStream);
+                        output = fileName + " has been received by server";
+                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
 
                         //send to database
                         dbhandler.sendFile("server_data/" + fileName, fileName);
@@ -134,26 +140,28 @@ public class ClientHandler implements Runnable {
                         String fileName = inputLine.substring(9);
                         FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                         try {
-                            fileHandler.sendFile(dataOutputStream, true);
+                            fileHandler.sendFile(dataOutputStream, aesSecretKey, true);
                         } catch (Exception e) {
                             System.out.println(e);
                         }
-                        EncryptedCom.sendMessage("File Downloaded", aesSecretKey, fe, dataOutputStream);
+                        output = "File Downloaded";
+                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                     }
                     else if (inputLine.startsWith("delete ")) {
                         String fileName = inputLine.substring(7);
                         FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                         boolean deleted = fileHandler.deleteFile();
                         if (deleted) {
-                            EncryptedCom.sendMessage(fileName + " has been deleted.", aesSecretKey, fe, dataOutputStream);
+                            output = fileName + " has been deleted.";
                         } else {
-                            EncryptedCom.sendMessage(fileName + " has not been deleted...either does not exist or something else went wrong.", aesSecretKey, fe, dataOutputStream);
+                            output = fileName + " has not been deleted...either does not exist or something else went wrong.";
                         }
+                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                     }
                     else if (inputLine.equals("pwd")) {
                         FileHandler fileHandler = new FileHandler("server_data/");
-                        String output = fileHandler.pwd();
-                        EncryptedCom.sendMessage(output, aesSecretKey, fe, dataOutputStream);
+                        output = fileHandler.pwd();
+                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                     }
                     else if (inputLine.startsWith("list")) {
                         String folder = inputLine.substring(4).trim();
@@ -161,14 +169,15 @@ public class ClientHandler implements Runnable {
                             folder = "server_data/";
                         }
                         FileHandler fileHandler = new FileHandler(folder);
-                        String output = fileHandler.listFiles();
-                        EncryptedCom.sendMessage(output, aesSecretKey, fe, dataOutputStream);
+                        output = fileHandler.listFiles();
+                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                     }
                     else if (inputLine.equals("exit")) {
                         break;
                     }
                     else {
-                        EncryptedCom.sendMessage("No command like that available", aesSecretKey, fe, dataOutputStream);
+                        output = "No command like that available";
+                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                     }
                 }
             } catch(Exception e) {

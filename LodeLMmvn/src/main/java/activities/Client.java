@@ -53,28 +53,29 @@ public class Client {
             // Prompt the user for username
             System.out.print("Enter your username: ");
             String username = userInput.readLine();
-            EncryptedCom.sendMessage(username, aesKey, fe, dataOutputStream); // Send username to server
+            EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream); // Send username to server
 
             // Prompt the user for password
             System.out.print("Enter your password: ");
             String password = userInput.readLine();
             // Send encrypt password
-            EncryptedCom.sendMessage(password, aesKey, fe, dataOutputStream);
+            EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
 
             // Receive and print the greeting message from the server
-            String greeting = EncryptedCom.receiveMessage(aesKey, fe, dataInputStream);
+            byte[] greetingByte = EncryptedCom.receiveMessage(aesKey, fe, dataInputStream);
+            String greeting = new String(greetingByte, StandardCharsets.UTF_8);
             System.out.println(greeting);
 
             String userMessage;
             while ((userMessage = userInput.readLine()) != null) {
 
-                EncryptedCom.sendMessage(userMessage, aesKey, fe, dataOutputStream);
+                EncryptedCom.sendMessage(userMessage.getBytes(), aesKey, fe, dataOutputStream);
 
                 if (userMessage.startsWith("send ")) {
                     String fileName = userMessage.substring(5);
                     FileHandler fileHandler = new FileHandler("client_data/" + fileName);
                     try {
-                        fileHandler.sendFile(dataOutputStream, false);
+                        fileHandler.sendFile(dataOutputStream, aesKey, false);
                     } catch (Exception e) {
                         System.out.println(e);
                     }
@@ -84,7 +85,7 @@ public class Client {
                     String fileName = userMessage.substring(9);
                     FileHandler fileHandler = new FileHandler("client_data/" + fileName);
                     try {
-                        fileHandler.receiveFile(dataInputStream, false);
+                        fileHandler.receiveFile(dataInputStream, aesKey, false);
                     } catch (Exception e) {
                         System.out.println(e);
                     }
@@ -97,7 +98,7 @@ public class Client {
 
                 // Print server responses
                 String response;
-                while ((response = EncryptedCom.receiveMessage(aesKey, fe, dataInputStream)) != null) { // TODO: this shouldn't go line by line bc if a response has multiple lines then it has to be prompted multiple times to get the full response
+                while ((response = new String(EncryptedCom.receiveMessage(aesKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) { 
                     System.out.println(response);
 
                     // Break out of inner loop to return to waiting for user input
