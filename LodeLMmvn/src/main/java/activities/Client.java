@@ -74,7 +74,7 @@ public class Client {
                 out.println("forgotPassword");
                 // Prompt the user for username
                 System.out.print("Enter your username: ");
-                String username = userInput.readLine();
+                //String username = userInput.readLine();
                 // Prompt the user for email
                 System.out.print("Enter your email: ");
                 String email = userInput.readLine();
@@ -117,10 +117,9 @@ public class Client {
                 // String teacher = userInput.readLine();
 
                 // Encrypt the password
-                // TODO: add encryption to this option
-                byte[] encryptedPassword = encryptPassword(password);
-                out.println(username); // Send username to server
-                out.println(Base64.getEncoder().encodeToString(encryptedPassword));
+                EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
+                EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
+
             }
             else {
                 System.out.println("Not a valid login method");
