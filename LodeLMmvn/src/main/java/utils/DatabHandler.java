@@ -57,6 +57,8 @@ package utils;
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.UserRecord;
 import com.google.firebase.database.*;
 
 import java.io.BufferedReader;
@@ -106,6 +108,76 @@ public class DatabHandler {
             }
         });
     }
+
+    // public static void createUser(String usernm, String emailid, String pwdstr) {
+    //     try {
+    //         // Create the user with email and password
+    //         UserRecord.CreateRequest request = new UserRecord.CreateRequest()
+    //         .setDisplayName(usernm)
+    //         .setEmail(emailid)
+    //         .setPassword(pwdstr)
+    //         // Add other user data as custom claims, profile information, etc.
+    //         // For example, you can add custom claims or additional profile data
+    //         .setEmailVerified(false); // Set email verification status
+    //         UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
+            
+    //         // Successfully created user
+    //         System.out.println("Successfully created user: " + userRecord.getUid());
+    //     } catch (Exception e) {
+    //         // Handle any errors
+    //         System.err.println("Error creating user: " + e.getMessage());
+    //     }
+    // }
+
+    // public static void sendUser(String usrn, String pwds) {
+    //         databaseRef.child("userInfo").setValue("userInfoData", new DatabaseReference.CompletionListener() {
+    //             @Override
+    //             public void onComplete(DatabaseError error, DatabaseReference ref) {
+    //                 if (error == null) {
+    //                     System.out.println("User info data written to database successfully.");
+    //                 } else {
+    //                     System.err.println("Failed to write user info data to database: " + error.getMessage());
+    //                 }
+    //             }
+    //         });
+    // }
+
+    public static void createUser(String usernm, String emailid, String pwdstr) {
+        try {
+            // Create the user with email and password
+            UserRecord.CreateRequest request = new UserRecord.CreateRequest()
+                    .setDisplayName(usernm)
+                    .setEmail(emailid)
+                    .setPassword(pwdstr);
+                    // You can add additional properties here if needed
+                    // .setDisabled(false); // Set to true if you want to disable the user
+    
+            UserRecord userRecord = FirebaseAuth.getInstance().createUser(request);
+    
+            // Successfully created user
+            System.out.println("Successfully created user: " + userRecord.getUid());
+        } catch (Exception e) {
+            // Handle any errors
+            System.err.println("Error creating user: " + e.getMessage());
+        }
+    }
+
+
+    private static void storeUserInfo(String userId, String username, String email) {
+        // Get a reference to the Firebase Realtime Database
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference usersRef = database.getReference("users");
+
+        // Create a new child node under "users" with the user's UID
+        DatabaseReference userRef = usersRef.child(userId);
+
+        // Set user information as key-value pairs
+        userRef.child("username").setValue(username);
+        userRef.child("email").setValue(email);
+
+        System.out.println("User information stored successfully.");
+    }
+    
 
     // Method to read file contents
     private static String readFileContents(String filePath) {

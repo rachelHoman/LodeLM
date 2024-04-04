@@ -65,6 +65,20 @@ public class Client {
                         System.out.println(e);
                     }
                 }
+                
+                // else if (userMessage.startsWith("create ")) {
+                //     // Prompt the user for username, email, and password
+                //     System.out.print("Enter new username: ");
+                //     String newUsername = userInput.readLine();
+                //     System.out.print("Enter email: ");
+                //     String email = userInput.readLine();
+                //     System.out.print("Enter password: ");
+                //     String newPassword = userInput.readLine();
+                    
+                //     // Send the create command along with username, email, and password
+                //     out.println("create " + newUsername + " " + email + " " + newPassword);
+                // }
+
 
                 // Exit loop if user types 'exit'
                 else if (userMessage.equalsIgnoreCase("exit")) {

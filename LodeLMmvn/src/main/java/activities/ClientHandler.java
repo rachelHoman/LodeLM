@@ -58,6 +58,8 @@ public class ClientHandler implements Runnable {
                 //dataOutputStream.write(mac);
 
                 out.println("Authentication successful. Proceeding with connection...");
+
+                // dbhandler.createUser("ali", "gmail", "10");
                 
             } else {
                 out.println("Invalid username or password.");
@@ -131,6 +133,25 @@ public class ClientHandler implements Runnable {
                     String output = fileHandler.listFiles();
                     out.println(output);
                 }
+
+                // // Inside the while loop where you handle client requests
+                // else if (inputLine.startsWith("create ")) {
+                //     // Split the input line to get username, email, and password
+                //     String[] parts = inputLine.split(" ");
+                //     if (parts.length != 4) {
+                //         out.println("Invalid command format. Usage: create <username> <email> <password>");
+                //     } else {
+                //         String newUsername = parts[1];
+                //         String email = parts[2];
+                //         String newPassword = parts[3];
+                        
+                //         dbhandler.createUser(newUsername, email, newPassword);
+                        
+                //         out.println("User " + newUsername + " created successfully.");
+                //     }
+                // }
+
+
                 else {
                     out.println("No command like that available");
                 }
