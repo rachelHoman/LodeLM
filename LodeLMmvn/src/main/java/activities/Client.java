@@ -59,12 +59,11 @@ public class Client {
             // Prompt the user for password
             System.out.print("Enter your password: ");
             String password = userInput.readLine();
-            // Encrypt the password
-            System.out.println(Base64.getEncoder().encodeToString(password.getBytes()));
-            out.println(Base64.getEncoder().encodeToString(password.getBytes())); // Send encrypted password to server
+            // Send encrypt password
+            EncryptedCom.sendMessage(password, aesKey, fe, dataOutputStream);
 
             // Receive and print the greeting message from the server
-            String greeting = in.readLine();
+            String greeting = EncryptedCom.receiveMessage(aesKey, fe, dataInputStream);
             System.out.println(greeting);
 
             String userMessage;

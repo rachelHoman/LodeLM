@@ -58,14 +58,17 @@ public class ClientHandler implements Runnable {
             String username = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
 
             // Receive encrypted password from client
-            String encryptedPasswordBase64 = in.readLine();
+            String passwordString = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+
+            String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());
+
             // Ensure proper padding by adding '=' characters if necessary
-            int padding = encryptedPasswordBase64.length() % 4;
+            int padding = sub.length() % 4;
             if (padding > 0) {
-                encryptedPasswordBase64 += "====".substring(padding);
+                sub += "====".substring(padding);
             }
 
-            byte[] password = Base64.getDecoder().decode(encryptedPasswordBase64);
+            byte[] password = Base64.getDecoder().decode(sub);
 
             // Validate username and password
             if (authenticateUser(username, password)) {
@@ -78,11 +81,18 @@ public class ClientHandler implements Runnable {
 
                 //dataOutputStream.write(encryptedSecretKey);
                 //dataOutputStream.write(mac);
-
-                out.println("Authentication successful. Proceeding with connection...");
+                try {
+                    EncryptedCom.sendMessage("Authentication successful. Proceeding with connection...", aesSecretKey, fe, dataOutputStream);
+                } catch(Exception e) {
+                    System.out.println(e);
+                } 
                 
             } else {
-                out.println("Invalid username or password.");
+                try {
+                    EncryptedCom.sendMessage("Invalid username or password.", aesSecretKey, fe, dataOutputStream);
+                } catch(Exception e) {
+                    System.out.println(e);
+                } 
                 clientSocket.close();
                 return;
             }
