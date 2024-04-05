@@ -1,3 +1,2 @@
-alice 9qeQl7p0QFc1ibZRH/r8NUCOoC7BIdKzab2zoUFs4Ho= cGFzc3dvcmQxMjM=
-bob Caczz1Ij9UA/GWwDYfg71pxNIFPVzNsGZOWcQarFZvw= c2VjcmV0NDU2
-mallory MX+vB/aPcOuR1cOt7lu8P1CAQ7z83BLFuhsXs1whdPQ= bWFsbG9yeQ==
+alice sAouPy/8mjFJ4OXSIKobrm5K4OaLK70SzKfgumpYu6s= cGFzc3dvcmQxMjM=
+bob KSV3iaNkSUCxoOJE5+tsy2rp7o/nsNRtwS/WbTxaHLk= c2VjcmV0NDU2

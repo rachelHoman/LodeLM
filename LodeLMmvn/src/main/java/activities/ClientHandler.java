@@ -3,6 +3,9 @@ package activities;
 import java.io.*;
 import java.net.*;
 import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
@@ -221,30 +224,80 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    // private boolean authenticateUser(String username, byte[] providedPassword) {
+
+    //     // Get the stored password hash for the given username
+    //     byte[] storedPasswordHash = (Server.getUserPasswords().get(username)[1]);
+    //     byte[] storedSalt = (Server.getUserPasswords().get(username)[0]);
+
+    //     if (storedPasswordHash == null || storedSalt == null) {
+    //         return false; 
+    //         // User not found
+    //     }
+
+    //     // Hash the provided password
+    //     byte[] providedPasswordHash = Server.hashPasswordSalt(new String(providedPassword), storedSalt);
+
+    //     String encodedSalt = Base64.getEncoder().encodeToString(storedSalt);
+    //     String encodedHashedPasswordP = Base64.getEncoder().encodeToString(providedPasswordHash);
+    //     String encodedHashedPasswordS = Base64.getEncoder().encodeToString(storedPasswordHash);
+    //     // Compare the hashed passwords
+    //     System.out.println("provided: " + encodedHashedPasswordP);
+    //     System.out.println("stored: " + encodedHashedPasswordS);
+    //     System.out.println("salt: " + encodedSalt);
+    //     // System.out.println("salt: " + storedSalt.toString());
+    //     return Arrays.equals(providedPasswordHash, storedPasswordHash);
+    // }
+
     private boolean authenticateUser(String username, byte[] providedPassword) {
-
-        // Get the stored password hash for the given username
-        byte[] storedPasswordHash = (Server.getUserPasswords().get(username)[1]);
-        byte[] storedSalt = (Server.getUserPasswords().get(username)[0]);
-
-        if (storedPasswordHash == null || storedSalt == null) {
-            return false; 
-            // User not found
+        
+        // Get the stored user data for the given username
+        Map<String, byte[]> userData = Server.getUserPasswords().get(username);
+        if (userData == null) {
+            return false; // User not found
         }
 
-        // Hash the provided password
-        byte[] providedPasswordHash = Server.hashPasswordSalt(new String(providedPassword), storedSalt);
+        // Get the stored salt and password hash from user data
+        byte[] storedSalt = userData.get("salt");
+        byte[] storedPasswordHash = userData.get("passwordHash");
 
+        if (storedSalt == null || storedPasswordHash == null) {
+            return false; // Salt or password hash not found
+        }
+
+        // Hash the provided password with the stored salt
+        byte[] providedPasswordHash = Server.hashPasswordSalt(new String(providedPassword), storedSalt);
+        // String providedPasswordHash = Server.hashPasswordSalt(new String(providedPassword), storedSalt);
+
+        // Convert salt, provided password hash, and stored password hash to Base64 for comparison
         String encodedSalt = Base64.getEncoder().encodeToString(storedSalt);
         String encodedHashedPasswordP = Base64.getEncoder().encodeToString(providedPasswordHash);
+        // byte[] byteprovidedHash = providedPasswordHash.getBytes(StandardCharsets.UTF_8);
         String encodedHashedPasswordS = Base64.getEncoder().encodeToString(storedPasswordHash);
+
         // Compare the hashed passwords
         System.out.println("provided: " + encodedHashedPasswordP);
         System.out.println("stored: " + encodedHashedPasswordS);
         System.out.println("salt: " + encodedSalt);
-        // System.out.println("salt: " + storedSalt.toString());
+
+        System.out.println("p: " + bytesToHex(providedPasswordHash));
+        System.out.println("s: " + bytesToHex(storedPasswordHash));
+
         return Arrays.equals(providedPasswordHash, storedPasswordHash);
     }
+
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder(2 * bytes.length);
+        for (byte b : bytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
+    }
+
 
     private static void createAccount(String username, byte[] password) {
 
@@ -253,15 +306,30 @@ public class ClientHandler implements Runnable {
         // Server.getUserPasswords().put(username, hashedPassword);
 
         // Hash the password with Salt
-        byte[] hashedPassword = Server.hashPasswordSalt(new String(password), salt);
+        byte[] hashedPassword = Server.hashPasswordSalt(new String(password, StandardCharsets.UTF_8), salt);
+        // String hashedPassword = Server.hashPasswordSalt(new String(password), salt);
         // create H(s,p)
-        Server.getUserPasswords().put(username, new byte[][]{username.getBytes(), salt, hashedPassword});
-    
+        // Server.getUserPasswords().put(username, new byte[][]{username.getBytes(), salt, hashedPassword});
+        // Store the user information in the map
+        Map<String, byte[]> userData = new HashMap<>();
+        // Map<String, String> userData = new HashMap<>();
+        userData.put("salt", salt);
+        userData.put("passwordHash", hashedPassword);
+        Server.getUserPasswords().put(username, userData);
+
         // Generate a secret key for the new account
         byte[] secretKey = generateSecretKey();
         // Write the username, secret key, salt, and hashed pwd
         writeToSecretKeysFile(username, secretKey);
+
+        // Encode salt and hashed password to Base64
+        // String encodedSalt = Base64.getEncoder().encodeToString(salt);
+        // String encodedHashedPassword = Base64.getEncoder().encodeToString(hashedPassword);
+
+        // Write username, salt, and hashed password to the file
+        // writeToUserFile(username, encodedSalt, encodedHashedPassword);
         writeToUserFile(username, salt, password);
+        // writeToUserFile(username, salt, hashedPassword.getBytes(StandardCharsets.UTF_8));
     }
     
     private static byte[] generateSecretKey() {

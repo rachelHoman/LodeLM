@@ -19,7 +19,7 @@ import javax.crypto.SecretKey;
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
     // private static final int SERVER_PORT = 12345;
-    private static final int SERVER_PORT = 54322;
+    private static final int SERVER_PORT = 53333;
     private int BUFFER_SIZE = 4096;
 
     public static void main(String[] args) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException {
@@ -111,7 +111,7 @@ public class Client {
                 // System.out.print("Enter your email: ");
                 // String email = userInput.readLine();
 
-                // // Prompt the user for recovery question
+                // Prompt the user for recovery question
                 // System.out.print("Recovery Question: Who is your favorite teacher? ");
                 // String teacher = userInput.readLine();
 

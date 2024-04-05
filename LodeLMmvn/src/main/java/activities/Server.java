@@ -4,6 +4,7 @@ import javax.crypto.spec.*;
 
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
@@ -11,10 +12,12 @@ import java.security.spec.KeySpec;
 
 public class Server {
     // private static final int PORT = 12345;
-    private static final int PORT = 54322;
+    private static final int PORT = 53333;
     public static final String PROJECTS_DIRECTORY = "projects/";
     private static Map<String, byte[]> userSecretKeys = new HashMap<>();
-    private static Map<String, byte[][]> userPasswords = new HashMap<>();
+    // private static Map<String, byte[][]> userPasswords = new HashMap<>();
+    private static Map<String, Map<String, byte[]>> userPasswords = new HashMap<>();
+    // private static Map<String, Map<String, String>> userPasswords = new HashMap<>();
 
     static {
         // Load user passwords from a file or database
@@ -46,7 +49,9 @@ public class Server {
         return userSecretKeys;
     }
 
-    public static Map<String, byte[][]> getUserPasswords() {
+    // public static Map<String, byte[][]> getUserPasswords() {
+    public static Map<String, Map<String, byte[]>> getUserPasswords() {
+    // public static Map<String, Map<String, String>> getUserPasswords() {
         return userPasswords;
     }
 
@@ -65,9 +70,14 @@ public class Server {
                     String uid = tokens[0];
                     byte[] salt = Base64.getDecoder().decode(tokens[1]);
                     byte[] hashedPassword = Base64.getDecoder().decode(tokens[2]);
+    
+                    // Create a nested map to store salt and hashed password
+                    Map<String, byte[]> userData = new HashMap<>();
+                    userData.put("salt", salt);
+                    userData.put("passwordHash", hashedPassword);
+    
                     // Store the user information in the map
-                    // userPasswords.put(uid, hashedPassword);
-                    userPasswords.put(uid, new byte[][]{uid.getBytes(), salt, hashedPassword});
+                    userPasswords.put(uid, userData);
                 } else {
                     System.out.println("Invalid format for user entry: " + line);
                 }
@@ -75,6 +85,26 @@ public class Server {
         } catch (IOException e) {
             System.out.println("Error reading user file: " + e.getMessage());
         }
+
+        // try (BufferedReader reader = new BufferedReader(new FileReader("src/main/java/activities/users.txt"))) {
+        //     String line;
+        //     while ((line = reader.readLine()) != null) {
+        //         // Split the line into tokens
+        //         String[] tokens = line.split(" ");
+        //         if (tokens.length == 3) {
+        //             String uid = tokens[0];
+        //             byte[] salt = Base64.getDecoder().decode(tokens[1]);
+        //             byte[] hashedPassword = Base64.getDecoder().decode(tokens[2]);
+        //             // Store the user information in the map
+        //             // userPasswords.put(uid, hashedPassword);
+        //             userPasswords.put(uid, new byte[][]{uid.getBytes(), salt, hashedPassword});
+        //         } else {
+        //             System.out.println("Invalid format for user entry: " + line);
+        //         }
+        //     }
+        // } catch (IOException e) {
+        //     System.out.println("Error reading user file: " + e.getMessage());
+        // }
     }
 
     private static void loadUserSecretKeysFromFile() {
@@ -92,12 +122,26 @@ public class Server {
         }
     }
 
+    // public static String hashPasswordSalt(String password, byte[] salt) {
+    //     try {
+    //         MessageDigest digest = MessageDigest.getInstance("SHA-256");
+    //         digest.reset();
+    //         digest.update(salt);
+    //         byte[] hashedBytes = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+    //         return Base64.getEncoder().encodeToString(hashedBytes);
+    //     } catch (NoSuchAlgorithmException e) {
+    //         e.printStackTrace();
+    //         return null;
+    //     }
+    // }
+    
+
     public static byte[] hashPasswordSalt(String password, byte[] salt) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             digest.reset();
             digest.update(salt);
-            byte[] hashedBytes = digest.digest(password.getBytes());
+            byte[] hashedBytes = digest.digest(password.getBytes(StandardCharsets.UTF_8));
             return hashedBytes;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
