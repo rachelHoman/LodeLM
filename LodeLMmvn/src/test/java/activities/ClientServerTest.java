@@ -1,13 +1,13 @@
-package activities;
-import org.junit.*;
+// package activities;
+// import org.junit.*;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-import static org.junit.Assert.assertFalse;
+// import static org.junit.Assert.assertEquals;
+// import static org.junit.Assert.assertTrue;
+// import static org.junit.Assert.fail;
+// import static org.junit.Assert.assertFalse;
 
-import java.io.*;
-import java.net.*;
+// import java.io.*;
+// import java.net.*;
 
 import java.security.*;
 import javax.crypto.NoSuchPaddingException;
@@ -209,45 +209,45 @@ public class ClientServerTest {
     //     client = new Client();
     // }
 
-    // @Test
-    // public void testAuthenticationSuccess() {
-    //     // Test authentication with correct username and password
-    //     assertTrue(client.authenticate("alice", "password123"));
-    // }
+//     // @Test
+//     // public void testAuthenticationSuccess() {
+//     //     // Test authentication with correct username and password
+//     //     assertTrue(client.authenticate("alice", "password123"));
+//     // }
 
-    // @Test
-    // public void testAuthenticationFailure() {
-    //     // Test authentication with incorrect username and password
-    //     assertFalse(client.authenticate("alice", "wrongpassword"));
-    // }
+//     // @Test
+//     // public void testAuthenticationFailure() {
+//     //     // Test authentication with incorrect username and password
+//     //     assertFalse(client.authenticate("alice", "wrongpassword"));
+//     // }
 
-    // @Test
-    // public void testCreateProject() {
-    //     // Test creating a project
-    //     assertTrue(client.createProject("new_project"));
-    // }
+//     // @Test
+//     // public void testCreateProject() {
+//     //     // Test creating a project
+//     //     assertTrue(client.createProject("new_project"));
+//     // }
 
-    // @Test
-    // public void testListProjects() {
-    //     // Test listing projects
-    //     String projects = client.listProjects();
-    //     assertEquals("project1\nproject2\n", projects); // Assuming project1 and project2 are existing projects
-    // }
+//     // @Test
+//     // public void testListProjects() {
+//     //     // Test listing projects
+//     //     String projects = client.listProjects();
+//     //     assertEquals("project1\nproject2\n", projects); // Assuming project1 and project2 are existing projects
+//     // }
 
-    // @Test
-    // public void testSendFile() {
-    //     // Test sending a file
-    //     assertTrue(client.sendFile("test.txt"));
-    // }
+//     // @Test
+//     // public void testSendFile() {
+//     //     // Test sending a file
+//     //     assertTrue(client.sendFile("test.txt"));
+//     // }
 
-    // @Test
-    // public void testDownloadFile() {
-    //     // Test downloading a file
-    //     assertTrue(client.downloadFile("test.txt"));
-    // }
+//     // @Test
+//     // public void testDownloadFile() {
+//     //     // Test downloading a file
+//     //     assertTrue(client.downloadFile("test.txt"));
+//     // }
 
-    // @Test
-    // public void testDeleteFile() {
-    //     // Test deleting a file
-    //     assertTrue(client.deleteFile("test.txt"));
-    // }
+//     // @Test
+//     // public void testDeleteFile() {
+//     //     // Test deleting a file
+//     //     assertTrue(client.deleteFile("test.txt"));
+//     // }

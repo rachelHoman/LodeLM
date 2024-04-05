@@ -4,16 +4,18 @@ import javax.crypto.spec.*;
 
 import java.io.*;
 import java.net.*;
+import java.nio.charset.StandardCharsets;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.security.spec.KeySpec;
 
 public class Server {
-    private static final int PORT = 12345;
+    // private static final int PORT = 12345;
+    private static final int PORT = 54393;
     public static final String PROJECTS_DIRECTORY = "projects/";
     private static Map<String, byte[]> userSecretKeys = new HashMap<>();
-    private static Map<String, byte[]> userPasswords = new HashMap<>();
+    private static Map<String, Map<String, byte[]>> userPasswords = new HashMap<>();
 
     static {
         // Load user passwords from a file or database
@@ -45,15 +47,39 @@ public class Server {
         return userSecretKeys;
     }
 
-    public static Map<String, byte[]> getUserPasswords() {
+    public static Map<String, Map<String, byte[]>> getUserPasswords() {
         return userPasswords;
     }
 
     private static void loadUserPasswords() {
         // Load hashed passwords from a file or database
-        // TODO: with database make this not hard coded
-        userPasswords.put("alice", hashPassword("password123"));
-        userPasswords.put("bob", hashPassword("secret456"));
+        // userPasswords.put("alice", hashPassword("password123"));
+        // userPasswords.put("bob", hashPassword("secret456"));
+
+        try (BufferedReader reader = new BufferedReader(new FileReader("src/main/java/activities/users.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Split the line into tokens
+                String[] tokens = line.split(" ");
+                if (tokens.length == 3) {
+                    String uid = tokens[0];
+                    byte[] salt = Base64.getDecoder().decode(tokens[1]);
+                    byte[] hashedPassword = Base64.getDecoder().decode(tokens[2]);
+    
+                    // Create a nested map to store salt and hashed password
+                    Map<String, byte[]> userData = new HashMap<>();
+                    userData.put("salt", salt);
+                    userData.put("passwordHash", hashedPassword);
+    
+                    // Store the user information in the map
+                    userPasswords.put(uid, userData);
+                } else {
+                    System.out.println("Invalid format for user entry: " + line);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading user file: " + e.getMessage());
+        }
     }
 
     private static void loadUserSecretKeysFromFile() {
@@ -70,28 +96,26 @@ public class Server {
             e.printStackTrace();
         }
     }
+    
 
-    public static byte[] hashPassword(String password) {
+    public static byte[] hashPasswordSalt(String password, byte[] salt) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            return digest.digest(password.getBytes());
+            digest.reset();
+            digest.update(salt);
+            byte[] hashedBytes = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            return hashedBytes;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
             return null;
         }
     }
+    
 
     // public static byte[] hashPassword(String password) {
     //     try {
-    //         // Generate a random salt
-    //         byte[] salt = generateRandomBytes(16);
-            
-    //         // Combine salt and password
-    //         byte[] saltedPassword = concatenateByteArrays(salt, password.getBytes());
-            
-    //         // Hash the salted password
     //         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-    //         return digest.digest(saltedPassword);
+    //         return digest.digest(password.getBytes());
     //     } catch (NoSuchAlgorithmException e) {
     //         e.printStackTrace();
     //         return null;
