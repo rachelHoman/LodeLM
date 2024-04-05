@@ -10,10 +10,11 @@ import java.util.*;
 import java.security.spec.KeySpec;
 
 public class Server {
-    private static final int PORT = 12345;
+    // private static final int PORT = 12345;
+    private static final int PORT = 54322;
     public static final String PROJECTS_DIRECTORY = "projects/";
     private static Map<String, byte[]> userSecretKeys = new HashMap<>();
-    private static Map<String, byte[]> userPasswords = new HashMap<>();
+    private static Map<String, byte[][]> userPasswords = new HashMap<>();
 
     static {
         // Load user passwords from a file or database
@@ -45,15 +46,35 @@ public class Server {
         return userSecretKeys;
     }
 
-    public static Map<String, byte[]> getUserPasswords() {
+    public static Map<String, byte[][]> getUserPasswords() {
         return userPasswords;
     }
 
     private static void loadUserPasswords() {
         // Load hashed passwords from a file or database
         // TODO: with database make this not hard coded
-        userPasswords.put("alice", hashPassword("password123"));
-        userPasswords.put("bob", hashPassword("secret456"));
+        // userPasswords.put("alice", hashPassword("password123"));
+        // userPasswords.put("bob", hashPassword("secret456"));
+
+        try (BufferedReader reader = new BufferedReader(new FileReader("src/main/java/activities/users.txt"))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                // Split the line into tokens
+                String[] tokens = line.split(" ");
+                if (tokens.length == 3) {
+                    String uid = tokens[0];
+                    byte[] salt = Base64.getDecoder().decode(tokens[1]);
+                    byte[] hashedPassword = Base64.getDecoder().decode(tokens[2]);
+                    // Store the user information in the map
+                    // userPasswords.put(uid, hashedPassword);
+                    userPasswords.put(uid, new byte[][]{uid.getBytes(), salt, hashedPassword});
+                } else {
+                    System.out.println("Invalid format for user entry: " + line);
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error reading user file: " + e.getMessage());
+        }
     }
 
     private static void loadUserSecretKeysFromFile() {
@@ -70,6 +91,20 @@ public class Server {
             e.printStackTrace();
         }
     }
+
+    public static byte[] hashPasswordSalt(String password, byte[] salt) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            digest.reset();
+            digest.update(salt);
+            byte[] hashedBytes = digest.digest(password.getBytes());
+            return hashedBytes;
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+    
 
     public static byte[] hashPassword(String password) {
         try {

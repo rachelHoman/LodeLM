@@ -222,35 +222,46 @@ public class ClientHandler implements Runnable {
     }
 
     private boolean authenticateUser(String username, byte[] providedPassword) {
-        // Validate username and password using server's logic
-        // return Server.verifyPassword(password, Server.getUserPasswords().get(username));
 
         // Get the stored password hash for the given username
-        byte[] storedPasswordHash = Server.getUserPasswords().get(username);
+        byte[] storedPasswordHash = (Server.getUserPasswords().get(username)[1]);
+        byte[] storedSalt = (Server.getUserPasswords().get(username)[0]);
 
-        if (storedPasswordHash == null) {
-            return false; // User not found
+        if (storedPasswordHash == null || storedSalt == null) {
+            return false; 
+            // User not found
         }
 
         // Hash the provided password
-        byte[] providedPasswordHash = Server.hashPassword(new String(providedPassword));
+        byte[] providedPasswordHash = Server.hashPasswordSalt(new String(providedPassword), storedSalt);
 
+        String encodedSalt = Base64.getEncoder().encodeToString(storedSalt);
+        String encodedHashedPasswordP = Base64.getEncoder().encodeToString(providedPasswordHash);
+        String encodedHashedPasswordS = Base64.getEncoder().encodeToString(storedPasswordHash);
         // Compare the hashed passwords
+        System.out.println("provided: " + encodedHashedPasswordP);
+        System.out.println("stored: " + encodedHashedPasswordS);
+        System.out.println("salt: " + encodedSalt);
+        // System.out.println("salt: " + storedSalt.toString());
         return Arrays.equals(providedPasswordHash, storedPasswordHash);
     }
 
     private static void createAccount(String username, byte[] password) {
-        // Hash the password
-        byte[] hashedPassword = Server.hashPassword(new String(password));
-    
-        // Store the hashed password in the server's userPasswords map
-        Server.getUserPasswords().put(username, hashedPassword);
+
+        byte[] salt = generateSalt();
+        // CHANGES
+        // Server.getUserPasswords().put(username, hashedPassword);
+
+        // Hash the password with Salt
+        byte[] hashedPassword = Server.hashPasswordSalt(new String(password), salt);
+        // create H(s,p)
+        Server.getUserPasswords().put(username, new byte[][]{username.getBytes(), salt, hashedPassword});
     
         // Generate a secret key for the new account
         byte[] secretKey = generateSecretKey();
-    
-        // Write the username and secret key to secret_keys.txt file
+        // Write the username, secret key, salt, and hashed pwd
         writeToSecretKeysFile(username, secretKey);
+        writeToUserFile(username, salt, password);
     }
     
     private static byte[] generateSecretKey() {
@@ -260,6 +271,13 @@ public class ClientHandler implements Runnable {
         byte[] secretKey = new byte[16];
         random.nextBytes(secretKey);
         return secretKey;
+    }
+
+    private static byte[] generateSalt() {
+        SecureRandom random = new SecureRandom();
+        byte[] salt = new byte[32];
+        random.nextBytes(salt);
+        return salt;
     }
 
     private static void writeToSecretKeysFile(String username, byte[] secretKey) {
@@ -292,6 +310,25 @@ public class ClientHandler implements Runnable {
             try (FileWriter fw = new FileWriter(file)) {
                 fw.write(fileContent.toString());
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void writeToUserFile(String username, byte[] salt, byte[] hashedPassword) {
+        File file = new File("src/main/java/activities/users.txt");
+        try (FileWriter fw = new FileWriter(file, true);
+             BufferedWriter bw = new BufferedWriter(fw)) {
+            // Encode salt and hashed password to Base64 for storage
+            String encodedSalt = Base64.getEncoder().encodeToString(salt);
+            String encodedHashedPassword = Base64.getEncoder().encodeToString(hashedPassword);
+            // Write username, salt, and hashed password to the file
+            if (file.length() != 0) { // Check if the file is not empty
+                bw.newLine(); // Add a new line if the file is not empty
+            }
+            // bw.write(username + " " + salt + " " + hashedPassword);
+            bw.write(username + " " + encodedSalt + " " + encodedHashedPassword);
+            // bw.newLine(); // Add a new line for the next entry
         } catch (IOException e) {
             e.printStackTrace();
         }
