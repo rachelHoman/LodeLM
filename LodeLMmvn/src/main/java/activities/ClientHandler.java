@@ -46,11 +46,11 @@ public class ClientHandler implements Runnable {
             SecretKey aesSecretKey = new SecretKeySpec(aesKey, 0, AES_KEY_LENGTH, "AES");
             System.out.println("AES Key Received");
 
-            // Receive MAC Key
-            byte[] macKey = new byte[MAC_KEY_LENGTH];
-            dataInputStream.read(macKey, 0, MAC_KEY_LENGTH);
-            // macKey = decryptRSA(macKey, rsaKey);
-            System.out.println("MAC Key Received");
+            // // Receive MAC Key
+            // byte[] macKey = new byte[MAC_KEY_LENGTH];
+            // dataInputStream.read(macKey, 0, MAC_KEY_LENGTH);
+            // // macKey = decryptRSA(macKey, rsaKey);
+            // System.out.println("MAC Key Received");
 
             // Receive login or create account signal from client
             byte[] actionByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
@@ -64,7 +64,7 @@ public class ClientHandler implements Runnable {
                 // Receive encrypted password from client
                 byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
                 String passwordString = new String(passwordByte, StandardCharsets.UTF_8);
-                System.out.println(passwordString);
+                //System.out.println(passwordString);
 
                 String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());
 
@@ -305,7 +305,7 @@ public class ClientHandler implements Runnable {
         // Generate a new secret key
         // For demonstration, I'll generate a random 16-byte key
         SecureRandom random = new SecureRandom();
-        byte[] secretKey = new byte[16];
+        byte[] secretKey = new byte[32];
         random.nextBytes(secretKey);
         return secretKey;
     }
@@ -331,7 +331,9 @@ public class ClientHandler implements Runnable {
                     // Update the secret key for the existing user
                     // fileContent.append(username).append(":").append(Base64.getEncoder().encodeToString(secretKey)).append("\n");
                     // found = true;
-                    System.out.print("User already exists");
+                    String message = "User already exists. Please log in.";
+                    System.out.println(message);
+                    //EncryptedCom.sendMessage(message.getBytes(), aesSecretKey, fe, dataOutputStream);
                     break;
                 } else {
                     // Keep the line unchanged

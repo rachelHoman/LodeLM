@@ -44,12 +44,12 @@ public class Client {
             dataOutputStream.flush();
             System.out.println("Secret Key Shared");
 
-            macKey = fe.getHmacKey();
-            byte[] macKeyData =  macKey.getEncoded();
-            //TODO: Encrypt keydata
-            dataOutputStream.write(macKeyData);
-            dataOutputStream.flush();
-            System.out.println("MAC Key Shared");
+            // macKey = fe.getHmacKey();
+            // byte[] macKeyData =  macKey.getEncoded();
+            // //TODO: Encrypt keydata
+            // dataOutputStream.write(macKeyData);
+            // dataOutputStream.flush();
+            // System.out.println("MAC Key Shared");
 
             // Prompt user to choose login method
             System.out.print("Choose an option: 1. Login, 2. Forgot Password, 3. Create Account \n");
@@ -73,20 +73,28 @@ public class Client {
                 EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
                 // Prompt the user for username
                 System.out.print("Enter your username: ");
-                //String username = userInput.readLine();
+                String username = userInput.readLine();
                 // Prompt the user for email
                 System.out.print("Enter your email: ");
                 String email = userInput.readLine();
                 // Prompt the user for recovery question
                 System.out.print("Recovery question: Who is your favorite teacher? ");
                 String answer = userInput.readLine();
+                if (answer.equals("Birrell")) {
+                    // TODO: fix this so that recovery question is checked on server
+                    username = "alice";
+                    String password = "password123";
+                    EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
+                    EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
+                }
+                else {
+                    // TODO: add reports of inccorect attemps to login AUDIT milestone
+                    System.out.println("Inccorrect Answer");
+                    userInput.close();
+                    socket.close();
+                }
                 
-                // TODO: fix this so that recovery question is checked on server
-                String username = "alice";
-                String password = "password123";
-                EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
-                EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
-
+                
                 //out.println(username); // Send username to server
                 // TODO: check that this is a valid username and email? pairing and give them the option to reset the password
                 // if (email & username is valid) {
