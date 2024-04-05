@@ -15,9 +15,7 @@ public class Server {
     private static final int PORT = 54393;
     public static final String PROJECTS_DIRECTORY = "projects/";
     private static Map<String, byte[]> userSecretKeys = new HashMap<>();
-    // private static Map<String, byte[][]> userPasswords = new HashMap<>();
     private static Map<String, Map<String, byte[]>> userPasswords = new HashMap<>();
-    // private static Map<String, Map<String, String>> userPasswords = new HashMap<>();
 
     static {
         // Load user passwords from a file or database
@@ -49,15 +47,12 @@ public class Server {
         return userSecretKeys;
     }
 
-    // public static Map<String, byte[][]> getUserPasswords() {
     public static Map<String, Map<String, byte[]>> getUserPasswords() {
-    // public static Map<String, Map<String, String>> getUserPasswords() {
         return userPasswords;
     }
 
     private static void loadUserPasswords() {
         // Load hashed passwords from a file or database
-        // TODO: with database make this not hard coded
         // userPasswords.put("alice", hashPassword("password123"));
         // userPasswords.put("bob", hashPassword("secret456"));
 
@@ -85,26 +80,6 @@ public class Server {
         } catch (IOException e) {
             System.out.println("Error reading user file: " + e.getMessage());
         }
-
-        // try (BufferedReader reader = new BufferedReader(new FileReader("src/main/java/activities/users.txt"))) {
-        //     String line;
-        //     while ((line = reader.readLine()) != null) {
-        //         // Split the line into tokens
-        //         String[] tokens = line.split(" ");
-        //         if (tokens.length == 3) {
-        //             String uid = tokens[0];
-        //             byte[] salt = Base64.getDecoder().decode(tokens[1]);
-        //             byte[] hashedPassword = Base64.getDecoder().decode(tokens[2]);
-        //             // Store the user information in the map
-        //             // userPasswords.put(uid, hashedPassword);
-        //             userPasswords.put(uid, new byte[][]{uid.getBytes(), salt, hashedPassword});
-        //         } else {
-        //             System.out.println("Invalid format for user entry: " + line);
-        //         }
-        //     }
-        // } catch (IOException e) {
-        //     System.out.println("Error reading user file: " + e.getMessage());
-        // }
     }
 
     private static void loadUserSecretKeysFromFile() {
@@ -121,19 +96,6 @@ public class Server {
             e.printStackTrace();
         }
     }
-
-    // public static String hashPasswordSalt(String password, byte[] salt) {
-    //     try {
-    //         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-    //         digest.reset();
-    //         digest.update(salt);
-    //         byte[] hashedBytes = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-    //         return Base64.getEncoder().encodeToString(hashedBytes);
-    //     } catch (NoSuchAlgorithmException e) {
-    //         e.printStackTrace();
-    //         return null;
-    //     }
-    // }
     
 
     public static byte[] hashPasswordSalt(String password, byte[] salt) {
@@ -150,27 +112,10 @@ public class Server {
     }
     
 
-    public static byte[] hashPassword(String password) {
-        try {
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            return digest.digest(password.getBytes());
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
     // public static byte[] hashPassword(String password) {
     //     try {
-    //         // Generate a random salt
-    //         byte[] salt = generateRandomBytes(16);
-            
-    //         // Combine salt and password
-    //         byte[] saltedPassword = concatenateByteArrays(salt, password.getBytes());
-            
-    //         // Hash the salted password
     //         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-    //         return digest.digest(saltedPassword);
+    //         return digest.digest(password.getBytes());
     //     } catch (NoSuchAlgorithmException e) {
     //         e.printStackTrace();
     //         return null;

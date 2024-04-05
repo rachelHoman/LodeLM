@@ -3,7 +3,7 @@
 
 By Anika Gupta, Rachel Homan, and Christy Marchese
 
-to compile, package, and execute the maven project:
+Download maven to use it to compile, package, and execute the maven project:
 
 - mvn compile: compiles the main Java source code located in the src/
 - mvn test-compile: compiles the test Java source code located in the src/test/
