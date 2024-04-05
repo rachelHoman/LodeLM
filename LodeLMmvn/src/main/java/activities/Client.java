@@ -43,12 +43,12 @@ public class Client {
             dataOutputStream.flush();
             System.out.println("Secret Key Shared");
 
-            macKey = fe.getHmacKey();
-            byte[] macKeyData =  macKey.getEncoded();
-            //TODO: Encrypt keydata
-            dataOutputStream.write(macKeyData);
-            dataOutputStream.flush();
-            System.out.println("MAC Key Shared");
+            // macKey = fe.getHmacKey();
+            // byte[] macKeyData =  macKey.getEncoded();
+            // //TODO: Encrypt keydata
+            // dataOutputStream.write(macKeyData);
+            // dataOutputStream.flush();
+            // System.out.println("MAC Key Shared");
 
             // Prompt user to choose login method
             System.out.print("Choose an option: 1. Login, 2. Forgot Password, 3. Create Account \n");
