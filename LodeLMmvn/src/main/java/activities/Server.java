@@ -12,7 +12,7 @@ import java.security.spec.KeySpec;
 
 public class Server {
     // private static final int PORT = 12345;
-    private static final int PORT = 53333;
+    private static final int PORT = 54393;
     public static final String PROJECTS_DIRECTORY = "projects/";
     private static Map<String, byte[]> userSecretKeys = new HashMap<>();
     // private static Map<String, byte[][]> userPasswords = new HashMap<>();

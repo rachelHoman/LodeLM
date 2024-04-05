@@ -302,33 +302,34 @@ public class ClientHandler implements Runnable {
     private static void createAccount(String username, byte[] password) {
 
         byte[] salt = generateSalt();
-        // CHANGES
-        // Server.getUserPasswords().put(username, hashedPassword);
-
         // Hash the password with Salt
+        // System.out.println("pwd: " + Base64.getEncoder().encodeToString(password));
         byte[] hashedPassword = Server.hashPasswordSalt(new String(password, StandardCharsets.UTF_8), salt);
+        // System.out.println("pwdWOHOOO: " + Base64.getEncoder().encodeToString(hashedPassword));
+        // System.out.println("haha");
         // String hashedPassword = Server.hashPasswordSalt(new String(password), salt);
         // create H(s,p)
         // Server.getUserPasswords().put(username, new byte[][]{username.getBytes(), salt, hashedPassword});
-        // Store the user information in the map
         Map<String, byte[]> userData = new HashMap<>();
         // Map<String, String> userData = new HashMap<>();
         userData.put("salt", salt);
         userData.put("passwordHash", hashedPassword);
         Server.getUserPasswords().put(username, userData);
 
+        byte[] storedPasswordHash = userData.get("passwordHash");
+        // String encodedHashedPasswordS = Base64.getEncoder().encodeToString(storedPasswordHash);
+        // // Compare the hashed passwords
+        // System.out.println("stored: " + encodedHashedPasswordS);
+        // System.out.println("haha2");
+
         // Generate a secret key for the new account
         byte[] secretKey = generateSecretKey();
         // Write the username, secret key, salt, and hashed pwd
         writeToSecretKeysFile(username, secretKey);
 
-        // Encode salt and hashed password to Base64
-        // String encodedSalt = Base64.getEncoder().encodeToString(salt);
-        // String encodedHashedPassword = Base64.getEncoder().encodeToString(hashedPassword);
-
         // Write username, salt, and hashed password to the file
         // writeToUserFile(username, encodedSalt, encodedHashedPassword);
-        writeToUserFile(username, salt, password);
+        writeToUserFile(username, salt, storedPasswordHash);
         // writeToUserFile(username, salt, hashedPassword.getBytes(StandardCharsets.UTF_8));
     }
     
