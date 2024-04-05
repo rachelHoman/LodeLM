@@ -43,11 +43,11 @@ public class ClientHandler implements Runnable {
             SecretKey aesSecretKey = new SecretKeySpec(aesKey, 0, AES_KEY_LENGTH, "AES");
             System.out.println("AES Key Received");
 
-            // Receive MAC Key
-            byte[] macKey = new byte[MAC_KEY_LENGTH];
-            dataInputStream.read(macKey, 0, MAC_KEY_LENGTH);
-            // macKey = decryptRSA(macKey, rsaKey);
-            System.out.println("MAC Key Received");
+            // // Receive MAC Key
+            // byte[] macKey = new byte[MAC_KEY_LENGTH];
+            // dataInputStream.read(macKey, 0, MAC_KEY_LENGTH);
+            // // macKey = decryptRSA(macKey, rsaKey);
+            // System.out.println("MAC Key Received");
 
             // Receive login or create account signal from client
             byte[] actionByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
