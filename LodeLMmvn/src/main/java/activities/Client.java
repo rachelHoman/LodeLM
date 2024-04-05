@@ -115,13 +115,13 @@ public class Client {
                 System.out.print("Enter your password: ");
                 String password = userInput.readLine();
 
-                // // Prompt the user for email
-                // System.out.print("Enter your email: ");
-                // String email = userInput.readLine();
+                // Prompt the user for email
+                System.out.print("Enter your email: ");
+                String email = userInput.readLine();
 
                 // Prompt the user for recovery question
-                // System.out.print("Recovery Question: Who is your favorite teacher? ");
-                // String teacher = userInput.readLine();
+                System.out.print("Recovery Question: Who is your favorite teacher? ");
+                String teacher = userInput.readLine();
 
                 // Encrypt the password
                 EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
