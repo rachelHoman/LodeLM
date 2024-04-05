@@ -75,8 +75,8 @@ public class Client {
                 System.out.print("Enter your username: ");
                 String username = userInput.readLine();
                 // Prompt the user for email
-                System.out.print("Enter your email: ");
-                String email = userInput.readLine();
+                // System.out.print("Enter your email: ");
+                // String email = userInput.readLine();
                 // Prompt the user for recovery question
                 System.out.print("Recovery question: Who is your favorite teacher? ");
                 String answer = userInput.readLine();
@@ -90,8 +90,8 @@ public class Client {
                 else {
                     // TODO: add reports of inccorect attemps to login AUDIT milestone
                     System.out.println("Inccorrect Answer");
-                    userInput.close();
-                    socket.close();
+                    // userInput.close();
+                    // socket.close();
                 }
                 
                 
@@ -116,8 +116,8 @@ public class Client {
                 String password = userInput.readLine();
 
                 // Prompt the user for email
-                System.out.print("Enter your email: ");
-                String email = userInput.readLine();
+                // System.out.print("Enter your email: ");
+                // String email = userInput.readLine();
 
                 // Prompt the user for recovery question
                 System.out.print("Recovery Question: Who is your favorite teacher? ");
