@@ -1,31 +1,54 @@
 package activities;
 import org.junit.*;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
 
 import java.io.*;
 import java.net.*;
 
 import java.security.*;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.BadPaddingException;
+import javax.crypto.Cipher;
 
 import java.nio.charset.StandardCharsets;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
-import java.io.File;
 import java.nio.file.Files;
 
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Mockito;
 
 import activities.Client;
 import activities.Server;
 import utils.*;
+import java.util.Arrays;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.*;
+
+import com.google.firebase.database.DatabaseReference;
+import com.opencsv.exceptions.CsvValidationException;
+import org.junit.runner.RunWith;
+import org.powermock.core.classloader.annotations.PrepareForTest;
+import org.powermock.modules.junit4.PowerMockRunner;
+import org.powermock.api.mockito.PowerMockito;
+
 
 public class ClientServerTest {
     private Server server;
@@ -97,6 +120,191 @@ public class ClientServerTest {
         System.arraycopy(b, 0, result, a.length, b.length);
         return result;
     }
+
+
+
+    // Testing Server.java
+
+    @Test
+    public void testLoadUserPasswordsKeys() {
+        prepareTestFile();
+        Map<String, Map<String, byte[]>> testuserPasswords = Server.testGetUserPasswords();
+        assertNotNull(testuserPasswords);
+        assertTrue(testuserPasswords.containsKey("testUser1"));
+        assertTrue(testuserPasswords.containsKey("testUser2"));
+    }
+
+    @Test
+    public void testLoadUserPasswordsInnerKeysTrue() {
+        prepareTestFile();
+        Map<String, Map<String, byte[]>> testuserPasswords = Server.testGetUserPasswords();
+        Map<String, byte[]> testuserData1 = testuserPasswords.get("testUser1");
+        assertNotNull(testuserData1);
+        assertTrue(testuserData1.containsKey("salt"));
+        assertTrue(testuserData1.containsKey("passwordHash"));
+    }
+
+    @Test
+    public void testLoadUserPasswordsValuesTrue() {
+        prepareTestFile();
+        Map<String, Map<String, byte[]>> testuserPasswords = Server.testGetUserPasswords();
+        
+        Map<String, byte[]> testuserData1 = testuserPasswords.get("testUser1");
+        assertTrue((encodeBase64("salt1")).equals(Base64.getEncoder().encodeToString(testuserData1.get("salt"))));
+        assertTrue((encodeBase64("hashedPassword1")).equals(Base64.getEncoder().encodeToString(testuserData1.get("passwordHash"))));
+
+        Map<String, byte[]> testuserData2 = testuserPasswords.get("testUser2");
+        assertTrue((encodeBase64("salt2")).equals(Base64.getEncoder().encodeToString(testuserData2.get("salt"))));
+        assertTrue((encodeBase64("hashedPassword2")).equals(Base64.getEncoder().encodeToString(testuserData2.get("passwordHash"))));
+    }
+
+    @Test
+    public void testLoadUserPasswordsValuesFalse() {
+        prepareTestFile();
+        Map<String, Map<String, byte[]>> testuserPasswords = Server.testGetUserPasswords();
+        
+        Map<String, byte[]> testuserData1 = testuserPasswords.get("testUser1");
+        assertFalse((encodeBase64("salt2")).equals(Base64.getEncoder().encodeToString(testuserData1.get("salt"))));
+        assertFalse((encodeBase64("hashedPassword")).equals(Base64.getEncoder().encodeToString(testuserData1.get("passwordHash"))));
+
+        Map<String, byte[]> testuserData2 = testuserPasswords.get("testUser2");
+        assertFalse((encodeBase64("salt")).equals(Base64.getEncoder().encodeToString(testuserData2.get("salt"))));
+        assertFalse((encodeBase64("hashedPasswod2")).equals(Base64.getEncoder().encodeToString(testuserData2.get("passwordHash"))));
+    }
+
+    @Test
+    public void testLoadUserPasswordsError() {
+        prepareTestFile();
+        Map<String, Map<String, byte[]>> testuserPasswords = Server.testGetUserPasswords();
+        Map<String, byte[]> testuserData1 = testuserPasswords.get("testUser1");
+        assertFalse((encodeBase64("salt2")).equals(Base64.getEncoder().encodeToString(testuserData1.get("salt"))));
+        assertFalse((encodeBase64("hashedPassword")).equals(Base64.getEncoder().encodeToString(testuserData1.get("passwordHash"))));
+    }
+
+    @Test
+    public void testLoadUserSecretKeysFromFile() {
+        prepareTestFile();
+        Map<String, byte[]> testSecretKeys = Server.testGetUserSecretKeys();
+        assertEquals(2, testSecretKeys.size());
+        assertTrue(testSecretKeys.containsKey("alice"));
+        assertTrue(testSecretKeys.containsKey("bob"));
+        assertFalse(testSecretKeys.containsKey("boo"));
+        assertEquals("YWxpY2U=", new String(testSecretKeys.get("alice")));
+        assertEquals("Ym9iCg==", new String(testSecretKeys.get("bob")));
+    }
+
+    private void prepareTestFile() {
+        // Check if the test file exists
+        File testuserFile = new File("src/test/java/activities/test_users.txt");
+        File testsecretFile = new File("src/test/java/activities/test_secret_keys.txt");
+        if (testuserFile.exists()) {
+            try (PrintWriter writer = new PrintWriter(new FileWriter(testuserFile))) {
+                writer.print("");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try (PrintWriter writer = new PrintWriter(new FileWriter("src/test/java/activities/test_users.txt"))) {
+            writer.println("testUser1 " + encodeBase64("salt1") + " " + encodeBase64("hashedPassword1"));
+            writer.println("testUser2 " + encodeBase64("salt2") + " " + encodeBase64("hashedPassword2"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (testsecretFile.exists()) {
+            try (PrintWriter writer = new PrintWriter(new FileWriter(testsecretFile))) {
+                writer.print("");
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        try (PrintWriter writer = new PrintWriter(new FileWriter("src/test/java/activities/test_secret_keys.txt"))) {
+            writer.println("alice:" + encodeBase64("YWxpY2U="));
+            writer.println("bob:" + encodeBase64("Ym9iCg=="));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String encodeBase64(String input) {
+        return Base64.getEncoder().encodeToString(input.getBytes());
+    }
+
+    @Test
+    public void testHashPasswordSalt() {
+        String password = "password123";
+        byte[] salt = "salt".getBytes(StandardCharsets.UTF_8);
+        byte[] hashedPassword = Server.hashPasswordSalt(password, salt);
+        assertNotNull(hashedPassword);
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            digest.reset();
+            digest.update(salt);
+            byte[] expectedHash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            assertArrayEquals(expectedHash, hashedPassword);
+        } catch (NoSuchAlgorithmException e) {
+            fail("Exception occurred: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testVerifyPassword() {
+        byte[] providedPasswordHash = "hash1".getBytes();
+        byte[] storedPasswordHash = "hash1".getBytes();
+        byte[] differentPasswordHash = "HAA".getBytes();
+        assertTrue(Server.verifyPassword(providedPasswordHash, storedPasswordHash));
+        assertFalse(Server.verifyPassword(providedPasswordHash, differentPasswordHash));
+    }
+
+    @Test
+    public void testEncryptSecretKey() {
+        try {
+            byte[] secretKey = "mySecretKey".getBytes();
+            byte[] passwordHash = "myPasswordHash".getBytes();
+            byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16);
+            SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, "AES");
+            Cipher cipher = Cipher.getInstance("AES");
+            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+            byte[] encryptedSecretKeyExpected = cipher.doFinal(secretKey);
+            byte[] encryptedSecretKeyActual = Server.encryptSecretKey(secretKey, passwordHash);
+
+            // Compare
+            assertArrayEquals(encryptedSecretKeyExpected, encryptedSecretKeyActual);
+        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+            e.printStackTrace();
+            fail("Exception occurred during encryption: " + e.getMessage());
+        }
+    }
+
+    @Test
+    public void testDecryptSecretKey() {
+        byte[] secretKey = "MySecretKey".getBytes(StandardCharsets.UTF_8);
+        byte[] password = "MyPassword".getBytes(StandardCharsets.UTF_8);
+        byte[] encryptedSecretKey = Server.encryptSecretKey(secretKey, password);
+        byte[] decryptedSecretKey = Server.decryptSecretKey(encryptedSecretKey, password);
+        assertArrayEquals(secretKey, decryptedSecretKey);
+    }
+
+    // @Test
+    // public void testSendFile() throws IOException, CsvValidationException, NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException {
+    //     DataOutputStream mockDataOutputStream = mock(DataOutputStream.class);
+    //     String testContent = "This is a test file content.";
+    //     ByteArrayInputStream inputStream = new ByteArrayInputStream(testContent.getBytes());
+    //     FileHandler fileHandler = new FileHandler("testfile.txt");
+    //     File fileMock = mock(File.class);
+    //     when(fileMock.length()).thenReturn((long) testContent.length());
+    //     when(fileMock.getAbsolutePath()).thenReturn("testfile.txt");
+    //     fileHandler.path = "testfile.txt";
+    //     doReturn(inputStream).when(fileHandler).createFileInputStream(any());
+    //     FileEncryption feMock = mock(FileEncryption.class);
+    //     when(feMock.encryptFile(any(File.class))).thenReturn(testContent.getBytes());
+    //     SecretKey mockCommKey = new SecretKeySpec("mockCommKey".getBytes(), "AES");
+    //     fileHandler.sendFile(mockDataOutputStream, mockCommKey, false);
+    //     ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
+    //     verify(mockDataOutputStream).write(captor.capture(), anyInt(), anyInt());
+    //     byte[] sentContent = captor.getValue();
+
+    //     assertEquals(testContent, new String(sentContent));
+    // }
 
     // @Test
     // public void testAuthenticationWithIncorrectCredentials() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {

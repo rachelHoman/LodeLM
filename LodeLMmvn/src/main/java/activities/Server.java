@@ -11,17 +11,23 @@ import java.util.*;
 import java.security.spec.KeySpec;
 
 public class Server {
-    // private static final int PORT = 12345;
-    private static final int PORT = 54393;
+    private static final int PORT = 12345;
+    // private static final int PORT = 54393;
     public static final String PROJECTS_DIRECTORY = "projects/";
     private static Map<String, byte[]> userSecretKeys = new HashMap<>();
+    private static Map<String, byte[]> testuserSecretKeys = new HashMap<>();
     private static Map<String, Map<String, byte[]>> userPasswords = new HashMap<>();
+    private static Map<String, Map<String, byte[]>> testuserPasswords = new HashMap<>();
+    private static String userPath = "src/main/java/activities/users.txt";
+    private static String testPath = "src/test/java/activities/test_users.txt";
+    private static String secretPath = "src/main/java/activities/secret_keys.txt";
+    private static String testsecretPath = "src/test/java/activities/test_secret_keys.txt";
 
     static {
-        // Load user passwords from a file or database
-        loadUserPasswords();
-        // Load user secret keys from a file
-        loadUserSecretKeysFromFile();
+        loadUserPasswords(userPath);
+        loadUserPasswords(testPath);
+        loadUserSecretKeysFromFile(secretPath);
+        loadUserSecretKeysFromFile(testsecretPath);
     }
 
     public static void main(String[] args) {
@@ -47,16 +53,21 @@ public class Server {
         return userSecretKeys;
     }
 
+    public static Map<String, byte[]> testGetUserSecretKeys() {
+        return testuserSecretKeys;
+    }
+
     public static Map<String, Map<String, byte[]>> getUserPasswords() {
         return userPasswords;
     }
 
-    private static void loadUserPasswords() {
-        // Load hashed passwords from a file or database
-        // userPasswords.put("alice", hashPassword("password123"));
-        // userPasswords.put("bob", hashPassword("secret456"));
+    public static Map<String, Map<String, byte[]>> testGetUserPasswords() {
+        return testuserPasswords;
+    }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader("src/main/java/activities/users.txt"))) {
+    private static void loadUserPasswords(String filePath) {
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 // Split the line into tokens
@@ -65,14 +76,24 @@ public class Server {
                     String uid = tokens[0];
                     byte[] salt = Base64.getDecoder().decode(tokens[1]);
                     byte[] hashedPassword = Base64.getDecoder().decode(tokens[2]);
-    
-                    // Create a nested map to store salt and hashed password
-                    Map<String, byte[]> userData = new HashMap<>();
-                    userData.put("salt", salt);
-                    userData.put("passwordHash", hashedPassword);
-    
-                    // Store the user information in the map
-                    userPasswords.put(uid, userData);
+                    if (filePath == userPath) {
+                        // Create a nested map to store salt and hashed password
+                        Map<String, byte[]> userData = new HashMap<>();
+                        userData.put("salt", salt);
+                        userData.put("passwordHash", hashedPassword);
+        
+                        // Store the user information in the map
+                        userPasswords.put(uid, userData);
+                    }
+                    else {
+                        // Create a nested map to store salt and hashed password
+                        Map<String, byte[]> testuserData = new HashMap<>();
+                        testuserData.put("salt", salt);
+                        testuserData.put("passwordHash", hashedPassword);
+        
+                        // Store the user information in the map
+                        testuserPasswords.put(uid, testuserData);
+                    }
                 } else {
                     System.out.println("Invalid format for user entry: " + line);
                 }
@@ -82,15 +103,20 @@ public class Server {
         }
     }
 
-    private static void loadUserSecretKeysFromFile() {
+    private static void loadUserSecretKeysFromFile(String filePath) {
         // Load encrypted secret keys from a file
-        try (BufferedReader reader = new BufferedReader(new FileReader("src/main/java/activities/secret_keys.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 String[] parts = line.split(":");
                 String username = parts[0];
                 byte[] encryptedSecretKey = Base64.getDecoder().decode(parts[1]);
-                userSecretKeys.put(username, encryptedSecretKey);
+                if (filePath == testsecretPath) {
+                    testuserSecretKeys.put(username, encryptedSecretKey);
+                }
+                else {
+                    userSecretKeys.put(username, encryptedSecretKey);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -110,17 +136,6 @@ public class Server {
             return null;
         }
     }
-    
-
-    // public static byte[] hashPassword(String password) {
-    //     try {
-    //         MessageDigest digest = MessageDigest.getInstance("SHA-256");
-    //         return digest.digest(password.getBytes());
-    //     } catch (NoSuchAlgorithmException e) {
-    //         e.printStackTrace();
-    //         return null;
-    //     }
-    // }
 
     private static byte[] concatenateByteArrays(byte[] a, byte[] b) {
         byte[] result = new byte[a.length + b.length];
@@ -175,14 +190,4 @@ public class Server {
             return null;
         }
     }
-    
-    // public void writeToSecretKeysFile(String username, byte[] secretKey) {
-    //     try (FileWriter writer = new FileWriter("LodeLMmvn/src/main/java/activities/secret_keys.txt", true)) {
-    //         writer.write(username + ":" + Base64.getEncoder().encodeToString(secretKey) + "\n");
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //     }
-    // }
-
-    
 }

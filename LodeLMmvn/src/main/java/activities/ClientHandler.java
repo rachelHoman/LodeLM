@@ -157,7 +157,7 @@ public class ClientHandler implements Runnable {
                         EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
 
                         //send to database
-                        dbhandler.sendFile("server_data/" + fileName, fileName);
+                        dbhandler.DBsendFile("server_data/" + fileName, fileName);
                         // DatabHandler dbhandler = new DatabHandler();
                         // dbHandler.uploadFile("server_data/" + fileName, fileName);
                     }

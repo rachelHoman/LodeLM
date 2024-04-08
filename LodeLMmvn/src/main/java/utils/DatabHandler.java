@@ -88,7 +88,7 @@ public class DatabHandler {
         }
     }
 
-    public static void sendFile(String filePath, String fileName) {
+    public static void DBsendFile(String filePath, String fileName) {
         String fileContents = readFileContents(filePath);
 
         // Generate a unique key for the upload
