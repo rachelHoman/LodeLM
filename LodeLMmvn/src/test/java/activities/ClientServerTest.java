@@ -285,28 +285,6 @@ public class ClientServerTest {
     }
 
     // @Test
-    // public void testSendFile() throws IOException, CsvValidationException, NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException {
-    //     DataOutputStream mockDataOutputStream = mock(DataOutputStream.class);
-    //     String testContent = "This is a test file content.";
-    //     ByteArrayInputStream inputStream = new ByteArrayInputStream(testContent.getBytes());
-    //     FileHandler fileHandler = new FileHandler("testfile.txt");
-    //     File fileMock = mock(File.class);
-    //     when(fileMock.length()).thenReturn((long) testContent.length());
-    //     when(fileMock.getAbsolutePath()).thenReturn("testfile.txt");
-    //     fileHandler.path = "testfile.txt";
-    //     doReturn(inputStream).when(fileHandler).createFileInputStream(any());
-    //     FileEncryption feMock = mock(FileEncryption.class);
-    //     when(feMock.encryptFile(any(File.class))).thenReturn(testContent.getBytes());
-    //     SecretKey mockCommKey = new SecretKeySpec("mockCommKey".getBytes(), "AES");
-    //     fileHandler.sendFile(mockDataOutputStream, mockCommKey, false);
-    //     ArgumentCaptor<byte[]> captor = ArgumentCaptor.forClass(byte[].class);
-    //     verify(mockDataOutputStream).write(captor.capture(), anyInt(), anyInt());
-    //     byte[] sentContent = captor.getValue();
-
-    //     assertEquals(testContent, new String(sentContent));
-    // }
-
-    // @Test
     // public void testAuthenticationWithIncorrectCredentials() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
     //     // Simulate client sending correct username and password to the server
     //     // For simplicity, assume a mock client is used for testing
