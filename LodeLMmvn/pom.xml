@@ -73,6 +73,11 @@
       <version>2.0.9</version> <!-- Replace with the latest version -->
       <scope>test</scope>
   </dependency>
+  <dependency>
+    <groupId>org.simplejavamail</groupId>
+    <artifactId>simple-java-mail</artifactId>
+    <version>8.8.2</version>
+  </dependency>
   </dependencies>
 
   

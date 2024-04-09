@@ -75,13 +75,25 @@ public class Client {
                 System.out.print("Enter your username: ");
                 String username = userInput.readLine();
                 // Prompt the user for email
-                // System.out.print("Enter your email: ");
-                // String email = userInput.readLine();
-                // Prompt the user for recovery question
-                System.out.print("Recovery question: Who is your favorite teacher? ");
+                System.out.print("Enter your email: ");
+                String email = userInput.readLine();
+                // Sending enc message
+                System.out.println("Sending one-time passcode to your email...");
+                String otpVal = SimpleMailSender.generateOTP();
+                String emailSubject = "Password Reset";
+                String emailBody = "Dear " + username + ",\n\n"
+                                + "Your one-time passcode for password reset is: " + otpVal + "\n"
+                                + "Please use this passcode to reset your password.\n\n"
+                                + "Regards,\n"
+                                + "Your LodeLM Team";
+                SimpleMailSender.sendEmail(email, emailSubject, emailBody);
+
+                System.out.print("Enter your one-time password: ");
                 String answer = userInput.readLine();
-                if (answer.equals("Birrell")) {
-                    // TODO: fix this so that recovery question is checked on server
+                // TODO: implement reset password
+                // System.out.print("Enter your new password: ");
+                if (answer.equals(otpVal)) {
+                    // TODO: fix this so that user is allowed on server as their user and can reset password
                     username = "alice";
                     String password = "password123";
                     EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
@@ -116,8 +128,8 @@ public class Client {
                 String password = userInput.readLine();
 
                 // Prompt the user for email
-                // System.out.print("Enter your email: ");
-                // String email = userInput.readLine();
+                System.out.print("Enter your email: ");
+                String email = userInput.readLine();
 
                 // Prompt the user for recovery question
                 System.out.print("Recovery Question: Who is your favorite teacher? ");
