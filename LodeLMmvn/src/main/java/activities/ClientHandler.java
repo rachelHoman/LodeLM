@@ -321,7 +321,7 @@ public class ClientHandler implements Runnable {
         // TODO: fix this so that it is only on the server and not my laptop
         File file = new File("src/main/java/activities/secret_keys.txt");
         try (FileReader fr = new FileReader(file);
-             BufferedReader br = new BufferedReader(fr)) {
+            BufferedReader br = new BufferedReader(fr)) {
             String line;
             StringBuilder fileContent = new StringBuilder();
             boolean found = false;
@@ -330,7 +330,7 @@ public class ClientHandler implements Runnable {
                 if (parts.length >= 2 && parts[0].equals(username)) {
                     // Update the secret key for the existing user
                     // fileContent.append(username).append(":").append(Base64.getEncoder().encodeToString(secretKey)).append("\n");
-                    // found = true;
+                    found = true;
                     String message = "User already exists. Please log in.";
                     System.out.println(message);
                     //EncryptedCom.sendMessage(message.getBytes(), aesSecretKey, fe, dataOutputStream);
@@ -356,15 +356,33 @@ public class ClientHandler implements Runnable {
 
     private static void writeToUserFile(String username, byte[] salt, byte[] hashedPassword) {
         File file = new File("src/main/java/activities/users.txt");
-        try (FileWriter fw = new FileWriter(file, true);
-             BufferedWriter bw = new BufferedWriter(fw)) {
+        try (FileReader fr = new FileReader(file);
+            BufferedReader br = new BufferedReader(fr)) {
             // Encode salt and hashed password to Base64 for storage
             String encodedSalt = Base64.getEncoder().encodeToString(salt);
             String encodedHashedPassword = Base64.getEncoder().encodeToString(hashedPassword);
-            if (file.length() != 0) {
-                bw.newLine();
+            String line;
+            StringBuilder fileContent = new StringBuilder();
+            boolean found = false;
+            while ((line = br.readLine()) != null) {
+                String[] parts = line.split(":");
+                if (parts.length >= 2 && parts[0].equals(username)) {
+                    // Update the secret key for the existing user
+                    // fileContent.append(username).append(":").append(Base64.getEncoder().encodeToString(secretKey)).append("\n");
+                    found = true;
+                    String message = "User already exists. Please log in.";
+                    System.out.println(message);
+                    //EncryptedCom.sendMessage(message.getBytes(), aesSecretKey, fe, dataOutputStream);
+                    break;
+                } else {
+                    // Keep the line unchanged
+                    fileContent.append(line).append("\n");
+                }
             }
-            bw.write(username + " " + encodedSalt + " " + encodedHashedPassword);
+
+            if (!found) {
+                fileContent.append(username).append(" ").append(encodedSalt).append(encodedHashedPassword).append("\n");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
