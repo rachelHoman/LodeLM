@@ -6,8 +6,6 @@ import java.net.*;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
-
-import utils.FileHandler;
 import java.security.*;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -123,6 +121,11 @@ public class Client {
                 System.out.print("Enter your username: ");
                 String username = userInput.readLine();
 
+                while (UserExists(username)) {
+                    System.out.print("Username exists. Enter another username: ");
+                    username = userInput.readLine();
+                }
+
                 // Prompt the user for password
                 System.out.print("Enter your password: ");
                 String password = userInput.readLine();
@@ -131,13 +134,10 @@ public class Client {
                 System.out.print("Enter your email: ");
                 String email = userInput.readLine();
 
-                // Prompt the user for recovery question
-                System.out.print("Recovery Question: Who is your favorite teacher? ");
-                String teacher = userInput.readLine();
-
                 // Encrypt the password
                 EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
                 EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
+                EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
 
             }
             else {
@@ -202,4 +202,15 @@ public class Client {
             e.printStackTrace();
         }
     }
+
+    private static boolean UserExists(String username) {
+        Map<String, byte[]> userData = Server.getUserPasswords().get(username);
+        if (userData == null) {
+            return false;
+        }
+        else {
+            return true;
+        }
+    }
+
 }

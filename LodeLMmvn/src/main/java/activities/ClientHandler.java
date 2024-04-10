@@ -64,7 +64,6 @@ public class ClientHandler implements Runnable {
                 // Receive encrypted password from client
                 byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
                 String passwordString = new String(passwordByte, StandardCharsets.UTF_8);
-                //System.out.println(passwordString);
 
                 String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());
 
@@ -76,7 +75,11 @@ public class ClientHandler implements Runnable {
 
                 byte[] password = Base64.getDecoder().decode(sub);
 
-                createAccount(username, password);
+                // Receive encrypted email from client
+                byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                String email = new String(emailByte, StandardCharsets.UTF_8);
+
+                createAccount(username, password, email);
                 String accountCreation = "Account creation successful. Proceeding with connection...";
                 try {
                     EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
@@ -157,7 +160,7 @@ public class ClientHandler implements Runnable {
                         EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
 
                         //send to database
-                        dbhandler.DBsendFile("server_data/" + fileName, fileName);
+                        // dbhandler.DBsendFile("server_data/" + fileName, fileName);
                         // DatabHandler dbhandler = new DatabHandler();
                         // dbHandler.uploadFile("server_data/" + fileName, fileName);
                     }
@@ -274,19 +277,12 @@ public class ClientHandler implements Runnable {
     }
 
 
-    private static void createAccount(String username, byte[] password) {
+    private static void createAccount(String username, byte[] password, String email) {
 
         byte[] salt = generateSalt();
         // Hash the password with Salt
-        // System.out.println("pwd: " + Base64.getEncoder().encodeToString(password));
         byte[] hashedPassword = Server.hashPasswordSalt(new String(password, StandardCharsets.UTF_8), salt);
-        // System.out.println("pwdWOHOOO: " + Base64.getEncoder().encodeToString(hashedPassword));
-        // System.out.println("haha");
-        // String hashedPassword = Server.hashPasswordSalt(new String(password), salt);
-        // create H(s,p)
-        // Server.getUserPasswords().put(username, new byte[][]{username.getBytes(), salt, hashedPassword});
         Map<String, byte[]> userData = new HashMap<>();
-        // Map<String, String> userData = new HashMap<>();
         userData.put("salt", salt);
         userData.put("passwordHash", hashedPassword);
         Server.getUserPasswords().put(username, userData);
