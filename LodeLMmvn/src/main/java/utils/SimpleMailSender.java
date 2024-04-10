@@ -7,12 +7,17 @@ import org.simplejavamail.api.mailer.*;
 import org.simplejavamail.api.mailer.config.TransportStrategy;
 import org.simplejavamail.email.EmailBuilder;
 import org.simplejavamail.mailer.MailerBuilder;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SimpleMailSender {
     private static final String SMTP_HOST = "smtp.gmail.com";
     private static final int SMTP_PORT = 587; // gmail SMTP port
     private static final String SMTP_USERNAME = "lodelm2024@gmail.com";
     private static final String SMTP_PASSWORD = "ztyb mcma dkhs oqyk";
+    private static final String EMAIL_REGEX =
+            "^[a-zA-Z0-9_+&*-]+(?:\\.[a-zA-Z0-9_+&*-]+)*@(?:[a-zA-Z0-9-]+\\.)+[a-zA-Z]{2,7}$";
+    private static final Pattern EMAIL_PATTERN = Pattern.compile(EMAIL_REGEX);
 
     public static void sendEmail(String to, String subject, String body) {
         Email email = EmailBuilder.startingBlank()
@@ -46,6 +51,9 @@ public class SimpleMailSender {
         return otp.toString();
     }
 
-
+    public static boolean isValidEmail(String email) {
+        Matcher matcher = EMAIL_PATTERN.matcher(email);
+        return matcher.matches();
+    }
 
 }

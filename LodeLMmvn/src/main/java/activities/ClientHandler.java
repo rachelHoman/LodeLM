@@ -76,10 +76,10 @@ public class ClientHandler implements Runnable {
                 byte[] password = Base64.getDecoder().decode(sub);
 
                 // Receive encrypted email from client
-                byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                String email = new String(emailByte, StandardCharsets.UTF_8);
+                // byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                // String email = new String(emailByte, StandardCharsets.UTF_8);
 
-                createAccount(username, password, email);
+                createAccount(username, password);
                 String accountCreation = "Account creation successful. Proceeding with connection...";
                 try {
                     EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
@@ -277,11 +277,12 @@ public class ClientHandler implements Runnable {
     }
 
 
-    private static void createAccount(String username, byte[] password, String email) {
+    private static void createAccount(String username, byte[] password) {
 
         byte[] salt = generateSalt();
-        // Hash the password with Salt
+        // Hash the password and email with Salt
         byte[] hashedPassword = Server.hashPasswordSalt(new String(password, StandardCharsets.UTF_8), salt);
+        // byte[] hashedEmail = Server.hashPasswordSalt(email, salt);
         Map<String, byte[]> userData = new HashMap<>();
         userData.put("salt", salt);
         userData.put("passwordHash", hashedPassword);
@@ -352,34 +353,42 @@ public class ClientHandler implements Runnable {
 
     private static void writeToUserFile(String username, byte[] salt, byte[] hashedPassword) {
         File file = new File("src/main/java/activities/users.txt");
-        try (FileReader fr = new FileReader(file);
-            BufferedReader br = new BufferedReader(fr)) {
+        try (FileWriter fw = new FileWriter(file, true);
+             BufferedWriter bw = new BufferedWriter(fw)) {
+        // try (FileReader fr = new FileReader(file);
+        //     BufferedReader br = new BufferedReader(fr)) {
             // Encode salt and hashed password to Base64 for storage
             String encodedSalt = Base64.getEncoder().encodeToString(salt);
             String encodedHashedPassword = Base64.getEncoder().encodeToString(hashedPassword);
-            String line;
-            StringBuilder fileContent = new StringBuilder();
-            boolean found = false;
-            while ((line = br.readLine()) != null) {
-                String[] parts = line.split(":");
-                if (parts.length >= 2 && parts[0].equals(username)) {
-                    // Update the secret key for the existing user
-                    // fileContent.append(username).append(":").append(Base64.getEncoder().encodeToString(secretKey)).append("\n");
-                    found = true;
-                    String message = "User already exists. Please log in.";
-                    System.out.println(message);
-                    //EncryptedCom.sendMessage(message.getBytes(), aesSecretKey, fe, dataOutputStream);
-                    break;
-                } else {
-                    // Keep the line unchanged
-                    fileContent.append(line).append("\n");
-                }
-            }
+            if (file.length() != 0) {
+                bw.newLine();
+            // String line;
+            // StringBuilder fileContent = new StringBuilder();
+            // boolean found = false;
+            // while ((line = br.readLine()) != null) {
+            //     String[] parts = line.split(":");
+            //     if (parts.length >= 2 && parts[0].equals(username)) {
+            //         // Update the secret key for the existing user
+            //         // fileContent.append(username).append(":").append(Base64.getEncoder().encodeToString(secretKey)).append("\n");
+            //         found = true;
+            //         String message = "User already exists. Please log in.";
+            //         System.out.println(message);
+            //         //EncryptedCom.sendMessage(message.getBytes(), aesSecretKey, fe, dataOutputStream);
+            //         break;
+            //     } else {
+            //         // Keep the line unchanged
+            //         fileContent.append(line).append("\n");
+            //     }
+            // }
 
-            if (!found) {
-                fileContent.append(username).append(" ").append(encodedSalt).append(encodedHashedPassword).append("\n");
-            }
-        } catch (IOException e) {
+            // if (!found) {
+            //     fileContent.append(username).append(" ").append(encodedSalt).append(encodedHashedPassword).append("\n");
+            // }
+        } 
+
+        bw.write(username + " " + encodedSalt + " " + encodedHashedPassword);
+
+    } catch (IOException e) {
             e.printStackTrace();
         }
     }

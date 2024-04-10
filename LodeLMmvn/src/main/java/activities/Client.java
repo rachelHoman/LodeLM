@@ -16,8 +16,8 @@ import javax.crypto.SecretKey;
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
-    private static final int SERVER_PORT = 12345;
-    // private static final int SERVER_PORT = 54393;
+    // private static final int SERVER_PORT = 12345;
+    private static final int SERVER_PORT = 54393;
     private int BUFFER_SIZE = 4096;
 
     public static void main(String[] args) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException {
@@ -86,7 +86,7 @@ public class Client {
                                 + "Your LodeLM Team";
                 SimpleMailSender.sendEmail(email, emailSubject, emailBody);
 
-                System.out.print("Enter your one-time password: ");
+                System.out.print("Enter your one-time passcode: ");
                 String answer = userInput.readLine();
                 // TODO: implement reset password
                 // System.out.print("Enter your new password: ");
@@ -130,14 +130,77 @@ public class Client {
                 System.out.print("Enter your password: ");
                 String password = userInput.readLine();
 
-                // Prompt the user for email
-                System.out.print("Enter your email: ");
-                String email = userInput.readLine();
+                String email = "";
+                // Get valid email entry
+                while (true) {
+                    System.out.print("Enter your email: ");
+                    email = userInput.readLine();
+
+                    if (email.isEmpty()) {
+                        System.out.println("Email cannot be empty. Please enter a valid email.");
+                        continue;
+                    }
+
+                    // Check if the email is valid
+                    if (!SimpleMailSender.isValidEmail(email)) {
+                        System.out.println("Invalid email format. Please enter a valid email.");
+                        continue;
+                    }
+
+                    // Verifying email
+                    System.out.println("Sending one-time passcode to your email...");
+                    String otpVal = SimpleMailSender.generateOTP();
+                    String emailSubject = "Email Verification";
+                    String emailBody = "Dear " + username + ",\n\n"
+                                    + "Your one-time passcode is: " + otpVal + "\n"
+                                    + "Please use this passcode to verify your email.\n\n"
+                                    + "Regards,\n"
+                                    + "Your LodeLM Team";
+                    SimpleMailSender.sendEmail(email, emailSubject, emailBody);
+
+                    System.out.print("Enter your one-time passcode: ");
+                    String answer = userInput.readLine();
+                    if (answer.equals(otpVal)) {
+                        System.out.println("Your email has been verified!");
+                        break;
+                    } else {
+                        // TODO: add reports of inccorect attemps to login AUDIT milestone
+                        System.out.println("Your email was invalid. Please enter a valid email.");
+                    }
+                }
+
+                System.out.println("moving on...");
+
+                // // Prompt the user for email
+                // System.out.print("Enter your email: ");
+                // String email = userInput.readLine();
+
+                // //Verifying email
+                // System.out.println("Sending one-time passcode to your email...");
+                // String otpVal = SimpleMailSender.generateOTP();
+                // String emailSubject = "Email Verification";
+                // String emailBody = "Dear " + username + ",\n\n"
+                //                 + "Your one-time passcode is: " + otpVal + "\n"
+                //                 + "Please use this passcode to verify your email.\n\n"
+                //                 + "Regards,\n"
+                //                 + "Your LodeLM Team";
+                // SimpleMailSender.sendEmail(email, emailSubject, emailBody);
+
+                // System.out.print("Enter your one-time passcode: ");
+                // String answer = userInput.readLine();
+                // if (answer.equals(otpVal)) {
+                //     System.out.println("Your email has been verified!");
+                // }
+                // else {
+                    
+                //     System.out.println("Your email was invalid. Please enter a valid email: ");
+                //     email = userInput.readLine();
+                // }
 
                 // Encrypt the password
                 EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
                 EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
-                EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
+                // EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
 
             }
             else {
