@@ -16,8 +16,8 @@ import javax.crypto.SecretKey;
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
-    private static final int SERVER_PORT = 12395;
-    // private static final int SERVER_PORT = 54393;
+    // private static final int SERVER_PORT = 12345;
+    private static final int SERVER_PORT = 54393;
     private int BUFFER_SIZE = 4096;
 
     public static void main(String[] args) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException {
@@ -169,6 +169,8 @@ public class Client {
                     }
                 }
 
+                System.out.println("moving on...");
+
                 // // Prompt the user for email
                 // System.out.print("Enter your email: ");
                 // String email = userInput.readLine();
@@ -198,7 +200,7 @@ public class Client {
                 // Encrypt the password
                 EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
                 EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
-                EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
+                // EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
 
             }
             else {
