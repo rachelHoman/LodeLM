@@ -280,8 +280,9 @@ public class ClientHandler implements Runnable {
     private static void createAccount(String username, byte[] password, String email) {
 
         byte[] salt = generateSalt();
-        // Hash the password with Salt
+        // Hash the password and email with Salt
         byte[] hashedPassword = Server.hashPasswordSalt(new String(password, StandardCharsets.UTF_8), salt);
+        byte[] hashedEmail = Server.hashPasswordSalt(email, salt);
         Map<String, byte[]> userData = new HashMap<>();
         userData.put("salt", salt);
         userData.put("passwordHash", hashedPassword);

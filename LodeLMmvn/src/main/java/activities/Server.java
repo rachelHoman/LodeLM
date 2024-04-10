@@ -11,7 +11,7 @@ import java.util.*;
 import java.security.spec.KeySpec;
 
 public class Server {
-    private static final int PORT = 12345;
+    private static final int PORT = 12395;
     // private static final int PORT = 54393;
     public static final String PROJECTS_DIRECTORY = "projects/";
     private static Map<String, byte[]> userSecretKeys = new HashMap<>();
