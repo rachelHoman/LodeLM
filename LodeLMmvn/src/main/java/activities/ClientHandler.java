@@ -87,6 +87,33 @@ public class ClientHandler implements Runnable {
                     System.out.println(e);
                 }
             }
+
+            else if (action.equals("2") || action.equals("Forgot Password")) {
+                // Receive username and new password from client
+                byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                String username = new String(usernameByte, StandardCharsets.UTF_8);
+                byte[] newPasswordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                String newPasswordString = new String(newPasswordByte, StandardCharsets.UTF_8);
+                String sub = Base64.getEncoder().encodeToString(newPasswordString.getBytes());
+                // Ensure proper padding by adding '=' characters if necessary
+                int padding = sub.length() % 4;
+                if (padding > 0) {
+                    sub += "====".substring(padding);
+                }
+                byte[] newPassword = Base64.getDecoder().decode(sub);
+                // Receive encrypted email from client
+                byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                String email = new String(emailByte, StandardCharsets.UTF_8);
+                
+                resetPassword(username, newPassword, email);
+                String accountCreation = "Password reset successful. Proceeding with connection...";
+                try {
+                    EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+            }
+
             else {
                 // Receive username from client
                 byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
@@ -298,6 +325,30 @@ public class ClientHandler implements Runnable {
         // NEED TO: write email to user.txt
         writeToSecretKeysFile(username, secretKey);
         writeToUserFile(username, salt, storedPasswordHash, hashedEmail);
+    }
+
+    private static void resetPassword(String username, byte[] resetPassword, String email) {
+
+        // Check if the user exists
+        if (Server.getUserPasswords().containsKey(username)) {
+            byte[] salt = generateSalt();
+            byte[] hashedNewPassword = Server.hashSalt(new String(resetPassword, StandardCharsets.UTF_8), salt);
+            byte[] hashedEmail = Server.hashSalt(email, salt);
+            Map<String, byte[]> userData = Server.getUserPasswords().get(username);
+            
+            // Update the user data with the new salt, hashed password, and hashed email
+            userData.put("salt", salt);
+            userData.put("passwordHash", hashedNewPassword);
+            userData.put("emailHash", hashedEmail);
+            Server.getUserPasswords().put(username, userData);
+
+            // not updating secret key with new password
+            // byte[] secretKey = generateSecretKey();
+
+            writeToUserFile(username, salt, hashedNewPassword, userData.get("emailHash"));
+        } else {
+            System.out.println("User does not exist.");
+        }
     }
     
     private static byte[] generateSecretKey() {

@@ -58,6 +58,11 @@ public class Client {
                 // Prompt the user for username
                 System.out.print("Enter your username: ");
                 String username = userInput.readLine();
+                // case for user not existing
+                while (!UserExists(username)) {
+                    System.out.print("Username is incorrect or does not exist. Enter another username: ");
+                    username = userInput.readLine();
+                }
                 EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream); // Send username to server
 
                 // Prompt the user for password
@@ -73,7 +78,11 @@ public class Client {
                 System.out.print("Enter your username: ");
                 String username = userInput.readLine();
 
-
+                // case for user not existing
+                while (!UserExists(username)) {
+                    System.out.print("Username is incorrect or does not exist. Enter another username: ");
+                    username = userInput.readLine();
+                }
 
                 String email = "";
                 // Get valid email entry
@@ -106,13 +115,16 @@ public class Client {
                     System.out.print("Enter your one-time passcode: ");
                     String answer = userInput.readLine();
                     // TODO: implement reset password
-                    // System.out.print("Enter your new password: ");
                     if (answer.equals(otpVal)) {
                         // TODO: fix this so that user is allowed on server as their user and can reset password
-                        username = "alice";
-                        String password = "password123";
+                        // username = "alice";
+                        System.out.print("Reset your password: ");
+                        String password = userInput.readLine();
+                        // String password = "password123";
                         EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
                         EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
+                        EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
+
                         break;
                     } else {
                         // TODO: add reports of inccorect attemps to login AUDIT milestone
