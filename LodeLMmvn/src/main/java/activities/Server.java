@@ -11,12 +11,13 @@ import java.util.*;
 import java.security.spec.KeySpec;
 
 public class Server {
-    private static final int PORT = 12555;
-    // private static final int PORT = 54393;
+    // private static final int PORT = 12555;
+    private static final int PORT = 54399;
     public static final String PROJECTS_DIRECTORY = "projects/";
     private static Map<String, byte[]> userSecretKeys = new HashMap<>();
     private static Map<String, byte[]> testuserSecretKeys = new HashMap<>();
     private static Map<String, Map<String, byte[]>> userPasswords = new HashMap<>();
+    // NEED TO: update
     private static Map<String, Map<String, byte[]>> testuserPasswords = new HashMap<>();
     private static String userPath = "src/main/java/activities/users.txt";
     private static String testPath = "src/test/java/activities/test_users.txt";
@@ -72,29 +73,33 @@ public class Server {
             while ((line = reader.readLine()) != null) {
                 // Split the line into tokens
                 String[] tokens = line.split(" ");
-                if (tokens.length == 3) {
+                if (tokens.length == 4) {
                     String uid = tokens[0];
                     byte[] salt = Base64.getDecoder().decode(tokens[1]);
                     byte[] hashedPassword = Base64.getDecoder().decode(tokens[2]);
-                    if (filePath == userPath) {
+                    byte[] hashedEmail = Base64.getDecoder().decode(tokens[3]);
+                    if (filePath.equals(userPath)) {
                         // Create a nested map to store salt and hashed password
                         Map<String, byte[]> userData = new HashMap<>();
                         userData.put("salt", salt);
                         userData.put("passwordHash", hashedPassword);
+                        userData.put("emailHash", hashedEmail);
         
                         // Store the user information in the map
                         userPasswords.put(uid, userData);
                     }
-                    else {
+                    else if (filePath.equals(testPath)) {
                         // Create a nested map to store salt and hashed password
                         Map<String, byte[]> testuserData = new HashMap<>();
                         testuserData.put("salt", salt);
                         testuserData.put("passwordHash", hashedPassword);
+                        testuserData.put("emailHash", hashedEmail);
         
                         // Store the user information in the map
                         testuserPasswords.put(uid, testuserData);
                     }
                 } else {
+                    System.out.println("testData: " + testuserPasswords);
                     System.out.println("Invalid format for user entry: " + line);
                 }
             }
@@ -124,7 +129,7 @@ public class Server {
     }
     
 
-    public static byte[] hashPasswordSalt(String password, byte[] salt) {
+    public static byte[] hashSalt(String password, byte[] salt) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             digest.reset();

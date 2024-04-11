@@ -1,2 +1,2 @@
-testUser1 c2FsdDE= aGFzaGVkUGFzc3dvcmQx
-testUser2 c2FsdDI= aGFzaGVkUGFzc3dvcmQy
+testUser1 c2FsdDE= aGFzaGVkUGFzc3dvcmQx aGFzaGVkZW1haWwx
+testUser2 c2FsdDI= aGFzaGVkUGFzc3dvcmQy aGFzaGVkZW1haWwy

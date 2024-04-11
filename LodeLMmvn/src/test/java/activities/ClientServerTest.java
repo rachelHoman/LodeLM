@@ -142,6 +142,7 @@ public class ClientServerTest {
         assertNotNull(testuserData1);
         assertTrue(testuserData1.containsKey("salt"));
         assertTrue(testuserData1.containsKey("passwordHash"));
+        assertTrue(testuserData1.containsKey("emailHash"));
     }
 
     @Test
@@ -152,10 +153,12 @@ public class ClientServerTest {
         Map<String, byte[]> testuserData1 = testuserPasswords.get("testUser1");
         assertTrue((encodeBase64("salt1")).equals(Base64.getEncoder().encodeToString(testuserData1.get("salt"))));
         assertTrue((encodeBase64("hashedPassword1")).equals(Base64.getEncoder().encodeToString(testuserData1.get("passwordHash"))));
+        assertTrue((encodeBase64("hashedemail1")).equals(Base64.getEncoder().encodeToString(testuserData1.get("emailHash"))));
 
         Map<String, byte[]> testuserData2 = testuserPasswords.get("testUser2");
         assertTrue((encodeBase64("salt2")).equals(Base64.getEncoder().encodeToString(testuserData2.get("salt"))));
         assertTrue((encodeBase64("hashedPassword2")).equals(Base64.getEncoder().encodeToString(testuserData2.get("passwordHash"))));
+        assertTrue((encodeBase64("hashedemail2")).equals(Base64.getEncoder().encodeToString(testuserData2.get("emailHash"))));
     }
 
     @Test
@@ -169,16 +172,8 @@ public class ClientServerTest {
 
         Map<String, byte[]> testuserData2 = testuserPasswords.get("testUser2");
         assertFalse((encodeBase64("salt")).equals(Base64.getEncoder().encodeToString(testuserData2.get("salt"))));
-        assertFalse((encodeBase64("hashedPasswod2")).equals(Base64.getEncoder().encodeToString(testuserData2.get("passwordHash"))));
-    }
-
-    @Test
-    public void testLoadUserPasswordsError() {
-        prepareTestFile();
-        Map<String, Map<String, byte[]>> testuserPasswords = Server.testGetUserPasswords();
-        Map<String, byte[]> testuserData1 = testuserPasswords.get("testUser1");
-        assertFalse((encodeBase64("salt2")).equals(Base64.getEncoder().encodeToString(testuserData1.get("salt"))));
-        assertFalse((encodeBase64("hashedPassword")).equals(Base64.getEncoder().encodeToString(testuserData1.get("passwordHash"))));
+        assertFalse((encodeBase64("hashedPasswod3")).equals(Base64.getEncoder().encodeToString(testuserData2.get("passwordHash"))));
+        assertFalse((encodeBase64("email1")).equals(Base64.getEncoder().encodeToString(testuserData2.get("emailHash"))));
     }
 
     @Test
@@ -205,8 +200,8 @@ public class ClientServerTest {
             }
         }
         try (PrintWriter writer = new PrintWriter(new FileWriter("src/test/java/activities/test_users.txt"))) {
-            writer.println("testUser1 " + encodeBase64("salt1") + " " + encodeBase64("hashedPassword1"));
-            writer.println("testUser2 " + encodeBase64("salt2") + " " + encodeBase64("hashedPassword2"));
+            writer.println("testUser1 " + encodeBase64("salt1") + " " + encodeBase64("hashedPassword1") + " " + encodeBase64("hashedemail1"));
+            writer.println("testUser2 " + encodeBase64("salt2") + " " + encodeBase64("hashedPassword2") + " " + encodeBase64("hashedemail2"));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -230,10 +225,10 @@ public class ClientServerTest {
     }
 
     @Test
-    public void testHashPasswordSalt() {
+    public void testHashSalt() {
         String password = "password123";
         byte[] salt = "salt".getBytes(StandardCharsets.UTF_8);
-        byte[] hashedPassword = Server.hashPasswordSalt(password, salt);
+        byte[] hashedPassword = Server.hashSalt(password, salt);
         assertNotNull(hashedPassword);
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

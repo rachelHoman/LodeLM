@@ -76,10 +76,10 @@ public class ClientHandler implements Runnable {
                 byte[] password = Base64.getDecoder().decode(sub);
 
                 // Receive encrypted email from client
-                // byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                // String email = new String(emailByte, StandardCharsets.UTF_8);
+                byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                String email = new String(emailByte, StandardCharsets.UTF_8);
 
-                createAccount(username, password);
+                createAccount(username, password, email);
                 String accountCreation = "Account creation successful. Proceeding with connection...";
                 try {
                     EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
@@ -87,6 +87,33 @@ public class ClientHandler implements Runnable {
                     System.out.println(e);
                 }
             }
+
+            else if (action.equals("2") || action.equals("Forgot Password")) {
+                // Receive username and new password from client
+                byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                String username = new String(usernameByte, StandardCharsets.UTF_8);
+                byte[] newPasswordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                String newPasswordString = new String(newPasswordByte, StandardCharsets.UTF_8);
+                String sub = Base64.getEncoder().encodeToString(newPasswordString.getBytes());
+                // Ensure proper padding by adding '=' characters if necessary
+                int padding = sub.length() % 4;
+                if (padding > 0) {
+                    sub += "====".substring(padding);
+                }
+                byte[] newPassword = Base64.getDecoder().decode(sub);
+                // Receive encrypted email from client
+                byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                String email = new String(emailByte, StandardCharsets.UTF_8);
+                
+                resetPassword(username, newPassword, email);
+                String accountCreation = "Password reset successful. Proceeding with connection...";
+                try {
+                    EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+            }
+
             else {
                 // Receive username from client
                 byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
@@ -244,7 +271,7 @@ public class ClientHandler implements Runnable {
         }
 
         // Hash the provided password with the stored salt
-        byte[] providedPasswordHash = Server.hashPasswordSalt(new String(providedPassword), storedSalt);
+        byte[] providedPasswordHash = Server.hashSalt(new String(providedPassword), storedSalt);
         // String providedPasswordHash = Server.hashPasswordSalt(new String(providedPassword), storedSalt);
 
         // Convert salt, provided password hash, and stored password hash to Base64 for comparison
@@ -277,15 +304,17 @@ public class ClientHandler implements Runnable {
     }
 
 
-    private static void createAccount(String username, byte[] password) {
+    private static void createAccount(String username, byte[] password, String email) {
 
         byte[] salt = generateSalt();
         // Hash the password and email with Salt
-        byte[] hashedPassword = Server.hashPasswordSalt(new String(password, StandardCharsets.UTF_8), salt);
-        // byte[] hashedEmail = Server.hashPasswordSalt(email, salt);
+        byte[] hashedPassword = Server.hashSalt(new String(password, StandardCharsets.UTF_8), salt);
+        byte[] hashedEmail = Server.hashSalt(email, salt);
+        // NEED TO: add email to userData
         Map<String, byte[]> userData = new HashMap<>();
         userData.put("salt", salt);
         userData.put("passwordHash", hashedPassword);
+        userData.put("emailHash", hashedEmail);
         Server.getUserPasswords().put(username, userData);
 
         byte[] storedPasswordHash = userData.get("passwordHash");
@@ -293,14 +322,37 @@ public class ClientHandler implements Runnable {
         // Generate a secret key for the new account
         byte[] secretKey = generateSecretKey();
         // Write the username, secret key, salt, and hashed pwd
+        // NEED TO: write email to user.txt
         writeToSecretKeysFile(username, secretKey);
+        writeToUserFile(username, salt, storedPasswordHash, hashedEmail);
+    }
 
-        writeToUserFile(username, salt, storedPasswordHash);
+    private static void resetPassword(String username, byte[] resetPassword, String email) {
+
+        // Check if the user exists
+        if (Server.getUserPasswords().containsKey(username)) {
+            byte[] salt = generateSalt();
+            byte[] hashedNewPassword = Server.hashSalt(new String(resetPassword, StandardCharsets.UTF_8), salt);
+            byte[] hashedEmail = Server.hashSalt(email, salt);
+            Map<String, byte[]> userData = Server.getUserPasswords().get(username);
+            
+            // Update the user data with the new salt, hashed password, and hashed email
+            userData.put("salt", salt);
+            userData.put("passwordHash", hashedNewPassword);
+            userData.put("emailHash", hashedEmail);
+            Server.getUserPasswords().put(username, userData);
+
+            // not updating secret key with new password
+            // byte[] secretKey = generateSecretKey();
+
+            writeToUserFile(username, salt, hashedNewPassword, userData.get("emailHash"));
+        } else {
+            System.out.println("User does not exist.");
+        }
     }
     
     private static byte[] generateSecretKey() {
-        // Generate a new secret key
-        // For demonstration, I'll generate a random 16-byte key
+        // Generate new random 32-byte secret-key
         SecureRandom random = new SecureRandom();
         byte[] secretKey = new byte[32];
         random.nextBytes(secretKey);
@@ -351,42 +403,17 @@ public class ClientHandler implements Runnable {
         }
     }
 
-    private static void writeToUserFile(String username, byte[] salt, byte[] hashedPassword) {
+    private static void writeToUserFile(String username, byte[] salt, byte[] hashedPassword, byte[] hashedEmail) {
         File file = new File("src/main/java/activities/users.txt");
         try (FileWriter fw = new FileWriter(file, true);
              BufferedWriter bw = new BufferedWriter(fw)) {
-        // try (FileReader fr = new FileReader(file);
-        //     BufferedReader br = new BufferedReader(fr)) {
-            // Encode salt and hashed password to Base64 for storage
             String encodedSalt = Base64.getEncoder().encodeToString(salt);
             String encodedHashedPassword = Base64.getEncoder().encodeToString(hashedPassword);
+            String encodedHashedEmail = Base64.getEncoder().encodeToString(hashedEmail);
             if (file.length() != 0) {
                 bw.newLine();
-            // String line;
-            // StringBuilder fileContent = new StringBuilder();
-            // boolean found = false;
-            // while ((line = br.readLine()) != null) {
-            //     String[] parts = line.split(":");
-            //     if (parts.length >= 2 && parts[0].equals(username)) {
-            //         // Update the secret key for the existing user
-            //         // fileContent.append(username).append(":").append(Base64.getEncoder().encodeToString(secretKey)).append("\n");
-            //         found = true;
-            //         String message = "User already exists. Please log in.";
-            //         System.out.println(message);
-            //         //EncryptedCom.sendMessage(message.getBytes(), aesSecretKey, fe, dataOutputStream);
-            //         break;
-            //     } else {
-            //         // Keep the line unchanged
-            //         fileContent.append(line).append("\n");
-            //     }
-            // }
-
-            // if (!found) {
-            //     fileContent.append(username).append(" ").append(encodedSalt).append(encodedHashedPassword).append("\n");
-            // }
-        } 
-
-        bw.write(username + " " + encodedSalt + " " + encodedHashedPassword);
+        }
+        bw.write(username + " " + encodedSalt + " " + encodedHashedPassword + " " + encodedHashedEmail);
 
     } catch (IOException e) {
             e.printStackTrace();
