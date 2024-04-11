@@ -72,38 +72,53 @@ public class Client {
                 // Prompt the user for username
                 System.out.print("Enter your username: ");
                 String username = userInput.readLine();
-                // Prompt the user for email
-                System.out.print("Enter your email: ");
-                String email = userInput.readLine();
-                // Sending enc message
-                System.out.println("Sending one-time passcode to your email...");
-                String otpVal = SimpleMailSender.generateOTP();
-                String emailSubject = "Password Reset";
-                String emailBody = "Dear " + username + ",\n\n"
-                                + "Your one-time passcode for password reset is: " + otpVal + "\n"
-                                + "Please use this passcode to reset your password.\n\n"
-                                + "Regards,\n"
-                                + "Your LodeLM Team";
-                SimpleMailSender.sendEmail(email, emailSubject, emailBody);
 
-                System.out.print("Enter your one-time passcode: ");
-                String answer = userInput.readLine();
-                // TODO: implement reset password
-                // System.out.print("Enter your new password: ");
-                if (answer.equals(otpVal)) {
-                    // TODO: fix this so that user is allowed on server as their user and can reset password
-                    username = "alice";
-                    String password = "password123";
-                    EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
-                    EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
+
+
+                String email = "";
+                // Get valid email entry
+                while (true) {
+                    System.out.print("Enter your email: ");
+                    email = userInput.readLine();
+
+                    if (email.isEmpty()) {
+                        System.out.println("Email cannot be empty. Please enter a valid email.");
+                        continue;
+                    }
+
+                    // Check if the email is valid
+                    if (!SimpleMailSender.isValidEmail(email)) {
+                        System.out.println("Invalid email format. Please enter a valid email.");
+                        continue;
+                    }
+
+                    // Password re-set email
+                    System.out.println("Sending one-time passcode to your email...");
+                    String otpVal = SimpleMailSender.generateOTP();
+                    String emailSubject = "Password Reset";
+                    String emailBody = "Dear " + username + ",\n\n"
+                                    + "Your one-time passcode for password reset is: " + otpVal + "\n"
+                                    + "Please use this passcode to reset your password.\n\n"
+                                    + "Regards,\n"
+                                    + "Your LodeLM Team";
+                    SimpleMailSender.sendEmail(email, emailSubject, emailBody);
+
+                    System.out.print("Enter your one-time passcode: ");
+                    String answer = userInput.readLine();
+                    // TODO: implement reset password
+                    // System.out.print("Enter your new password: ");
+                    if (answer.equals(otpVal)) {
+                        // TODO: fix this so that user is allowed on server as their user and can reset password
+                        username = "alice";
+                        String password = "password123";
+                        EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
+                        EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
+                        break;
+                    } else {
+                        // TODO: add reports of inccorect attemps to login AUDIT milestone
+                        System.out.println("Inccorrect Answer");
+                    }
                 }
-                else {
-                    // TODO: add reports of inccorect attemps to login AUDIT milestone
-                    System.out.println("Inccorrect Answer");
-                    // userInput.close();
-                    // socket.close();
-                }
-                
                 
                 //out.println(username); // Send username to server
                 // TODO: check that this is a valid username and email? pairing and give them the option to reset the password
@@ -168,8 +183,6 @@ public class Client {
                         System.out.println("Your email was invalid. Please enter a valid email.");
                     }
                 }
-
-                System.out.println("moving on...");
 
                 // // Prompt the user for email
                 // System.out.print("Enter your email: ");
