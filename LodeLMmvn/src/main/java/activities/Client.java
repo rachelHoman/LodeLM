@@ -200,7 +200,7 @@ public class Client {
                 // Encrypt the password
                 EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
                 EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
-                // EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
+                EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
 
             }
             else {
