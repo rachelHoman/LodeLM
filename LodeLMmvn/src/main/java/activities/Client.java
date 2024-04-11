@@ -16,8 +16,8 @@ import javax.crypto.SecretKey;
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
-    private static final int SERVER_PORT = 12555;
-    // private static final int SERVER_PORT = 54393;
+    // private static final int SERVER_PORT = 12555;
+    private static final int SERVER_PORT = 54399;
     private int BUFFER_SIZE = 4096;
 
     public static void main(String[] args) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException {
@@ -74,30 +74,46 @@ public class Client {
             else if (login.equals("2") || login.equalsIgnoreCase("Forgot Password")) {
                 // sending action to server
                 EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
-                // Prompt the user for username
-                System.out.print("Enter your username: ");
-                String username = userInput.readLine();
+                
+                // System.out.print("Enter your username: ");
+                // String username = userInput.readLine();
 
-                // case for user not existing
-                while (!UserExists(username)) {
-                    System.out.print("Username is incorrect or does not exist. Enter another username: ");
-                    username = userInput.readLine();
-                }
+                // // case for user not existing
+                // while (!UserExists(username)) {
+                //     System.out.print("Username is incorrect or does not exist. Enter another username: ");
+                //     username = userInput.readLine();
+                // }
 
+                String username = "";
                 String email = "";
                 // Get valid email entry
                 while (true) {
+                    // Prompt the user for username
+                    System.out.print("Enter your username: ");
+                    username = userInput.readLine();
+
+                    // case for user not existing
+                    while (!UserExists(username)) {
+                        System.out.print("Username is incorrect or does not exist. Enter another username: ");
+                        username = userInput.readLine();
+                    }
                     System.out.print("Enter your email: ");
                     email = userInput.readLine();
 
                     if (email.isEmpty()) {
-                        System.out.println("Email cannot be empty. Please enter a valid email.");
+                        System.out.println("Email cannot be empty. Please enter valid values.");
                         continue;
                     }
 
                     // Check if the email is valid
                     if (!SimpleMailSender.isValidEmail(email)) {
-                        System.out.println("Invalid email format. Please enter a valid email.");
+                        System.out.println("Invalid email format. Please enter valid values.");
+                        continue;
+                    }
+
+                    // Check if email and username match
+                    if (!UserEmailMatch(username, email)) {
+                        System.out.println("Username or Email are incorrect. Please enter a valid username and email.");
                         continue;
                     }
 
@@ -114,13 +130,9 @@ public class Client {
 
                     System.out.print("Enter your one-time passcode: ");
                     String answer = userInput.readLine();
-                    // TODO: implement reset password
                     if (answer.equals(otpVal)) {
-                        // TODO: fix this so that user is allowed on server as their user and can reset password
-                        // username = "alice";
                         System.out.print("Reset your password: ");
                         String password = userInput.readLine();
-                        // String password = "password123";
                         EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
                         EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
                         EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
@@ -131,15 +143,6 @@ public class Client {
                         System.out.println("Inccorrect Answer");
                     }
                 }
-                
-                //out.println(username); // Send username to server
-                // TODO: check that this is a valid username and email? pairing and give them the option to reset the password
-                // if (email & username is valid) {
-                //     reset password
-                // }
-                // else {
-                //     System.out.println("Invalid email or username");
-                // }
             }
             else if (login.equals("3") || login.equalsIgnoreCase("Create Account")) {
                 // Send a signal to the server indicating account creation
@@ -298,6 +301,24 @@ public class Client {
         }
         else {
             return true;
+        }
+    }
+
+    private static boolean UserEmailMatch (String username, String providedEmail) {
+        Map<String, byte[]> userData = Server.getUserPasswords().get(username);
+        if (userData == null) {
+            return false;
+        }
+        else {
+            // Get the stored salt and password email
+            byte[] storedSalt = userData.get("salt");
+            byte[] storedEmailHash = userData.get("emailHash");
+            if (storedSalt == null || storedEmailHash == null) {
+                return false;
+            }
+            // Hash the provided email
+            byte[] providedEmailHash = Server.hashSalt(new String(providedEmail), storedSalt);
+            return Arrays.equals(providedEmailHash, storedEmailHash);
         }
     }
 
