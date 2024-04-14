@@ -4,13 +4,14 @@ import java.io.*;
 import java.net.*;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.security.*;
 import java.nio.charset.StandardCharsets;
-
+import java.util.ArrayList;
 import java.util.Arrays;
 import utils.*;
 import javax.crypto.SecretKey;
@@ -345,7 +346,11 @@ public class ClientHandler implements Runnable {
             // not updating secret key with new password
             // byte[] secretKey = generateSecretKey();
 
-            writeToUserFile(username, salt, hashedNewPassword, userData.get("emailHash"));
+            // deleteUserFromFile(username);
+            // writeToUserFile(username, salt, hashedNewPassword, userData.get("emailHash"));
+            // Write updated data to the user file
+            System.out.println("WOHOO");
+            updateUserDataFile(username, userData);
         } else {
             System.out.println("User does not exist.");
         }
@@ -419,4 +424,43 @@ public class ClientHandler implements Runnable {
             e.printStackTrace();
         }
     }
+
+    private static void updateUserDataFile(String username, Map<String, byte[]> userData) {
+        File inputFile = new File("src/main/java/activities/users.txt");
+        File tempFile = new File(inputFile.getAbsolutePath() + ".tmp");
+    
+        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));
+             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+            String line;
+    
+            // Read each line from the original file
+            while ((line = reader.readLine()) != null) {
+                // Check if the line contains the username to be updated
+                if (line.startsWith(username + " ")) {
+                    // Replace user-specific data with updated data
+                    String updatedLine = username + " " +
+                            Base64.getEncoder().encodeToString(userData.get("salt")) + " " +
+                            Base64.getEncoder().encodeToString(userData.get("passwordHash")) + " " +
+                            Base64.getEncoder().encodeToString(userData.get("emailHash"));
+                    // Write the updated line to the temporary file
+                    writer.write(updatedLine + System.lineSeparator());
+                } else {
+                    // Write all other lines to the temporary file
+                    writer.write(line + System.lineSeparator());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    
+        // Replace the original file with the temporary file
+        if (!inputFile.delete()) {
+            System.out.println("Could not delete the original file.");
+            return;
+        }
+        if (!tempFile.renameTo(inputFile)) {
+            System.out.println("Could not rename the temporary file.");
+        }
+    }
+    
 }
