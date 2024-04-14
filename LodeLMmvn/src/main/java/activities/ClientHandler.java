@@ -53,110 +53,237 @@ public class ClientHandler implements Runnable {
             // // macKey = decryptRSA(macKey, rsaKey);
             // System.out.println("MAC Key Received");
 
-            // Receive login or create account signal from client
-            byte[] actionByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-            String action = new String(actionByte, StandardCharsets.UTF_8);
-
-            if (action.equals("Create Account") || action.equals("3")) {
-                // Receive username from client
-                byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                String username = new String(usernameByte, StandardCharsets.UTF_8);
-
-                // Receive encrypted password from client
-                byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                String passwordString = new String(passwordByte, StandardCharsets.UTF_8);
-
-                String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());
-
-                // Ensure proper padding by adding '=' characters if necessary
-                int padding = sub.length() % 4;
-                if (padding > 0) {
-                    sub += "====".substring(padding);
+            // Loop until "logged-in" message is received
+            String action;
+            while ((action = new String(EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) {
+                if (action.equalsIgnoreCase("logged-in")) {
+                    // User is logged in, break the loop and proceed to handle commands
+                    break;
                 }
+                // Receive login or create account signal from client
+                // byte[] actionByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                // String action = new String(actionByte, StandardCharsets.UTF_8);
 
-                byte[] password = Base64.getDecoder().decode(sub);
+                else if (action.equals("Create Account") || action.equals("3")) {
+                    // Receive username from client
+                    byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                    String username = new String(usernameByte, StandardCharsets.UTF_8);
 
-                // Receive encrypted email from client
-                byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                String email = new String(emailByte, StandardCharsets.UTF_8);
+                    // Receive encrypted password from client
+                    byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                    String passwordString = new String(passwordByte, StandardCharsets.UTF_8);
 
-                createAccount(username, password, email);
-                String accountCreation = "Account creation successful. Proceeding with connection...";
-                try {
-                    EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
-                } catch (Exception e) {
-                    System.out.println(e);
-                }
-            }
+                    String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());
 
-            else if (action.equals("2") || action.equals("Forgot Password")) {
-                // Receive username and new password from client
-                byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                String username = new String(usernameByte, StandardCharsets.UTF_8);
-                byte[] newPasswordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                String newPasswordString = new String(newPasswordByte, StandardCharsets.UTF_8);
-                String sub = Base64.getEncoder().encodeToString(newPasswordString.getBytes());
-                // Ensure proper padding by adding '=' characters if necessary
-                int padding = sub.length() % 4;
-                if (padding > 0) {
-                    sub += "====".substring(padding);
-                }
-                byte[] newPassword = Base64.getDecoder().decode(sub);
-                // Receive encrypted email from client
-                byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                String email = new String(emailByte, StandardCharsets.UTF_8);
-                
-                resetPassword(username, newPassword, email);
-                String accountCreation = "Password reset successful. Proceeding with connection...";
-                try {
-                    EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
-                } catch (Exception e) {
-                    System.out.println(e);
-                }
-            }
+                    // Ensure proper padding by adding '=' characters if necessary
+                    int padding = sub.length() % 4;
+                    if (padding > 0) {
+                        sub += "====".substring(padding);
+                    }
 
-            else {
-                // Receive username from client
-                byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                String username = new String(usernameByte, StandardCharsets.UTF_8);
+                    byte[] password = Base64.getDecoder().decode(sub);
 
-                // Receive encrypted password from client
-                byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                String passwordString = new String(passwordByte, StandardCharsets.UTF_8);
+                    // Receive encrypted email from client
+                    byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                    String email = new String(emailByte, StandardCharsets.UTF_8);
 
-                String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());
-
-                // Ensure proper padding by adding '=' characters if necessary
-                int padding = sub.length() % 4;
-                if (padding > 0) {
-                    sub += "====".substring(padding);
-                }
-
-                byte[] password = Base64.getDecoder().decode(sub);
-
-                // Validate username and password
-                if (authenticateUser(username, password)) {
-                    // If authentication successful, obtain the secret key for the user
-                    byte[] secretKey = Server.getUserSecretKeys().get(username);
-
+                    createAccount(username, password, email);
+                    String accountCreation = "Account creation successful. Proceeding with connection...";
                     try {
-                        String authenticationSuccess = "Authentication successful. Proceeding with connection...";
-                        EncryptedCom.sendMessage(authenticationSuccess.getBytes(), aesSecretKey, fe, dataOutputStream);
-                    } catch(Exception e) {
+                        EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
+                    } catch (Exception e) {
                         System.out.println(e);
-                    } 
+                    }
+                }
+
+                else if (action.equals("2") || action.equals("Forgot Password")) {
+                    // Receive username and new password from client
+                    byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                    String username = new String(usernameByte, StandardCharsets.UTF_8);
+                    byte[] newPasswordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                    String newPasswordString = new String(newPasswordByte, StandardCharsets.UTF_8);
+                    String sub = Base64.getEncoder().encodeToString(newPasswordString.getBytes());
+                    // Ensure proper padding by adding '=' characters if necessary
+                    int padding = sub.length() % 4;
+                    if (padding > 0) {
+                        sub += "====".substring(padding);
+                    }
+                    byte[] newPassword = Base64.getDecoder().decode(sub);
+                    // Receive encrypted email from client
+                    byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                    String email = new String(emailByte, StandardCharsets.UTF_8);
                     
-                } else {
+                    resetPassword(username, newPassword, email);
+                    String accountCreation = "Password reset successful. Proceeding with connection...";
                     try {
-                        String authenticationFailure = "Invalid username or password.";
-                        EncryptedCom.sendMessage(authenticationFailure.getBytes(), aesSecretKey, fe, dataOutputStream);
-                    } catch(Exception e) {
+                        EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
+                    } catch (Exception e) {
                         System.out.println(e);
-                    } 
-                    clientSocket.close();
+                    }
+                }
+
+                else if (action.equals("exit")) {
+                    try {
+                        // Close the socket
+                        clientSocket.close();
+                        // return;
+                    } catch (IOException e) {
+                        System.out.println("Error closing socket: " + e.getMessage());
+                    }
+                    // Exit the loop to terminate the client connection
+                    // break;
                     return;
                 }
+
+                else {
+                    // Receive username from client
+                    byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                    String username = new String(usernameByte, StandardCharsets.UTF_8);
+
+                    // Receive encrypted password from client
+                    byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                    String passwordString = new String(passwordByte, StandardCharsets.UTF_8);
+
+                    String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());
+
+                    // Ensure proper padding by adding '=' characters if necessary
+                    int padding = sub.length() % 4;
+                    if (padding > 0) {
+                        sub += "====".substring(padding);
+                    }
+
+                    byte[] password = Base64.getDecoder().decode(sub);
+
+                    // Validate username and password
+                    if (authenticateUser(username, password)) {
+                        // If authentication successful, obtain the secret key for the user
+                        byte[] secretKey = Server.getUserSecretKeys().get(username);
+
+                        try {
+                            String authenticationSuccess = "Authentication successful. Proceeding with connection...";
+                            EncryptedCom.sendMessage(authenticationSuccess.getBytes(), aesSecretKey, fe, dataOutputStream);
+                        } catch(Exception e) {
+                            System.out.println(e);
+                        } 
+                        
+                    } else {
+                        try {
+                            String authenticationFailure = "Invalid username or password.";
+                            EncryptedCom.sendMessage(authenticationFailure.getBytes(), aesSecretKey, fe, dataOutputStream);
+                        } catch(Exception e) {
+                            System.out.println(e);
+                        } 
+                        // TODO: add .close() for cases exit/invalid cases
+                        // clientSocket.close();
+                        // return;
+                    }
+                }
             }
+
+            // // Receive login or create account signal from client
+            // byte[] actionByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+            // String action = new String(actionByte, StandardCharsets.UTF_8);
+
+            // if (action.equals("Create Account") || action.equals("3")) {
+            //     // Receive username from client
+            //     byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+            //     String username = new String(usernameByte, StandardCharsets.UTF_8);
+
+            //     // Receive encrypted password from client
+            //     byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+            //     String passwordString = new String(passwordByte, StandardCharsets.UTF_8);
+
+            //     String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());
+
+            //     // Ensure proper padding by adding '=' characters if necessary
+            //     int padding = sub.length() % 4;
+            //     if (padding > 0) {
+            //         sub += "====".substring(padding);
+            //     }
+
+            //     byte[] password = Base64.getDecoder().decode(sub);
+
+            //     // Receive encrypted email from client
+            //     byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+            //     String email = new String(emailByte, StandardCharsets.UTF_8);
+
+            //     createAccount(username, password, email);
+            //     String accountCreation = "Account creation successful. Proceeding with connection...";
+            //     try {
+            //         EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
+            //     } catch (Exception e) {
+            //         System.out.println(e);
+            //     }
+            // }
+
+            // else if (action.equals("2") || action.equals("Forgot Password")) {
+            //     // Receive username and new password from client
+            //     byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+            //     String username = new String(usernameByte, StandardCharsets.UTF_8);
+            //     byte[] newPasswordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+            //     String newPasswordString = new String(newPasswordByte, StandardCharsets.UTF_8);
+            //     String sub = Base64.getEncoder().encodeToString(newPasswordString.getBytes());
+            //     // Ensure proper padding by adding '=' characters if necessary
+            //     int padding = sub.length() % 4;
+            //     if (padding > 0) {
+            //         sub += "====".substring(padding);
+            //     }
+            //     byte[] newPassword = Base64.getDecoder().decode(sub);
+            //     // Receive encrypted email from client
+            //     byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+            //     String email = new String(emailByte, StandardCharsets.UTF_8);
+                
+            //     resetPassword(username, newPassword, email);
+            //     String accountCreation = "Password reset successful. Proceeding with connection...";
+            //     try {
+            //         EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
+            //     } catch (Exception e) {
+            //         System.out.println(e);
+            //     }
+            // }
+
+            // else {
+            //     // Receive username from client
+            //     byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+            //     String username = new String(usernameByte, StandardCharsets.UTF_8);
+
+            //     // Receive encrypted password from client
+            //     byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+            //     String passwordString = new String(passwordByte, StandardCharsets.UTF_8);
+
+            //     String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());
+
+            //     // Ensure proper padding by adding '=' characters if necessary
+            //     int padding = sub.length() % 4;
+            //     if (padding > 0) {
+            //         sub += "====".substring(padding);
+            //     }
+
+            //     byte[] password = Base64.getDecoder().decode(sub);
+
+            //     // Validate username and password
+            //     if (authenticateUser(username, password)) {
+            //         // If authentication successful, obtain the secret key for the user
+            //         byte[] secretKey = Server.getUserSecretKeys().get(username);
+
+            //         try {
+            //             String authenticationSuccess = "Authentication successful. Proceeding with connection...";
+            //             EncryptedCom.sendMessage(authenticationSuccess.getBytes(), aesSecretKey, fe, dataOutputStream);
+            //         } catch(Exception e) {
+            //             System.out.println(e);
+            //         } 
+                    
+            //     } else {
+            //         try {
+            //             String authenticationFailure = "Invalid username or password.";
+            //             EncryptedCom.sendMessage(authenticationFailure.getBytes(), aesSecretKey, fe, dataOutputStream);
+            //         } catch(Exception e) {
+            //             System.out.println(e);
+            //         } 
+            //         clientSocket.close();
+            //         return;
+            //     }
+            // }
             // Handle client requests
             // TODO: give the users a list of things they can do on the server to prompt them
             try {
@@ -240,15 +367,26 @@ public class ClientHandler implements Runnable {
                 System.out.println(e);
             } 
             clientSocket.close();
+        }
+        // catch (IOException e) {
+        //     e.printStackTrace();
+        // } 
+        catch (EOFException | SocketException e) {
+            // Client has closed the connection abruptly
+            System.out.println("Client connection terminated.");
         } catch (IOException e) {
+            // Other IO exceptions
             e.printStackTrace();
-        } 
+        }
         finally {
             try {
                 // Close connections
                 dataInputStream.close();
                 dataOutputStream.close();
-                clientSocket.close();
+                if (clientSocket != null && !clientSocket.isClosed()) {
+                    clientSocket.close();
+                }
+                // clientSocket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
