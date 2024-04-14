@@ -12,12 +12,11 @@ import java.security.spec.KeySpec;
 
 public class Server {
     // private static final int PORT = 12555;
-    private static final int PORT = 54399;
+    private static final int PORT = 53779;
     public static final String PROJECTS_DIRECTORY = "projects/";
     private static Map<String, byte[]> userSecretKeys = new HashMap<>();
     private static Map<String, byte[]> testuserSecretKeys = new HashMap<>();
     private static Map<String, Map<String, byte[]>> userPasswords = new HashMap<>();
-    // NEED TO: update
     private static Map<String, Map<String, byte[]>> testuserPasswords = new HashMap<>();
     private static String userPath = "src/main/java/activities/users.txt";
     private static String testPath = "src/test/java/activities/test_users.txt";
@@ -116,7 +115,7 @@ public class Server {
                 String[] parts = line.split(":");
                 String username = parts[0];
                 byte[] encryptedSecretKey = Base64.getDecoder().decode(parts[1]);
-                if (filePath == testsecretPath) {
+                if (filePath.equals(testsecretPath)) {
                     testuserSecretKeys.put(username, encryptedSecretKey);
                 }
                 else {

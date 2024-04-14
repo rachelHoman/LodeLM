@@ -17,7 +17,7 @@ import javax.crypto.SecretKey;
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
     // private static final int SERVER_PORT = 12555;
-    private static final int SERVER_PORT = 54399;
+    private static final int SERVER_PORT = 53779;
     private int BUFFER_SIZE = 4096;
 
     public static void main(String[] args) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException {
@@ -49,201 +49,194 @@ public class Client {
             // dataOutputStream.flush();
             // System.out.println("MAC Key Shared");
 
-            // Prompt user to choose login method
-            System.out.print("Choose an option: 1. Login, 2. Forgot Password, 3. Create Account \n");
-            String login = userInput.readLine();
-            if (login.equals("1") || login.equalsIgnoreCase("Login")) {
-                // sending action to server
-                EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
-                // Prompt the user for username
-                System.out.print("Enter your username: ");
-                String username = userInput.readLine();
-                // case for user not existing
-                while (!UserExists(username)) {
-                    System.out.print("Username is incorrect or does not exist. Enter another username: ");
-                    username = userInput.readLine();
-                }
-                EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream); // Send username to server
+            // LOOP ADDED
+            // Loop for login attempts
+            // boolean loggedIn = false;
+            // while (!loggedIn) {
+            // }
 
-                // Prompt the user for password
-                System.out.print("Enter your password: ");
-                String password = userInput.readLine();
-                // Send encrypt password
-                EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream); // Send password to server
-            }
-            else if (login.equals("2") || login.equalsIgnoreCase("Forgot Password")) {
-                // sending action to server
-                EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
-                
-                // System.out.print("Enter your username: ");
-                // String username = userInput.readLine();
-
-                // // case for user not existing
-                // while (!UserExists(username)) {
-                //     System.out.print("Username is incorrect or does not exist. Enter another username: ");
-                //     username = userInput.readLine();
-                // }
-
-                String username = "";
-                String email = "";
-                // Get valid email entry
-                while (true) {
+            boolean loggedIn = false;
+            while (!loggedIn) {
+                // Prompt user to choose login method
+                System.out.print("Choose an option: 1. Login, 2. Forgot Password, 3. Create Account, 4. Exit\n");
+                String login = userInput.readLine();
+                if (login.equals("1") || login.equalsIgnoreCase("Login")) {
+                    // sending action to server
+                    EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
                     // Prompt the user for username
                     System.out.print("Enter your username: ");
-                    username = userInput.readLine();
-
+                    String username = userInput.readLine();
                     // case for user not existing
                     while (!UserExists(username)) {
                         System.out.print("Username is incorrect or does not exist. Enter another username: ");
                         username = userInput.readLine();
                     }
-                    System.out.print("Enter your email: ");
-                    email = userInput.readLine();
+                    EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream); // Send username to server
 
-                    if (email.isEmpty()) {
-                        System.out.println("Email cannot be empty. Please enter valid values.");
-                        continue;
-                    }
+                    // Prompt the user for password
+                    System.out.print("Enter your password: ");
+                    String password = userInput.readLine();
+                    // Send encrypt password
+                    EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream); // Send password to server
+                }
+                else if (login.equals("2") || login.equalsIgnoreCase("Forgot Password")) {
+                    // sending action to server
+                    EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
 
-                    // Check if the email is valid
-                    if (!SimpleMailSender.isValidEmail(email)) {
-                        System.out.println("Invalid email format. Please enter valid values.");
-                        continue;
-                    }
+                    String username = "";
+                    String email = "";
+                    // Get valid email entry
+                    while (true) {
+                        // Prompt the user for username
+                        System.out.print("Enter your username: ");
+                        username = userInput.readLine();
 
-                    // Check if email and username match
-                    if (!UserEmailMatch(username, email)) {
-                        System.out.println("Username or Email are incorrect. Please enter a valid username and email.");
-                        continue;
-                    }
+                        // case for user not existing
+                        while (!UserExists(username)) {
+                            System.out.print("Username is incorrect or does not exist. Enter another username: ");
+                            username = userInput.readLine();
+                        }
+                        System.out.print("Enter your email: ");
+                        email = userInput.readLine();
 
-                    // Password re-set email
-                    System.out.println("Sending one-time passcode to your email...");
-                    String otpVal = SimpleMailSender.generateOTP();
-                    String emailSubject = "Password Reset";
-                    String emailBody = "Dear " + username + ",\n\n"
-                                    + "Your one-time passcode for password reset is: " + otpVal + "\n"
-                                    + "Please use this passcode to reset your password.\n\n"
-                                    + "Regards,\n"
-                                    + "Your LodeLM Team";
-                    SimpleMailSender.sendEmail(email, emailSubject, emailBody);
+                        if (email.isEmpty()) {
+                            System.out.println("Email cannot be empty. Please enter valid values.");
+                            continue;
+                        }
 
-                    System.out.print("Enter your one-time passcode: ");
-                    String answer = userInput.readLine();
-                    if (answer.equals(otpVal)) {
-                        System.out.print("Reset your password: ");
-                        String password = userInput.readLine();
-                        EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
-                        EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
-                        EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
+                        // Check if the email is valid
+                        if (!SimpleMailSender.isValidEmail(email)) {
+                            System.out.println("Invalid email format. Please enter valid values.");
+                            continue;
+                        }
 
-                        break;
-                    } else {
-                        // TODO: add reports of inccorect attemps to login AUDIT milestone
-                        System.out.println("Inccorrect Answer");
+                        // Check if email and username match
+                        if (!UserEmailMatch(username, email)) {
+                            System.out.println("Username or Email are incorrect. Please enter a valid username and email.");
+                            continue;
+                        }
+
+                        // Password re-set email
+                        System.out.println("Sending one-time passcode to your email...");
+                        String otpVal = SimpleMailSender.generateOTP();
+                        String emailSubject = "Password Reset";
+                        String emailBody = "Dear " + username + ",\n\n"
+                                        + "Your one-time passcode for password reset is: " + otpVal + "\n"
+                                        + "Please use this passcode to reset your password.\n\n"
+                                        + "Regards,\n"
+                                        + "Your LodeLM Team";
+                        SimpleMailSender.sendEmail(email, emailSubject, emailBody);
+
+                        System.out.print("Enter your one-time passcode: ");
+                        String answer = userInput.readLine();
+                        if (answer.equals(otpVal)) {
+                            System.out.print("Reset your password: ");
+                            String password = userInput.readLine();
+                            EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
+                            EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
+                            EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
+
+                            break;
+                        } else {
+                            // TODO: add reports of inccorect attemps to login AUDIT milestone
+                            System.out.println("Incorrect Answer");
+                        }
                     }
                 }
-            }
-            else if (login.equals("3") || login.equalsIgnoreCase("Create Account")) {
-                // Send a signal to the server indicating account creation
-                EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
-                // Prompt the user for username
-                System.out.print("Enter your username: ");
-                String username = userInput.readLine();
+                else if (login.equals("3") || login.equalsIgnoreCase("Create Account")) {
+                    // Send a signal to the server indicating account creation
+                    EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
+                    // Prompt the user for username
+                    System.out.print("Enter your username: ");
+                    String username = userInput.readLine();
 
-                while (UserExists(username)) {
-                    System.out.print("Username exists. Enter another username: ");
-                    username = userInput.readLine();
+                    while (UserExists(username)) {
+                        System.out.print("Username exists. Enter another username: ");
+                        username = userInput.readLine();
+                    }
+
+                    // Prompt the user for password
+                    System.out.print("Enter your password: ");
+                    String password = userInput.readLine();
+
+                    String email = "";
+                    // Get valid email entry
+                    while (true) {
+                        System.out.print("Enter your email: ");
+                        email = userInput.readLine();
+
+                        if (email.isEmpty()) {
+                            System.out.println("Email cannot be empty. Please enter a valid email.");
+                            continue;
+                        }
+
+                        // Check if the email is valid
+                        if (!SimpleMailSender.isValidEmail(email)) {
+                            System.out.println("Invalid email format. Please enter a valid email.");
+                            continue;
+                        }
+
+                        // Verifying email
+                        System.out.println("Sending one-time passcode to your email...");
+                        String otpVal = SimpleMailSender.generateOTP();
+                        String emailSubject = "Email Verification";
+                        String emailBody = "Dear " + username + ",\n\n"
+                                        + "Your one-time passcode is: " + otpVal + "\n"
+                                        + "Please use this passcode to verify your email.\n\n"
+                                        + "Regards,\n"
+                                        + "Your LodeLM Team";
+                        SimpleMailSender.sendEmail(email, emailSubject, emailBody);
+
+                        System.out.print("Enter your one-time passcode: ");
+                        String answer = userInput.readLine();
+                        if (answer.equals(otpVal)) {
+                            System.out.println("Your email has been verified!");
+                            break;
+                        } else {
+                            // TODO: add reports of inccorect attemps to login AUDIT milestone
+                            System.out.println("Your email was invalid. Please enter a valid email.");
+                        }
+                    }
+
+                    // Encrypt the password
+                    EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
+                    EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
+                    EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
+
+                }
+                else if (login.equals("4") || login.equalsIgnoreCase("Exit")) {
+                    // Send exit command to the server
+                    EncryptedCom.sendMessage("exit".getBytes(), aesKey, fe, dataOutputStream);
+                    // Close connections
+                    userInput.close();
+                    socket.close();
+                    dataInputStream.close();
+                    dataOutputStream.close();
+                    // System.exit(0);
+                    return;
+                }
+                else {
+                    System.out.println("Not a valid login method");
+                    continue;
+                    // Close connections
+                    // userInput.close();
+                    // socket.close();
+                    // dataInputStream.close();
+                    // dataOutputStream.close();
+                    // return;
                 }
 
-                // Prompt the user for password
-                System.out.print("Enter your password: ");
-                String password = userInput.readLine();
-
-                String email = "";
-                // Get valid email entry
-                while (true) {
-                    System.out.print("Enter your email: ");
-                    email = userInput.readLine();
-
-                    if (email.isEmpty()) {
-                        System.out.println("Email cannot be empty. Please enter a valid email.");
-                        continue;
-                    }
-
-                    // Check if the email is valid
-                    if (!SimpleMailSender.isValidEmail(email)) {
-                        System.out.println("Invalid email format. Please enter a valid email.");
-                        continue;
-                    }
-
-                    // Verifying email
-                    System.out.println("Sending one-time passcode to your email...");
-                    String otpVal = SimpleMailSender.generateOTP();
-                    String emailSubject = "Email Verification";
-                    String emailBody = "Dear " + username + ",\n\n"
-                                    + "Your one-time passcode is: " + otpVal + "\n"
-                                    + "Please use this passcode to verify your email.\n\n"
-                                    + "Regards,\n"
-                                    + "Your LodeLM Team";
-                    SimpleMailSender.sendEmail(email, emailSubject, emailBody);
-
-                    System.out.print("Enter your one-time passcode: ");
-                    String answer = userInput.readLine();
-                    if (answer.equals(otpVal)) {
-                        System.out.println("Your email has been verified!");
-                        break;
-                    } else {
-                        // TODO: add reports of inccorect attemps to login AUDIT milestone
-                        System.out.println("Your email was invalid. Please enter a valid email.");
-                    }
+                // Receive and print the greeting message from the server
+                byte[] greetingByte = EncryptedCom.receiveMessage(aesKey, fe, dataInputStream);
+                String greeting = new String(greetingByte, StandardCharsets.UTF_8);
+                System.out.println(greeting);
+                if (!greeting.equals("Invalid username or password.")) {
+                    loggedIn = true;
+                    // After successful authentication
+                    String loggedInMessage = "logged-in";
+                    EncryptedCom.sendMessage(loggedInMessage.getBytes(), aesKey, fe, dataOutputStream);
                 }
-
-                // // Prompt the user for email
-                // System.out.print("Enter your email: ");
-                // String email = userInput.readLine();
-
-                // //Verifying email
-                // System.out.println("Sending one-time passcode to your email...");
-                // String otpVal = SimpleMailSender.generateOTP();
-                // String emailSubject = "Email Verification";
-                // String emailBody = "Dear " + username + ",\n\n"
-                //                 + "Your one-time passcode is: " + otpVal + "\n"
-                //                 + "Please use this passcode to verify your email.\n\n"
-                //                 + "Regards,\n"
-                //                 + "Your LodeLM Team";
-                // SimpleMailSender.sendEmail(email, emailSubject, emailBody);
-
-                // System.out.print("Enter your one-time passcode: ");
-                // String answer = userInput.readLine();
-                // if (answer.equals(otpVal)) {
-                //     System.out.println("Your email has been verified!");
-                // }
-                // else {
-                    
-                //     System.out.println("Your email was invalid. Please enter a valid email: ");
-                //     email = userInput.readLine();
-                // }
-
-                // Encrypt the password
-                EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
-                EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
-                EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
-
             }
-            else {
-                System.out.println("Not a valid login method");
-                // Close connections
-                userInput.close();
-                socket.close();
-                dataInputStream.close();
-                dataOutputStream.close();
-            }
-
-            // Receive and print the greeting message from the server
-            byte[] greetingByte = EncryptedCom.receiveMessage(aesKey, fe, dataInputStream);
-            String greeting = new String(greetingByte, StandardCharsets.UTF_8);
-            System.out.println(greeting);
 
             String userMessage;
             while ((userMessage = userInput.readLine()) != null) {
