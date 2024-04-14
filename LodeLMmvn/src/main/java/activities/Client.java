@@ -49,8 +49,14 @@ public class Client {
             // dataOutputStream.flush();
             // System.out.println("MAC Key Shared");
 
+            // LOOP ADDED
+            // Loop for login attempts
+            boolean loggedIn = false;
+            while (!loggedIn) {
+            }
+
             // Prompt user to choose login method
-            System.out.print("Choose an option: 1. Login, 2. Forgot Password, 3. Create Account \n");
+            System.out.print("Choose an option: 1. Login, 2. Forgot Password, 3. Create Account, 4. Exit\n");
             String login = userInput.readLine();
             if (login.equals("1") || login.equalsIgnoreCase("Login")) {
                 // sending action to server
@@ -74,15 +80,6 @@ public class Client {
             else if (login.equals("2") || login.equalsIgnoreCase("Forgot Password")) {
                 // sending action to server
                 EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
-                
-                // System.out.print("Enter your username: ");
-                // String username = userInput.readLine();
-
-                // // case for user not existing
-                // while (!UserExists(username)) {
-                //     System.out.print("Username is incorrect or does not exist. Enter another username: ");
-                //     username = userInput.readLine();
-                // }
 
                 String username = "";
                 String email = "";
@@ -198,32 +195,6 @@ public class Client {
                         System.out.println("Your email was invalid. Please enter a valid email.");
                     }
                 }
-
-                // // Prompt the user for email
-                // System.out.print("Enter your email: ");
-                // String email = userInput.readLine();
-
-                // //Verifying email
-                // System.out.println("Sending one-time passcode to your email...");
-                // String otpVal = SimpleMailSender.generateOTP();
-                // String emailSubject = "Email Verification";
-                // String emailBody = "Dear " + username + ",\n\n"
-                //                 + "Your one-time passcode is: " + otpVal + "\n"
-                //                 + "Please use this passcode to verify your email.\n\n"
-                //                 + "Regards,\n"
-                //                 + "Your LodeLM Team";
-                // SimpleMailSender.sendEmail(email, emailSubject, emailBody);
-
-                // System.out.print("Enter your one-time passcode: ");
-                // String answer = userInput.readLine();
-                // if (answer.equals(otpVal)) {
-                //     System.out.println("Your email has been verified!");
-                // }
-                // else {
-                    
-                //     System.out.println("Your email was invalid. Please enter a valid email: ");
-                //     email = userInput.readLine();
-                // }
 
                 // Encrypt the password
                 EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);

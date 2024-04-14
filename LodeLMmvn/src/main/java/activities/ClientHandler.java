@@ -311,7 +311,6 @@ public class ClientHandler implements Runnable {
         // Hash the password and email with Salt
         byte[] hashedPassword = Server.hashSalt(new String(password, StandardCharsets.UTF_8), salt);
         byte[] hashedEmail = Server.hashSalt(email, salt);
-        // NEED TO: add email to userData
         Map<String, byte[]> userData = new HashMap<>();
         userData.put("salt", salt);
         userData.put("passwordHash", hashedPassword);
@@ -323,7 +322,6 @@ public class ClientHandler implements Runnable {
         // Generate a secret key for the new account
         byte[] secretKey = generateSecretKey();
         // Write the username, secret key, salt, and hashed pwd
-        // NEED TO: write email to user.txt
         writeToSecretKeysFile(username, secretKey);
         writeToUserFile(username, salt, storedPasswordHash, hashedEmail);
     }
