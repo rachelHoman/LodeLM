@@ -130,12 +130,18 @@ public class Client {
                         System.out.print("Enter your one-time passcode: ");
                         String answer = userInput.readLine();
                         if (answer.equals(otpVal)) {
-                            System.out.print("Reset your password: ");
+                            System.out.print("Enter your new password: ");
                             String password = userInput.readLine();
+                            System.out.print("Retype your password: ");
+                            String password2 = userInput.readLine();
+                            while (!password.equals(password2)){
+                                System.out.println("Passwords do not match"); 
+                                System.out.println("Please try again: "); 
+                                password2 = userInput.readLine();
+                            }
                             EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
                             EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
                             EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
-
                             break;
                         } else {
                             // TODO: add reports of inccorect attemps to login AUDIT milestone
@@ -158,6 +164,13 @@ public class Client {
                     // Prompt the user for password
                     System.out.print("Enter your password: ");
                     String password = userInput.readLine();
+                    System.out.print("Enter your password again: ");
+                    String password2 = userInput.readLine();
+                    while (!password.equals(password2)){
+                        System.out.print("Passwords do not match.");
+                        System.out.print("Please try again:");
+                        password2 = userInput.readLine();
+                    }
 
                     String email = "";
                     // Get valid email entry
