@@ -365,8 +365,6 @@ public class ClientServerTest {
     }
 
 
-}
-
     @Test
     public void testAuthenticationWithCorrectCredentials() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
         // Simulate client sending correct username and password to the server
@@ -575,6 +573,7 @@ public class ClientServerTest {
             fail("Connection failed: " + e.getMessage());
         }
     }
+}
 
     
 
