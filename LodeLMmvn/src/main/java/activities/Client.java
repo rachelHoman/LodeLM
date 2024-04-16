@@ -49,14 +49,7 @@ public class Client {
             // dataOutputStream.flush();
             // System.out.println("MAC Key Shared");
 
-            // LOOP ADDED
-            // Loop for login attempts
-            // boolean loggedIn = false;
-            // while (!loggedIn) {
-            // }
-
             String username = "";
-
             boolean loggedIn = false;
             while (!loggedIn) {
                 // Prompt user to choose login method
@@ -69,7 +62,7 @@ public class Client {
                     System.out.print("Enter your username: ");
                     username = userInput.readLine();
                     // case for user not existing
-                    while (!UserExists(username)) {
+                    while (!UserExists(username, "normal")) {
                         System.out.print("Username is incorrect or does not exist. Enter another username: ");
                         username = userInput.readLine();
                     }
@@ -94,7 +87,7 @@ public class Client {
                         username = userInput.readLine();
 
                         // case for user not existing
-                        while (!UserExists(username)) {
+                        while (!UserExists(username, "normal")) {
                             System.out.print("Username is incorrect or does not exist. Enter another username: ");
                             username = userInput.readLine();
                         }
@@ -113,7 +106,7 @@ public class Client {
                         }
 
                         // Check if email and username match
-                        if (!UserEmailMatch(username, email)) {
+                        if (!UserEmailMatch(username, email, "normal")) {
                             System.out.println("Username or Email are incorrect. Please enter a valid username and email.");
                             continue;
                         }
@@ -152,7 +145,7 @@ public class Client {
                     System.out.print("Enter your username: ");
                     username = userInput.readLine();
 
-                    while (UserExists(username)) {
+                    while (UserExists(username, "normal")) {
                         System.out.print("Username exists. Enter another username: ");
                         username = userInput.readLine();
                     }
@@ -289,8 +282,16 @@ public class Client {
         }
     }
 
-    private static boolean UserExists(String username) {
-        Map<String, byte[]> userData = Server.getUserPasswords().get(username);
+    // add test mode
+    public static boolean UserExists(String username, String userMode) {
+        Map<String, byte[]> userData;
+        if (userMode.equals("test")) {
+            userData = Server.testGetUserPasswords().get(username);
+        }
+        else {
+            userData = Server.getUserPasswords().get(username);
+        }
+
         if (userData == null) {
             return false;
         }
@@ -299,8 +300,16 @@ public class Client {
         }
     }
 
-    private static boolean UserEmailMatch (String username, String providedEmail) {
-        Map<String, byte[]> userData = Server.getUserPasswords().get(username);
+    public static boolean UserEmailMatch (String username, String providedEmail, String userMode) {
+        Map<String, byte[]> userData;
+        if (userMode.equals("test")) {
+            userData = Server.testGetUserPasswords().get(username);
+            // System.out.println("test: " + userData);
+        }
+        else {
+            userData = Server.getUserPasswords().get(username);
+        }
+        
         if (userData == null) {
             return false;
         }
@@ -311,8 +320,12 @@ public class Client {
             if (storedSalt == null || storedEmailHash == null) {
                 return false;
             }
+            // System.out.println("Salt: " + Arrays.toString(storedSalt));
+            // System.out.println("Email Hash: " + Arrays.toString(storedEmailHash));
             // Hash the provided email
-            byte[] providedEmailHash = Server.hashSalt(new String(providedEmail), storedSalt);
+            // byte[] providedEmailHash = Server.hashSalt(new String(providedEmail), storedSalt);
+            byte[] providedEmailHash = Server.hashSalt(providedEmail, storedSalt);
+            // System.out.println("provided Email Hash: " + Arrays.toString(providedEmailHash));
             return Arrays.equals(providedEmailHash, storedEmailHash);
         }
     }

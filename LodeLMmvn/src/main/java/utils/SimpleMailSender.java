@@ -33,9 +33,6 @@ public class SimpleMailSender {
                 .buildMailer();
 
         mailer.sendMail(email);
-        // System.out.println("Email sent to: " + to);
-        // System.out.println("Subject: " + subject);
-        // System.out.println("Body: " + body);
     }
 
     public static String generateOTP() {
