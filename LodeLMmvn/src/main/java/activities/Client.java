@@ -133,12 +133,12 @@ public class Client {
                         if (answer.equals(otpVal)) {
                             System.out.print("Enter your new password: ");
                             String password = userInput.readLine();
-                            // while (!isPasswordStrong(password)) {
-                            //     String errorMessage = "Password is not strong enough. Please choose a password with at least 8 characters, containing at least one digit, one uppercase letter, one lowercase letter, and one special character. \n";
-                            //     System.out.print(errorMessage);
-                            //     System.out.print("Try again please. Enter your password: ");
-                            //     password = userInput.readLine();
-                            // }
+                            while (!isPasswordStrong(password)) {
+                                String errorMessage = "Password is not strong enough. Please choose a password with at least 8 characters, containing at least one digit, one uppercase letter, one lowercase letter, and one special character. \n";
+                                System.out.print(errorMessage);
+                                System.out.print("Try again please. Enter your password: ");
+                                password = userInput.readLine();
+                            }
                             System.out.print("Retype your password: ");
                             String password2 = userInput.readLine();
                             while (!password.equals(password2)){
