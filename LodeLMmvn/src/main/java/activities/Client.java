@@ -10,6 +10,7 @@ import java.security.*;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.BadPaddingException;
+import org.apache.commons.lang3.StringUtils;
 
 import utils.*;
 import javax.crypto.SecretKey;
@@ -132,6 +133,12 @@ public class Client {
                         if (answer.equals(otpVal)) {
                             System.out.print("Enter your new password: ");
                             String password = userInput.readLine();
+                            // while (!isPasswordStrong(password)) {
+                            //     String errorMessage = "Password is not strong enough. Please choose a password with at least 8 characters, containing at least one digit, one uppercase letter, one lowercase letter, and one special character. \n";
+                            //     System.out.print(errorMessage);
+                            //     System.out.print("Try again please. Enter your password: ");
+                            //     password = userInput.readLine();
+                            // }
                             System.out.print("Retype your password: ");
                             String password2 = userInput.readLine();
                             while (!password.equals(password2)){
@@ -160,10 +167,20 @@ public class Client {
                         System.out.print("Username exists. Enter another username: ");
                         username = userInput.readLine();
                     }
+                    if (username.isEmpty()) {
+                        System.out.println("Username cannot be empty. Please enter valid values.");
+                        continue;
+                    }
 
                     // Prompt the user for password
                     System.out.print("Enter your password: ");
                     String password = userInput.readLine();
+                    while (!isPasswordStrong(password)) {
+                        String errorMessage = "Password is not strong enough. Please choose a password with at least 8 characters, containing at least one digit, one uppercase letter, one lowercase letter, and one special character.";
+                        System.out.print(errorMessage);
+                        System.out.print("Try again please. Enter your password: ");
+                        password = userInput.readLine();
+                    }
                     System.out.print("Enter your password again: ");
                     String password2 = userInput.readLine();
                     while (!password.equals(password2)){
@@ -326,6 +343,27 @@ public class Client {
             byte[] providedEmailHash = Server.hashSalt(new String(providedEmail), storedSalt);
             return Arrays.equals(providedEmailHash, storedEmailHash);
         }
+    }
+
+    private static boolean isPasswordStrong(String password) {
+        if (StringUtils.isBlank(password) || password.length() < 8) {
+            return false;
+        }
+    
+        // Count special characters
+        int specialCharCount = 0;
+        for (char ch : password.toCharArray()) {
+            if (!Character.isLetterOrDigit(ch)) {
+                specialCharCount++;
+            }
+        }
+    
+        // Check if password contains at least one digit, one uppercase, and one lowercase character
+        boolean containsDigit = StringUtils.containsAny(password, "1234567890");
+        boolean containsUppercase = StringUtils.containsAny(password, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+        boolean containsLowercase = StringUtils.containsAny(password, "abcdefghijklmnopqrstuvwxyz");
+    
+        return containsDigit && containsUppercase && containsLowercase && specialCharCount >= 1;
     }
 
 }
