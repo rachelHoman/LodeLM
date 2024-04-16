@@ -55,38 +55,39 @@ public class ClientServerTest {
     private Client client;
     int port = 12345;
 
-    FileEncryption fe = new FileEncryption();
-
     @Test
     public void aesEncryptDecryptTest1() throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, NoSuchProviderException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException{
+        FileEncryption fe = new FileEncryption();
         SecretKey aesKey = fe.getAESKey();
         String test = "hello";
-        byte[] cipherText = this.fe.AESEncrypt(test.getBytes(), aesKey);
-        byte[] iv = this.fe.getIV();
+        byte[] cipherText = fe.AESEncrypt(test.getBytes(), aesKey);
+        byte[] iv = fe.getIV();
         assertTrue(!test.equals(new String(cipherText, StandardCharsets.UTF_8)));
-        byte[] decryptedTextByte = this.fe.AESDecrypt(cipherText, aesKey, iv);
+        byte[] decryptedTextByte = fe.AESDecrypt(cipherText, aesKey, iv);
         String decryptedText = new String(decryptedTextByte, StandardCharsets.UTF_8);
         assertTrue(test.equals(decryptedText));
     } 
     @Test
     public void aesEncryptDecryptTest2() throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, NoSuchProviderException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException{
+        FileEncryption fe = new FileEncryption();
         SecretKey aesKey = fe.getAESKey();
         String test = " ";
-        byte[] cipherText = this.fe.AESEncrypt(test.getBytes(), aesKey);
-        byte[] iv = this.fe.getIV();
+        byte[] cipherText = fe.AESEncrypt(test.getBytes(), aesKey);
+        byte[] iv = fe.getIV();
         assertTrue(!test.equals(new String(cipherText, StandardCharsets.UTF_8)));
-        byte[] decryptedTextByte = this.fe.AESDecrypt(cipherText, aesKey, iv);
+        byte[] decryptedTextByte = fe.AESDecrypt(cipherText, aesKey, iv);
         String decryptedText = new String(decryptedTextByte, StandardCharsets.UTF_8);
         assertTrue(test.equals(decryptedText));
     } 
     @Test
     public void aesEncryptDecryptTest3() throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, NoSuchProviderException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException{
+        FileEncryption fe = new FileEncryption();
         SecretKey aesKey = fe.getAESKey();
         String test = "00000000000000000000000000000000000000000000000000000000000000000000000000";
-        byte[] cipherText = this.fe.AESEncrypt(test.getBytes(), aesKey);
-        byte[] iv = this.fe.getIV();
+        byte[] cipherText = fe.AESEncrypt(test.getBytes(), aesKey);
+        byte[] iv = fe.getIV();
         assertTrue(!test.equals(new String(cipherText, StandardCharsets.UTF_8)));
-        byte[] decryptedTextByte = this.fe.AESDecrypt(cipherText, aesKey, iv);
+        byte[] decryptedTextByte = fe.AESDecrypt(cipherText, aesKey, iv);
         String decryptedText = new String(decryptedTextByte, StandardCharsets.UTF_8);
         assertTrue(test.equals(decryptedText));
     } 
@@ -97,10 +98,11 @@ public class ClientServerTest {
         File file = new File(filename);
         byte[] fileContent = Files.readAllBytes(file.toPath());
         String fileContent1 = new String(fileContent, StandardCharsets.UTF_8);
+        FileEncryption fe = new FileEncryption();
 
-        byte[] cipherText = this.fe.encryptFile(file);
+        byte[] cipherText = fe.encryptFile(file);
         String cipherText1 = new String(cipherText, StandardCharsets.UTF_8);
-        byte[] iv = this.fe.getIV();
+        byte[] iv = fe.getIV();
         assertTrue(!fileContent1.equals(cipherText1));
 
         FileOutputStream fileOutputStream = new FileOutputStream(file);
@@ -108,8 +110,7 @@ public class ClientServerTest {
         fileOutputStream.write(cipherText);
         fileOutputStream.close();
 
-        SecretKey aesKey = fe.getSK();
-        byte[] decryptedTextByte = this.fe.decryptFile(file, aesKey);
+        byte[] decryptedTextByte = fe.decryptFile(file);
         String decryptedText = new String(decryptedTextByte, StandardCharsets.UTF_8);
         assertTrue(fileContent1.equals(decryptedText));
     } 
@@ -120,8 +121,6 @@ public class ClientServerTest {
         System.arraycopy(b, 0, result, a.length, b.length);
         return result;
     }
-
-
 
     // Testing Server.java
 
@@ -279,73 +278,80 @@ public class ClientServerTest {
         assertArrayEquals(secretKey, decryptedSecretKey);
     }
 
-    // @Test
-    // public void testAuthenticationWithIncorrectCredentials() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
-    //     // Simulate client sending correct username and password to the server
-    //     // For simplicity, assume a mock client is used for testing
-    //     try {
-    //         ServerSocket serverSocket = new ServerSocket(port);
-    //         Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
-    //         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-    //         DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-    //         FileEncryption fe = new FileEncryption();
+    @Test
+    public void testAuthenticationWithCorrectCredentials() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
+        // Simulate client sending correct username and password to the server
+        // For simplicity, assume a mock client is used for testing
+        try {
+            ServerSocket serverSocket = new ServerSocket(port);
+            Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
+            DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
+            DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+            FileEncryption fe = new FileEncryption();
 
-    //         SecretKey sk = fe.getAESKey();
-    //         byte[] keyData =  sk.getEncoded();
-    //         dataOutputStream.write(keyData);
+            SecretKey sk = fe.getAESKey();
+            byte[] keyData =  sk.getEncoded();
+            dataOutputStream.write(keyData);
 
-    //         // Send username and password
-    //         EncryptedCom.sendMessage("alice".getBytes(), sk, fe, dataOutputStream); 
-    //         EncryptedCom.sendMessage("pass1234".getBytes(), sk, fe, dataOutputStream); 
-    //         // Receive authentication response from the server
-    //         byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
-    //         String response = new String(responseByte, StandardCharsets.UTF_8);
-    //         assertEquals("Invalid username or password.", response);
+            // Test login
+            EncryptedCom.sendMessage("1".getBytes(), sk, fe, dataOutputStream);
 
-    //         // Close the client socket
-    //         serverSocket.close();
-    //         clientSocket.close();
-    //         dataInputStream.close();
-    //         dataOutputStream.close();
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //         fail("Connection failed: " + e.getMessage());
-    //     }
-    // }
+            // Send username and password
+            EncryptedCom.sendMessage("bob".getBytes(), sk, fe, dataOutputStream); 
+            EncryptedCom.sendMessage("secret456".getBytes(), sk, fe, dataOutputStream); 
+            // Receive authentication response from the server
+            byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
+            String response = new String(responseByte, StandardCharsets.UTF_8);
+            assertEquals("Authentication successful. Proceeding with connection...", response);
 
-    // @Test
-    // public void testAuthenticationWithCorrectCredentials() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
-    //     // Simulate client sending correct username and password to the server
-    //     // For simplicity, assume a mock client is used for testing
-    //     try {
-    //         ServerSocket serverSocket = new ServerSocket(port);
-    //         Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
-    //         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-    //         DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-    //         FileEncryption fe = new FileEncryption();
+            // Close the client socket
+            serverSocket.close();
+            clientSocket.close();
+            dataInputStream.close();
+            dataOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail("Connection failed: " + e.getMessage());
+        }
+    }
 
-    //         SecretKey sk = fe.getAESKey();
-    //         byte[] keyData =  sk.getEncoded();
-    //         dataOutputStream.write(keyData);
+    @Test
+    public void testAuthenticationWithIncorrectCredentials() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
+        // Simulate client sending correct username and password to the server
+        // For simplicity, assume a mock client is used for testing
+        try {
+            ServerSocket serverSocket = new ServerSocket(port);
+            Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
+            DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
+            DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+            FileEncryption fe = new FileEncryption();
 
-    //         // Send username and password
-    //         EncryptedCom.sendMessage("bob".getBytes(), sk, fe, dataOutputStream); 
-    //         EncryptedCom.sendMessage("secret456".getBytes(), sk, fe, dataOutputStream); 
-    //         // Receive authentication response from the server
-    //         byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
-    //         String response = new String(responseByte, StandardCharsets.UTF_8);
-    //         assertEquals("Authentication successful. Proceeding with connection...", response);
+            SecretKey sk = fe.getAESKey();
+            byte[] keyData =  sk.getEncoded();
+            dataOutputStream.write(keyData);
 
-    //         // Close the client socket
-    //         serverSocket.close();
-    //         clientSocket.close();
-    //         dataInputStream.close();
-    //         dataOutputStream.close();
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //         fail("Connection failed: " + e.getMessage());
-    //     }
-    // }
+            // Test login
+            EncryptedCom.sendMessage("1".getBytes(), sk, fe, dataOutputStream);
+
+            // Send username and password
+            EncryptedCom.sendMessage("alice".getBytes(), sk, fe, dataOutputStream); 
+            EncryptedCom.sendMessage("pass1234".getBytes(), sk, fe, dataOutputStream); 
+            // Receive authentication response from the server
+            byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
+            String response = new String(responseByte, StandardCharsets.UTF_8);
+            assertEquals("Invalid username or password.", response);
+
+            // Close the client socket
+            serverSocket.close();
+            clientSocket.close();
+            dataInputStream.close();
+            dataOutputStream.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            fail("Connection failed: " + e.getMessage());
+        }
+    }
+
     // @Test
     // public void testFileCommands() {
     //     // Simulate client sending correct username and password to the server
