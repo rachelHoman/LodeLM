@@ -113,6 +113,7 @@ public class FileHandler {
             byte[] iv = fe.getIV();
 
             FileOutputStream outputStream = new FileOutputStream(file);
+            fileOutputStream.close();
             outputStream.write(iv);
             outputStream.write(cipherText);
             outputStream.close();
@@ -122,8 +123,8 @@ public class FileHandler {
         } else {
             FileOutputStream fileOutputStream = new FileOutputStream(this.path);
             fileOutputStream.write(fileContent, 0, fileContent.length);
+            fileOutputStream.close();
         }
-        fileOutputStream.close();
         return outputString;
     }
 
