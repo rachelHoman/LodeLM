@@ -10,6 +10,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.*;
 import java.security.spec.KeySpec;
 
+import utils.FileEncryption;
+
 public class Server {
     // private static final int PORT = 12555;
     private static final int PORT = 53779;
@@ -31,6 +33,18 @@ public class Server {
     }
 
     public static void main(String[] args) {
+
+        // Create server key to encrypt files if key does not exist
+        File serverKeyFile = new File("/workspaces/LodeLM/file_keys.csv");
+        if (!serverKeyFile.exists()) {
+            try {
+                FileEncryption fe = new FileEncryption();
+                SecretKey serverKey = fe.getAESKey();
+                fe.saveKey(serverKey, serverKeyFile);
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
 
         try {
             ServerSocket serverSocket = new ServerSocket(PORT);
