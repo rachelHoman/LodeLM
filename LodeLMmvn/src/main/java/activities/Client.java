@@ -55,6 +55,8 @@ public class Client {
             // while (!loggedIn) {
             // }
 
+            String username = "";
+
             boolean loggedIn = false;
             while (!loggedIn) {
                 // Prompt user to choose login method
@@ -65,7 +67,7 @@ public class Client {
                     EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
                     // Prompt the user for username
                     System.out.print("Enter your username: ");
-                    String username = userInput.readLine();
+                    username = userInput.readLine();
                     // case for user not existing
                     while (!UserExists(username)) {
                         System.out.print("Username is incorrect or does not exist. Enter another username: ");
@@ -83,7 +85,7 @@ public class Client {
                     // sending action to server
                     EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
 
-                    String username = "";
+                    username = "";
                     String email = "";
                     // Get valid email entry
                     while (true) {
@@ -148,7 +150,7 @@ public class Client {
                     EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
                     // Prompt the user for username
                     System.out.print("Enter your username: ");
-                    String username = userInput.readLine();
+                    username = userInput.readLine();
 
                     while (UserExists(username)) {
                         System.out.print("Username exists. Enter another username: ");
@@ -247,7 +249,7 @@ public class Client {
                     String fileName = userMessage.substring(5);
                     FileHandler fileHandler = new FileHandler("client_data/" + fileName);
                     try {
-                        fileHandler.sendFile(dataOutputStream, aesKey, false);
+                        fileHandler.sendFile(dataOutputStream, aesKey, false, username);
                     } catch (Exception e) {
                         System.out.println(e);
                     }
@@ -257,7 +259,7 @@ public class Client {
                     String fileName = userMessage.substring(9);
                     FileHandler fileHandler = new FileHandler("client_data/" + fileName);
                     try {
-                        fileHandler.receiveFile(dataInputStream, aesKey, false);
+                        fileHandler.receiveFile(dataInputStream, aesKey, false, username);
                     } catch (Exception e) {
                         System.out.println(e);
                     }
