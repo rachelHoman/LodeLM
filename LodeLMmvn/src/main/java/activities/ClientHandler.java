@@ -103,6 +103,8 @@ public class ClientHandler implements Runnable {
                     username = new String(usernameByte, StandardCharsets.UTF_8);
                     byte[] newPasswordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
                     String newPasswordString = new String(newPasswordByte, StandardCharsets.UTF_8);
+                    // byte[] newPasswordByteSecond = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
+                    // String newPasswordStringSecond = new String(newPasswordByte, StandardCharsets.UTF_8);
                     String sub = Base64.getEncoder().encodeToString(newPasswordString.getBytes());
                     // Ensure proper padding by adding '=' characters if necessary
                     int padding = sub.length() % 4;
