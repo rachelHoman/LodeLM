@@ -19,10 +19,12 @@ import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvException;
 import com.opencsv.exceptions.CsvValidationException;
 
+import java.util.ArrayList;
+
 public class FileHandler {
     String path;
     int MAX_BUFFER_SIZE = 4096;
-    String csv = "server_data/file_keys.csv";
+    String csv = "/workspaces/LodeLM/user_permissions.csv";
 
     /***
      * Constructor for FileHandler
@@ -38,9 +40,10 @@ public class FileHandler {
      * 
      * DataOutputStream dataOutputStream: the output stream to write the file into
      * 
-     * return: none
+     * return: (String) output for user
      */
-    public void sendFile(DataOutputStream dataOutputStream, SecretKey commKey, boolean isServer) throws CsvValidationException, NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException {
+    public String sendFile(DataOutputStream dataOutputStream, SecretKey commKey, boolean isServer, String username) throws CsvValidationException, NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException {
+        String userOutput = "File Downloaded";
         int bytes = 0;
         File file = new File(this.path);
         byte[] cipherText;
@@ -48,24 +51,17 @@ public class FileHandler {
 
         if (isServer) {
             // Decrypt the file before sending to client
-            String[] fileDecryptInfo = this.retrieveFileKeyCSV();
+            String[] filePermissionInfo = this.retrieveUserPermissionsCSV(username);
 
-            if (fileDecryptInfo != null && fileDecryptInfo.length == 2) {
-                // Decode the base64 encoded string
-                byte[] decodedKey = Base64.getDecoder().decode(fileDecryptInfo[1]);
-                // Rebuild key using SecretKeySpec
-                SecretKey fileKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES"); 
-                byte[] text = fe.decryptFile(file, fileKey);
+            if (filePermissionInfo != null && filePermissionInfo.length == 3 && filePermissionInfo[2].contains("r")) {
+                byte[] text = fe.decryptFile(file);
                 
                 EncryptedCom.sendMessage(text, commKey, fe, dataOutputStream);
-
-                // dataOutputStream.writeLong(text.length);
-                // dataOutputStream.write(text, 0, text.length);
-
-                // dataOutputStream.flush();
             } else {
-                System.out.println("Decryption Error");
+                userOutput = "You do not have the required permissions to download this file.";
+                EncryptedCom.sendMessage("cannot download".getBytes(), commKey, fe, dataOutputStream);
             }
+            return userOutput;
         }
         else {
             FileInputStream fileInputStream = new FileInputStream(file);
@@ -77,6 +73,8 @@ public class FileHandler {
             EncryptedCom.sendMessage(buffer, commKey, fe, dataOutputStream);
             fileInputStream.close();
         }
+        // System.out.println(userOutput);
+        return userOutput;
     }
 
     /***
@@ -86,51 +84,76 @@ public class FileHandler {
      * 
      * return: none
      */
-    public void receiveFile(DataInputStream dataInputStream, SecretKey commKey, boolean isServer) throws CsvException, CsvValidationException, NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException {
-        
-        int bytes = 0;
-        FileOutputStream fileOutputStream = new FileOutputStream(this.path);
-        FileEncryption fe = new FileEncryption();
- 
+    public String receiveFile(DataInputStream dataInputStream, SecretKey commKey, boolean isServer, String username) throws CsvException, CsvValidationException, NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException {
+        String outputString = null;
+
         // Read file in
+        FileEncryption fe = new FileEncryption();
         byte[] fileContent = EncryptedCom.receiveMessage(commKey, fe, dataInputStream);
-        fileOutputStream.write(fileContent, 0, fileContent.length);
+        if (new String(fileContent, StandardCharsets.UTF_8).equals("cannot download")) {
+            return "";
+        }
+
+        int bytes = 0;
 
         if (isServer) {
+            boolean appended = this.appendUserPermissionsCSV(username, "rw");
+            if (!appended) {
+                outputString = "You do not have permission to override the current file with that name on the server. Please change the name of your file.";
+                return outputString;
+            }
+
             // Encrypt file
             File file = new File(this.path);
+
+            FileOutputStream fileOutputStream = new FileOutputStream(this.path);
+            fileOutputStream.write(fileContent, 0, fileContent.length);
+
             byte[] cipherText = fe.encryptFile(file);
             byte[] iv = fe.getIV();
-            SecretKey sk = fe.getSK();
 
             FileOutputStream outputStream = new FileOutputStream(file);
             outputStream.write(iv);
             outputStream.write(cipherText);
             outputStream.close();
 
-            // Store file decryption info
-            String encodedKey = Base64.getEncoder().encodeToString(sk.getEncoded());
-            this.appendFileKeyCSV(encodedKey);
+            // TODO: Store user permissions info
+            // String encodedKey = Base64.getEncoder().encodeToString(sk.getEncoded());
+        } else {
+            FileOutputStream fileOutputStream = new FileOutputStream(this.path);
+            fileOutputStream.write(fileContent, 0, fileContent.length);
         }
         fileOutputStream.close();
+        return outputString;
     }
 
     /***
      * Deletes file and send message to requester if the file does not exist.
      * 
-     * return: (boolean) whether or not the file was deleted
+     * return: (String) whether or not the file was deleted
      */
-    public boolean deleteFile() throws IOException, CsvValidationException, CsvException {
+    public String deleteFile(String username) throws IOException, CsvValidationException, CsvException {
+        String userOutput = "File has not been deleted...either does not exist or something else went wrong.";
         File file = new File(this.path);
-        boolean deleted = file.delete();
-        if (deleted) {
-            int row = this.searchFilenameCSV();
-            if (row != -1) {
-                // Delete line
-                this.deleteFileKeyCSV(row);
+        // Check if the user has write privileges
+        int row = this.searchUserPermissionsCSV(username);
+        if (row != -1) {
+            String[] userPermissionInfo = this.retrieveUserPermissionsCSV(username);
+            if (userPermissionInfo != null && userPermissionInfo.length == 3 && userPermissionInfo[2].contains("w")) {
+                boolean deleted = file.delete();
+                if (deleted) {
+                    ArrayList<Integer> rowList = this.searchFilenameCSV();
+                    if (rowList.size() != 0) {
+                        // Delete lines
+                        this.deleteFileCSV(rowList);
+                    }
+                    userOutput = this.path + " was deleted";
+                }
+            } else {
+                userOutput = "You do not have the proper permissions to delete this file.";
             }
         }
-        return deleted;
+        return userOutput;
     }
 
     /***
@@ -170,22 +193,37 @@ public class FileHandler {
         return output;
     }
 
-    public void appendFileKeyCSV(String encodedKey) throws IOException, CsvException, CsvValidationException {
+    public boolean appendUserPermissionsCSV(String username, String privileges) throws IOException, CsvException, CsvValidationException {
         CSVWriter writer = new CSVWriter(new FileWriter(this.csv, true));
+        // String userOutput = null;
 
         // See if already in file 
-        int row = this.searchFilenameCSV();
+        int row = this.searchUserPermissionsCSV(username);
         if (row != -1) {
-            // Delete line
-            this.deleteFileKeyCSV(row);
+            String[] userPermissionInfo = this.retrieveUserPermissionsCSV(username);
+            if (userPermissionInfo != null && userPermissionInfo.length == 3 && userPermissionInfo[2].contains("w")) {
+                // Delete line bc needing to override file on server potentially
+                this.deleteUserPermissions(row);
+            }
         }
-        
-        String [] fileKeyInfo = {this.path, encodedKey};
+        else {
+            ArrayList<Integer> rowList = this.searchFilenameCSV();
+            // This is the case where you don't have permission to write to this file name and someone else does
+            if (rowList.size() != 0) {
+                // userOutput = "You do not have permission to override the current file with that name on the server. Please change the name of your file.";
+                // System.out.println(userOutput);
+                writer.close();
+                return false;
+            }
+        }
+    
+        String [] fileKeyInfo = {this.path, username, privileges};
         writer.writeNext(fileKeyInfo);
         writer.close();
+        return true;
     }
 
-    public String[] retrieveFileKeyCSV() throws IOException, CsvValidationException {
+    public String[] retrieveUserPermissionsCSV(String username) throws IOException, CsvValidationException {
         try {
             FileReader filereader = new FileReader(this.csv); 
         
@@ -194,7 +232,8 @@ public class FileHandler {
   
             // we are going to read data line by line 
             while ((nextRecord = csvReader.readNext()) != null) { 
-                if (nextRecord.length > 0 && nextRecord[0].equals(this.path)) {
+                if (nextRecord.length > 0 && nextRecord[0].equals(this.path) && nextRecord[1].equals(username)) {
+                    csvReader.close();
                     return nextRecord;
                 }
             }
@@ -202,22 +241,24 @@ public class FileHandler {
         catch (IOException io) {
             System.out.println(io);
         }
-        System.out.println("File Access Denied");
+        // System.out.println("File Access Denied");
         return null;
     }
 
-    public int searchFilenameCSV() throws IOException, CsvValidationException {
+    public int searchUserPermissionsCSV(String username) throws IOException, CsvValidationException {
         try {
             CSVReader csvReader = new CSVReader(new FileReader(this.csv)); 
             String[] nextRecord = {}; 
             int row = 0;
             // we are going to read data line by line 
             while ((nextRecord = csvReader.readNext()) != null) { 
-                if (nextRecord.length > 0 && nextRecord[0].equals(this.path)) {
+                if (nextRecord.length > 0 && nextRecord[0].equals(this.path) && nextRecord[1].equals(username)) {
+                    csvReader.close();
                     return row;
                 }
                 row++;
             }
+            csvReader.close();
         }
         catch (IOException io) {
             System.out.println(io);
@@ -225,13 +266,68 @@ public class FileHandler {
         return -1;
     }
 
-    public void deleteFileKeyCSV(int rowNumber) throws IOException, CsvException, CsvValidationException {
+    public int searchUserPermissionsCSV() throws IOException, CsvValidationException {
+        try {
+            CSVReader csvReader = new CSVReader(new FileReader(this.csv)); 
+            String[] nextRecord = {}; 
+            int row = 0;
+            // we are going to read data line by line 
+            while ((nextRecord = csvReader.readNext()) != null) { 
+                if (nextRecord.length > 0 && nextRecord[0].equals(this.path)) {
+                    csvReader.close();
+                    return row;
+                }
+                row++;
+            }
+            csvReader.close();
+        }
+        catch (IOException io) {
+            System.out.println(io);
+        }
+        return -1;
+    }
+
+    public ArrayList<Integer> searchFilenameCSV() throws IOException, CsvValidationException {
+        ArrayList<Integer> rowList = new ArrayList<Integer>();
+        try {
+            CSVReader csvReader = new CSVReader(new FileReader(this.csv)); 
+            String[] nextRecord = {}; 
+            int row = 0;
+            // we are going to read data line by line 
+            while ((nextRecord = csvReader.readNext()) != null) { 
+                if (nextRecord.length > 0 && nextRecord[0].equals(this.path)) {
+                    rowList.add(row);
+                }
+                row++;
+            }
+            csvReader.close();
+        }
+        catch (IOException io) {
+            System.out.println(io);
+        }
+        return rowList;
+    }
+
+    public void deleteUserPermissions(int rowNumber) throws IOException, CsvException, CsvValidationException {
         CSVReader reader = new CSVReader(new FileReader(this.csv));
         List<String[]> allElements = reader.readAll();
         allElements.remove(rowNumber);
         FileWriter sw = new FileWriter(this.csv);
         CSVWriter writer = new CSVWriter(sw);
         writer.writeAll(allElements);
+        reader.close();
+        writer.close();
+    }
+
+    public void deleteFileCSV(ArrayList<Integer> rowList) throws IOException, CsvException, CsvValidationException {
+        CSVReader reader = new CSVReader(new FileReader(this.csv));
+        List<String[]> allElements = reader.readAll();
+        for (int row : rowList) {
+            allElements.remove(row);
+        }
+        CSVWriter writer = new CSVWriter(new FileWriter(this.csv));
+        writer.writeAll(allElements);
+        reader.close();
         writer.close();
     }
 }

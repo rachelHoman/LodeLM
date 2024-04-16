@@ -54,15 +54,15 @@ The Client will first be prompted to enter a username. After the user puts in th
 
 ;; `list projects`
 
-The user can send a file to the server
+The user can send a file to the server (NOTE: Users are not able to override files on the server by sending a file of the same name unless they have write privileges to the file on the server they are trying to override)
 
 `send <file_name>`
 
-The user can download a file from the server
+The user can download a file from the server (NOTE: Users are only able to download files that they have read privileges to)
 
 `download <file_name>`
 
-The user can delete a file on the server
+The user can delete a file on the server (NOTE: Users are only able to delete files that they have write privileges to)
 
 `delete <file_name>`
 

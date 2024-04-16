@@ -52,6 +52,7 @@ public class ClientHandler implements Runnable {
             // dataInputStream.read(macKey, 0, MAC_KEY_LENGTH);
             // // macKey = decryptRSA(macKey, rsaKey);
             // System.out.println("MAC Key Received");
+            String username = "";
 
             // Loop until "logged-in" message is received
             String action;
@@ -67,7 +68,7 @@ public class ClientHandler implements Runnable {
                 else if (action.equals("Create Account") || action.equals("3")) {
                     // Receive username from client
                     byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                    String username = new String(usernameByte, StandardCharsets.UTF_8);
+                    username = new String(usernameByte, StandardCharsets.UTF_8);
 
                     // Receive encrypted password from client
                     byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
@@ -99,7 +100,7 @@ public class ClientHandler implements Runnable {
                 else if (action.equals("2") || action.equals("Forgot Password")) {
                     // Receive username and new password from client
                     byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                    String username = new String(usernameByte, StandardCharsets.UTF_8);
+                    username = new String(usernameByte, StandardCharsets.UTF_8);
                     byte[] newPasswordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
                     String newPasswordString = new String(newPasswordByte, StandardCharsets.UTF_8);
                     String sub = Base64.getEncoder().encodeToString(newPasswordString.getBytes());
@@ -138,7 +139,7 @@ public class ClientHandler implements Runnable {
                 else {
                     // Receive username from client
                     byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                    String username = new String(usernameByte, StandardCharsets.UTF_8);
+                    username = new String(usernameByte, StandardCharsets.UTF_8);
 
                     // Receive encrypted password from client
                     byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
@@ -305,13 +306,18 @@ public class ClientHandler implements Runnable {
                     }
                     else if (inputLine.startsWith("send ")) {
                         String fileName = inputLine.substring(5);
+                        String userOutput = null;
                         FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                         try {
-                            fileHandler.receiveFile(dataInputStream, aesSecretKey, true);
+                            userOutput = fileHandler.receiveFile(dataInputStream, aesSecretKey, true, username);
                         } catch (Exception e) {
                             System.out.println(e);
                         }
-                        output = fileName + " has been received by server";
+                        if (userOutput != null) {
+                            output = userOutput;
+                        } else {
+                            output = fileName + " has been received by server";
+                        }
                         EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
 
                         //send to database
@@ -322,23 +328,19 @@ public class ClientHandler implements Runnable {
                     else if (inputLine.startsWith("download ")) {
                         String fileName = inputLine.substring(9);
                         FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                        output = "File was not downloaded for some reason...";
                         try {
-                            fileHandler.sendFile(dataOutputStream, aesSecretKey, true);
+                            output = fileHandler.sendFile(dataOutputStream, aesSecretKey, true, username);
+                            System.out.println(output);
                         } catch (Exception e) {
                             System.out.println(e);
                         }
-                        output = "File Downloaded";
                         EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                     }
                     else if (inputLine.startsWith("delete ")) {
                         String fileName = inputLine.substring(7);
                         FileHandler fileHandler = new FileHandler("server_data/" + fileName);
-                        boolean deleted = fileHandler.deleteFile();
-                        if (deleted) {
-                            output = fileName + " has been deleted.";
-                        } else {
-                            output = fileName + " has not been deleted...either does not exist or something else went wrong.";
-                        }
+                        output = fileHandler.deleteFile(username);
                         EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                     }
                     else if (inputLine.equals("pwd")) {
