@@ -49,12 +49,6 @@ public class Client {
             // dataOutputStream.flush();
             // System.out.println("MAC Key Shared");
 
-            // LOOP ADDED
-            // Loop for login attempts
-            // boolean loggedIn = false;
-            // while (!loggedIn) {
-            // }
-
             boolean loggedIn = false;
             while (!loggedIn) {
                 // Prompt user to choose login method
