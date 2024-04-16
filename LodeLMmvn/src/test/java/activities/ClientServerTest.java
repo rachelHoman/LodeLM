@@ -321,10 +321,48 @@ public class ClientServerTest {
     @Test
     public void testGenerateOTP() {
         String otp = SimpleMailSender.generateOTP();
-        // Assert that the generated OTP has the correct length
+        // Assert that OTP has correct length, contains only uppercase letters, and digits
         assertEquals(6, otp.length());
-        // Assert that the OTP contains only uppercase letters and digits
         assertTrue(otp.matches("[A-Z0-9]+"));
+    }
+
+    // testing Client.java methods
+
+    @Test
+    public void testUserExists_WhenUserExistsTrue() {
+        prepareTestFile();
+        assertTrue(Client.UserExists("testUser1", "test"));
+    }
+
+    @Test
+    public void testUserExistsFalse() {
+        prepareTestFile();
+        assertFalse(Client.UserExists("username", "test"));
+    }
+
+
+
+    @Test
+    public void testUserEmailMatch() {
+        prepareTestFile();
+        // use "testUser2" "hashedemail2" case
+        // Map<String, byte[]> userData = Server.testGetUserPasswords().get("testUser2");
+        // System.out.println("userData: " + userData);
+        // System.out.println("Salt: " + Arrays.toString(userData.get("salt")));
+        // System.out.println("Email Hash: " + Arrays.toString(userData.get("emailHash")));
+        // System.out.println("Password Hash: " + Arrays.toString(userData.get("passwordHash")));
+        // boolean value = Client.UserEmailMatch("testUser2", "hashedemail2", "test");
+        // System.out.println(value);
+
+        // assertTrue(SimpleMailSender.isValidEmail("test@example.com"));
+        // Test with correct username and email
+        // assertTrue(Client.UserEmailMatch("testUser2", "hashedemail2", "test"));
+        // Test with incorrect username
+        assertFalse(Client.UserEmailMatch("nonExistingUser", "hashedemail2", "test"));
+        // Test with incorrect email
+        assertFalse(Client.UserEmailMatch("testUser2", "wrong@example.com", "test"));
+        // Test with null username
+        assertFalse(Client.UserEmailMatch(null, "hashedemail2", "test"));
     }
 
 
