@@ -97,7 +97,7 @@ public class FileHandler {
         int bytes = 0;
 
         if (isServer) {
-            boolean appended = this.appendUserPermissionsCSV(username, "rw");
+            boolean appended = this.appendUserPermissionsCSV(username, null, "rw");
             if (!appended) {
                 outputString = "You do not have permission to override the current file with that name on the server. Please change the name of your file.";
                 return outputString;
@@ -146,6 +146,7 @@ public class FileHandler {
                     ArrayList<Integer> rowList = this.searchFilenameCSV();
                     if (rowList.size() != 0) {
                         // Delete lines
+                        System.out.println(rowList);
                         this.deleteFileCSV(rowList);
                     }
                     userOutput = this.path + " was deleted";
@@ -194,17 +195,62 @@ public class FileHandler {
         return output;
     }
 
-    public boolean appendUserPermissionsCSV(String username, String privileges) throws IOException, CsvException, CsvValidationException {
+    /***
+     * Outputs current working directory
+     * 
+     * return: (String) output to print to user
+     */
+    public String shareFile(String username, String sharedUsername, String privileges) throws CsvException, IOException {
+        String output = "File not shared for some reason...";
+        if (appendUserPermissionsCSV(username, sharedUsername, privileges)) {
+            output = "File Shared";
+        } else {
+            output = "Issue with File Share, do you write permissions on this file? If not, you cannot share the file.";
+        }
+        return output;
+    }
+
+
+    public boolean appendUserPermissionsCSV(String username, String sharedUsername, String privileges) throws IOException, CsvException, CsvValidationException {
         CSVWriter writer = new CSVWriter(new FileWriter(this.csv, true));
-        // String userOutput = null;
 
         // See if already in file 
         int row = this.searchUserPermissionsCSV(username);
         if (row != -1) {
             String[] userPermissionInfo = this.retrieveUserPermissionsCSV(username);
             if (userPermissionInfo != null && userPermissionInfo.length == 3 && userPermissionInfo[2].contains("w")) {
-                // Delete line bc needing to override file on server potentially
-                this.deleteUserPermissions(row);
+                // then we are looking to append new permissions for username
+                if (sharedUsername == null) {
+                    // Delete line bc needing to override file on server potentially
+                    this.deleteUserPermissions(row);
+                } 
+                // then we are looking to append new permissions for sharedUsername
+                else {
+                    // check if the sharedUsername is already in the share file
+                    int sharedRow = this.searchUserPermissionsCSV(sharedUsername);
+                    if (sharedRow != -1) {
+                        String[] sharedUserPermissionInfo = this.retrieveUserPermissionsCSV(username);
+                        if (sharedUserPermissionInfo != null && sharedUserPermissionInfo.length == 3) {
+                            String currentPermissions = sharedUserPermissionInfo[2];
+                            if (privileges.equals(currentPermissions)) {
+                                writer.close();
+                                return true;
+                            } else {
+                                this.deleteUserPermissions(sharedRow);
+                                privileges = "rw";
+                            }
+                        }
+                    }
+                    String [] shareKeyInfo = {this.path, sharedUsername, privileges};
+                    writer.writeNext(shareKeyInfo);
+                    writer.close();
+                    return true;
+                }
+            }
+            // case where user only has read privileges, so shouldn't be able to edit the permissions of the file
+            else {
+                writer.close();
+                return false;
             }
         }
         else {
@@ -323,9 +369,11 @@ public class FileHandler {
     public void deleteFileCSV(ArrayList<Integer> rowList) throws IOException, CsvException, CsvValidationException {
         CSVReader reader = new CSVReader(new FileReader(this.csv));
         List<String[]> allElements = reader.readAll();
-        for (int row : rowList) {
+        for (int i = rowList.size() - 1; i >= 0; i--) {
+            int row = rowList.get(i);
             allElements.remove(row);
         }
+        System.out.println(allElements);
         CSVWriter writer = new CSVWriter(new FileWriter(this.csv));
         writer.writeAll(allElements);
         reader.close();
