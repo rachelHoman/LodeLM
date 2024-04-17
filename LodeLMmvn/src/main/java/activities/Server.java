@@ -13,8 +13,8 @@ import java.security.spec.KeySpec;
 import utils.FileEncryption;
 
 public class Server {
-    // private static final int PORT = 12555;
-    private static final int PORT = 53779;
+    private static final int PORT = 12599;
+    // private static final int PORT = 53779;
     public static final String PROJECTS_DIRECTORY = "projects/";
     private static Map<String, byte[]> userSecretKeys = new HashMap<>();
     private static Map<String, byte[]> testuserSecretKeys = new HashMap<>();

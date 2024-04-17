@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: activities.ClientServerTest
 -------------------------------------------------------------------------------
-Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.295 s -- in activities.ClientServerTest
+Tests run: 21, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.276 s -- in activities.ClientServerTest

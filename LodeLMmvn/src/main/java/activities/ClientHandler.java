@@ -159,6 +159,8 @@ public class ClientHandler implements Runnable {
 
                     // Validate username and password
                     if (authenticateUser(username, password)) {
+                        System.out.println("username entered: " + username);
+                        System.out.println("password entered: " + password);
                         // If authentication successful, obtain the secret key for the user
                         byte[] secretKey = Server.getUserSecretKeys().get(username);
 
@@ -299,6 +301,10 @@ public class ClientHandler implements Runnable {
         Map<String, byte[]> userData = Server.getUserPasswords().get(username);
         if (userData == null) {
             return false; // User not found
+        }
+
+        while (!Client.UserExists(username, "normal")) {
+            return false;
         }
 
         // Get the stored salt and password hash from user data

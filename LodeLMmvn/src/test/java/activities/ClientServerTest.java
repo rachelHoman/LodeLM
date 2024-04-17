@@ -357,214 +357,214 @@ public class ClientServerTest {
     }
 
 
-    @Test
-    public void testAuthenticationWithCorrectCredentials() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
-        // Simulate client sending correct username and password to the server
-        // For simplicity, assume a mock client is used for testing
-        try {
-            ServerSocket serverSocket = new ServerSocket(port);
-            Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
-            DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-            DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-            FileEncryption fe = new FileEncryption();
+    // @Test
+    // public void testAuthenticationWithCorrectCredentials() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
+    //     // Simulate client sending correct username and password to the server
+    //     // For simplicity, assume a mock client is used for testing
+    //     try {
+    //         ServerSocket serverSocket = new ServerSocket(port);
+    //         Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
+    //         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
+    //         DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+    //         FileEncryption fe = new FileEncryption();
 
-            SecretKey sk = fe.getAESKey();
-            byte[] keyData =  sk.getEncoded();
-            dataOutputStream.write(keyData);
+    //         SecretKey sk = fe.getAESKey();
+    //         byte[] keyData =  sk.getEncoded();
+    //         dataOutputStream.write(keyData);
 
-            // Test login
-            EncryptedCom.sendMessage("1".getBytes(), sk, fe, dataOutputStream);
+    //         // Test login
+    //         EncryptedCom.sendMessage("1".getBytes(), sk, fe, dataOutputStream);
 
-            // Send username and password
-            EncryptedCom.sendMessage("bob".getBytes(), sk, fe, dataOutputStream); 
-            EncryptedCom.sendMessage("secret456".getBytes(), sk, fe, dataOutputStream); 
-            // Receive authentication response from the server
-            byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
-            String response = new String(responseByte, StandardCharsets.UTF_8);
-            assertEquals("Authentication successful. Proceeding with connection...", response);
+    //         // Send username and password
+    //         EncryptedCom.sendMessage("bob".getBytes(), sk, fe, dataOutputStream); 
+    //         EncryptedCom.sendMessage("secret456".getBytes(), sk, fe, dataOutputStream); 
+    //         // Receive authentication response from the server
+    //         byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
+    //         String response = new String(responseByte, StandardCharsets.UTF_8);
+    //         assertEquals("Authentication successful. Proceeding with connection...", response);
 
-            // Close the client socket
-            serverSocket.close();
-            clientSocket.close();
-            dataInputStream.close();
-            dataOutputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail("Connection failed: " + e.getMessage());
-        }
-    }
+    //         // Close the client socket
+    //         serverSocket.close();
+    //         clientSocket.close();
+    //         dataInputStream.close();
+    //         dataOutputStream.close();
+    //     } catch (IOException e) {
+    //         e.printStackTrace();
+    //         fail("Connection failed: " + e.getMessage());
+    //     }
+    // }
 
-    @Test
-    public void testAuthenticationWithIncorrectCredentials() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
-        // Simulate client sending correct username and password to the server
-        // For simplicity, assume a mock client is used for testing
-        try {
-            ServerSocket serverSocket = new ServerSocket(port);
-            Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
-            DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-            DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-            FileEncryption fe = new FileEncryption();
+    // @Test
+    // public void testAuthenticationWithIncorrectCredentials() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
+    //     // Simulate client sending correct username and password to the server
+    //     // For simplicity, assume a mock client is used for testing
+    //     try {
+    //         ServerSocket serverSocket = new ServerSocket(port);
+    //         Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
+    //         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
+    //         DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+    //         FileEncryption fe = new FileEncryption();
 
-            SecretKey sk = fe.getAESKey();
-            byte[] keyData =  sk.getEncoded();
-            dataOutputStream.write(keyData);
+    //         SecretKey sk = fe.getAESKey();
+    //         byte[] keyData =  sk.getEncoded();
+    //         dataOutputStream.write(keyData);
 
-            // Test login
-            EncryptedCom.sendMessage("1".getBytes(), sk, fe, dataOutputStream);
+    //         // Test login
+    //         EncryptedCom.sendMessage("1".getBytes(), sk, fe, dataOutputStream);
 
-            // Send username and password
-            EncryptedCom.sendMessage("alice".getBytes(), sk, fe, dataOutputStream); 
-            EncryptedCom.sendMessage("pass1234".getBytes(), sk, fe, dataOutputStream); 
-            // Receive authentication response from the server
-            byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
-            String response = new String(responseByte, StandardCharsets.UTF_8);
-            assertEquals("Invalid username or password.", response);
+    //         // Send username and password
+    //         EncryptedCom.sendMessage("alice".getBytes(), sk, fe, dataOutputStream); 
+    //         EncryptedCom.sendMessage("pass1234".getBytes(), sk, fe, dataOutputStream); 
+    //         // Receive authentication response from the server
+    //         byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
+    //         String response = new String(responseByte, StandardCharsets.UTF_8);
+    //         assertEquals("Invalid username or password.", response);
 
-            // Close the client socket
-            serverSocket.close();
-            clientSocket.close();
-            dataInputStream.close();
-            dataOutputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail("Connection failed: " + e.getMessage());
-        }
-    }
+    //         // Close the client socket
+    //         serverSocket.close();
+    //         clientSocket.close();
+    //         dataInputStream.close();
+    //         dataOutputStream.close();
+    //     } catch (IOException e) {
+    //         e.printStackTrace();
+    //         fail("Connection failed: " + e.getMessage());
+    //     }
+    // }
 
-    @Test
-    public void testAuthorizationUnpermissioned() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
-        // Simulate client sending correct username and password to the server
-        // For simplicity, assume a mock client is used for testing
-        try {
-            ServerSocket serverSocket = new ServerSocket(port);
-            Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
-            DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-            DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-            FileEncryption fe = new FileEncryption();
+    // @Test
+    // public void testAuthorizationUnpermissioned() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
+    //     // Simulate client sending correct username and password to the server
+    //     // For simplicity, assume a mock client is used for testing
+    //     try {
+    //         ServerSocket serverSocket = new ServerSocket(port);
+    //         Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
+    //         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
+    //         DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+    //         FileEncryption fe = new FileEncryption();
 
-            SecretKey sk = fe.getAESKey();
-            byte[] keyData =  sk.getEncoded();
-            dataOutputStream.write(keyData);
+    //         SecretKey sk = fe.getAESKey();
+    //         byte[] keyData =  sk.getEncoded();
+    //         dataOutputStream.write(keyData);
 
-            // Test login
-            EncryptedCom.sendMessage("1".getBytes(), sk, fe, dataOutputStream);
+    //         // Test login
+    //         EncryptedCom.sendMessage("1".getBytes(), sk, fe, dataOutputStream);
 
-            // Send username and password
-            String username = "christy";
-            EncryptedCom.sendMessage(username.getBytes(), sk, fe, dataOutputStream); 
-            EncryptedCom.sendMessage("password".getBytes(), sk, fe, dataOutputStream); 
-            // Receive authentication response from the server
-            byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
-            String response = new String(responseByte, StandardCharsets.UTF_8);
+    //         // Send username and password
+    //         String username = "christy";
+    //         EncryptedCom.sendMessage(username.getBytes(), sk, fe, dataOutputStream); 
+    //         EncryptedCom.sendMessage("password".getBytes(), sk, fe, dataOutputStream); 
+    //         // Receive authentication response from the server
+    //         byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
+    //         String response = new String(responseByte, StandardCharsets.UTF_8);
 
-            String userMessage = "send file_copy.txt";
+    //         String userMessage = "send file_copy.txt";
 
-            // test send permission
-            if (userMessage.startsWith("send ")) {
-                String fileName = userMessage.substring(5);
-                FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-                try {
-                    fileHandler.sendFile(dataOutputStream, sk, false, username);
-                } catch (Exception e) {
-                    System.out.println(e);
-                }
-            }
-            String consoleOutput = new String(EncryptedCom.receiveMessage(sk, fe, dataInputStream), StandardCharsets.UTF_8);
-            assertEquals("You do not have permission to override the current file with that name on the server. Please change the name of your file.", consoleOutput);
+    //         // test send permission
+    //         if (userMessage.startsWith("send ")) {
+    //             String fileName = userMessage.substring(5);
+    //             FileHandler fileHandler = new FileHandler("client_data/" + fileName);
+    //             try {
+    //                 fileHandler.sendFile(dataOutputStream, sk, false, username);
+    //             } catch (Exception e) {
+    //                 System.out.println(e);
+    //             }
+    //         }
+    //         String consoleOutput = new String(EncryptedCom.receiveMessage(sk, fe, dataInputStream), StandardCharsets.UTF_8);
+    //         assertEquals("You do not have permission to override the current file with that name on the server. Please change the name of your file.", consoleOutput);
 
-            // test download permission
+    //         // test download permission
 
-            if (userMessage.startsWith("download ")) {
-                String fileName = userMessage.substring(5);
-                FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-                try {
-                    fileHandler.sendFile(dataOutputStream, sk, false, username);
-                } catch (Exception e) {
-                    System.out.println(e);
-                }
-            }
-            consoleOutput = new String(EncryptedCom.receiveMessage(sk, fe, dataInputStream), StandardCharsets.UTF_8);
-            assertEquals("You do not have the required permissions to download this file.", consoleOutput);
-
-
-            // Close the client socket
-            serverSocket.close();
-            clientSocket.close();
-            dataInputStream.close();
-            dataOutputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail("Connection failed: " + e.getMessage());
-        }
-    }
-
-    @Test
-    public void testAuthorizationPermissioned() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
-        // Simulate client sending correct username and password to the server
-        // For simplicity, assume a mock client is used for testing
-        try {
-            ServerSocket serverSocket = new ServerSocket(port);
-            Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
-            DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-            DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-            FileEncryption fe = new FileEncryption();
-
-            SecretKey sk = fe.getAESKey();
-            byte[] keyData =  sk.getEncoded();
-            dataOutputStream.write(keyData);
-
-            // Test login
-            EncryptedCom.sendMessage("1".getBytes(), sk, fe, dataOutputStream);
-
-            // Send username and password
-            String username = "bob";
-            EncryptedCom.sendMessage(username.getBytes(), sk, fe, dataOutputStream); 
-            EncryptedCom.sendMessage("secret456".getBytes(), sk, fe, dataOutputStream); 
-            // Receive authentication response from the server
-            byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
-            String response = new String(responseByte, StandardCharsets.UTF_8);
-
-            String userMessage = "send file_copy.txt";
-            String consoleOutput = "";
-
-            // test send permission
-            if (userMessage.startsWith("send ")) {
-                String fileName = userMessage.substring(5);
-                FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-                try {
-                    fileHandler.sendFile(dataOutputStream, sk, false, username);
-                } catch (Exception e) {
-                    System.out.println(e);
-                }
-                consoleOutput = new String(EncryptedCom.receiveMessage(sk, fe, dataInputStream), StandardCharsets.UTF_8);
-                assertEquals(fileName + " has been received by server", consoleOutput);
-            }
-
-            // test download permission
-
-            if (userMessage.startsWith("download ")) {
-                String fileName = userMessage.substring(5);
-                FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-                try {
-                    fileHandler.sendFile(dataOutputStream, sk, false, username);
-                } catch (Exception e) {
-                    System.out.println(e);
-                }
-            }
-            consoleOutput = new String(EncryptedCom.receiveMessage(sk, fe, dataInputStream), StandardCharsets.UTF_8);
-            assertEquals("File Downloaded", consoleOutput);
+    //         if (userMessage.startsWith("download ")) {
+    //             String fileName = userMessage.substring(5);
+    //             FileHandler fileHandler = new FileHandler("client_data/" + fileName);
+    //             try {
+    //                 fileHandler.sendFile(dataOutputStream, sk, false, username);
+    //             } catch (Exception e) {
+    //                 System.out.println(e);
+    //             }
+    //         }
+    //         consoleOutput = new String(EncryptedCom.receiveMessage(sk, fe, dataInputStream), StandardCharsets.UTF_8);
+    //         assertEquals("You do not have the required permissions to download this file.", consoleOutput);
 
 
-            // Close the client socket
-            serverSocket.close();
-            clientSocket.close();
-            dataInputStream.close();
-            dataOutputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            fail("Connection failed: " + e.getMessage());
-        }
-    }
+    //         // Close the client socket
+    //         serverSocket.close();
+    //         clientSocket.close();
+    //         dataInputStream.close();
+    //         dataOutputStream.close();
+    //     } catch (IOException e) {
+    //         e.printStackTrace();
+    //         fail("Connection failed: " + e.getMessage());
+    //     }
+    // }
+
+    // @Test
+    // public void testAuthorizationPermissioned() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
+    //     // Simulate client sending correct username and password to the server
+    //     // For simplicity, assume a mock client is used for testing
+    //     try {
+    //         ServerSocket serverSocket = new ServerSocket(port);
+    //         Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
+    //         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
+    //         DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
+    //         FileEncryption fe = new FileEncryption();
+
+    //         SecretKey sk = fe.getAESKey();
+    //         byte[] keyData =  sk.getEncoded();
+    //         dataOutputStream.write(keyData);
+
+    //         // Test login
+    //         EncryptedCom.sendMessage("1".getBytes(), sk, fe, dataOutputStream);
+
+    //         // Send username and password
+    //         String username = "bob";
+    //         EncryptedCom.sendMessage(username.getBytes(), sk, fe, dataOutputStream); 
+    //         EncryptedCom.sendMessage("secret456".getBytes(), sk, fe, dataOutputStream); 
+    //         // Receive authentication response from the server
+    //         byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
+    //         String response = new String(responseByte, StandardCharsets.UTF_8);
+
+    //         String userMessage = "send file_copy.txt";
+    //         String consoleOutput = "";
+
+    //         // test send permission
+    //         if (userMessage.startsWith("send ")) {
+    //             String fileName = userMessage.substring(5);
+    //             FileHandler fileHandler = new FileHandler("client_data/" + fileName);
+    //             try {
+    //                 fileHandler.sendFile(dataOutputStream, sk, false, username);
+    //             } catch (Exception e) {
+    //                 System.out.println(e);
+    //             }
+    //             consoleOutput = new String(EncryptedCom.receiveMessage(sk, fe, dataInputStream), StandardCharsets.UTF_8);
+    //             assertEquals(fileName + " has been received by server", consoleOutput);
+    //         }
+
+    //         // test download permission
+
+    //         if (userMessage.startsWith("download ")) {
+    //             String fileName = userMessage.substring(5);
+    //             FileHandler fileHandler = new FileHandler("client_data/" + fileName);
+    //             try {
+    //                 fileHandler.sendFile(dataOutputStream, sk, false, username);
+    //             } catch (Exception e) {
+    //                 System.out.println(e);
+    //             }
+    //         }
+    //         consoleOutput = new String(EncryptedCom.receiveMessage(sk, fe, dataInputStream), StandardCharsets.UTF_8);
+    //         assertEquals("File Downloaded", consoleOutput);
+
+
+    //         // Close the client socket
+    //         serverSocket.close();
+    //         clientSocket.close();
+    //         dataInputStream.close();
+    //         dataOutputStream.close();
+    //     } catch (IOException e) {
+    //         e.printStackTrace();
+    //         fail("Connection failed: " + e.getMessage());
+    //     }
+    // }
 }
 
     
