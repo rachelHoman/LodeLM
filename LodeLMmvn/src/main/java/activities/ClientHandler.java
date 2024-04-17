@@ -257,6 +257,38 @@ public class ClientHandler implements Runnable {
                         output = fileHandler.listFiles();
                         EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                     }
+                    else if (inputLine.startsWith("share ")) {
+                        String permissionUsernameAndFileName = inputLine.substring(6);
+                        String[] arrOfStr = permissionUsernameAndFileName.split("\\s+");
+                        String permission = null;
+                        String sharedUsername = null;
+                        String fileName = null;
+                        output = "File not shared for some reason...";
+                        if (arrOfStr != null && arrOfStr.length > 2) {
+                            permission = arrOfStr[0];
+                            if ((permission.length() == 1 && permission.contains("w")) || (permission.length() == 1 && permission.contains("r")) || (permission.length() == 2 && Character.toString(permission.charAt(1)).equals("w") && Character.toString(permission.charAt(0)).equals("r"))) {
+                                sharedUsername = arrOfStr[1];
+                                if (!sharedUsername.equals(username)) {
+                                    fileName = inputLine.substring(6 + permission.length() + 1 + sharedUsername.length() + 1);
+                                    FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                                    try {
+                                        output = fileHandler.shareFile(username, sharedUsername, permission);
+                                    } catch (Exception e) {
+                                        System.out.println(e);
+                                    }
+                                } else {
+                                    output = "You can not share files with yourself. Nice try.";
+                                }   
+                            }
+                            else {
+                                output = "Permission to enable for share user must be either \'r\', \'w\', or \'rw\'";
+                            }
+                        } else {
+                            output = "You have not given the arguments required to share a file. \nThe format required is:\n\n share <permission> <share_username> <file_name>";
+                            output += "\n\n<permission>: permission to enable for share_user, either \'r\', \'w\', or \'rw\'\n<share_username>: username of user to share file with\n<file_name>: name of file to share";
+                        }
+                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
+                    }
                     else if (inputLine.equals("exit")) {
                         break;
                     }

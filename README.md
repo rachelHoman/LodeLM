@@ -62,6 +62,14 @@ The user can download a file from the server (NOTE: Users are only able to downl
 
 `download <file_name>`
 
+The user can share files to other users on the server (NOTE: Users are only able to share files that they have write access to)
+
+`share <permission> <share_username> <file_name>`
+where:
+    permission: permission to enable for share_user, either 'r', 'w', or 'rw'
+    share_username: username of user to share file with
+    file_name: name of file to share
+
 The user can delete a file on the server (NOTE: Users are only able to delete files that they have write privileges to)
 
 `delete <file_name>`
