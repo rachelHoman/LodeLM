@@ -35,7 +35,7 @@ public class Server {
     public static void main(String[] args) {
 
         // Create server key to encrypt files if key does not exist
-        File serverKeyFile = new File("/workspaces/LodeLM/file_keys.csv");
+        File serverKeyFile = new File("../file_keys.csv");
         if (!serverKeyFile.exists()) {
             try {
                 FileEncryption fe = new FileEncryption();
@@ -102,11 +102,14 @@ public class Server {
                         userPasswords.put(uid, userData);
                     }
                     else if (filePath.equals(testPath)) {
+                        // hash password and email for test
+                        byte[] hashedPasswordForTest = hashSalt(new String(Base64.getDecoder().decode(tokens[2]), StandardCharsets.UTF_8), salt);
+                        byte[] hashedEmailForTest = hashSalt(new String(Base64.getDecoder().decode(tokens[3]), StandardCharsets.UTF_8), salt);
                         // Create a nested map to store salt and hashed password
                         Map<String, byte[]> testuserData = new HashMap<>();
                         testuserData.put("salt", salt);
-                        testuserData.put("passwordHash", hashedPassword);
-                        testuserData.put("emailHash", hashedEmail);
+                        testuserData.put("passwordHash", hashedPasswordForTest);
+                        testuserData.put("emailHash", hashedEmailForTest);
         
                         // Store the user information in the map
                         testuserPasswords.put(uid, testuserData);

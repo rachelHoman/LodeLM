@@ -56,7 +56,8 @@ import org.powermock.api.mockito.PowerMockito;
 public class ClientServerTest {
     private Server server;
     private Client client;
-    int port = 12345;
+    // int port = 12345;
+    int port = 53779;
 
     @Test
     public void aesEncryptDecryptTest1() throws InvalidKeyException, BadPaddingException, IllegalBlockSizeException, NoSuchAlgorithmException, NoSuchProviderException, IOException, NoSuchPaddingException, InvalidAlgorithmParameterException{
@@ -154,13 +155,14 @@ public class ClientServerTest {
         
         Map<String, byte[]> testuserData1 = testuserPasswords.get("testUser1");
         assertTrue((encodeBase64("salt1")).equals(Base64.getEncoder().encodeToString(testuserData1.get("salt"))));
-        assertTrue((encodeBase64("hashedPassword1")).equals(Base64.getEncoder().encodeToString(testuserData1.get("passwordHash"))));
-        assertTrue((encodeBase64("hashedemail1")).equals(Base64.getEncoder().encodeToString(testuserData1.get("emailHash"))));
+        assertTrue(Arrays.equals(Server.hashSalt("hashedPassword1", testuserData1.get("salt")), testuserData1.get("passwordHash")));
+        assertTrue(Arrays.equals(Server.hashSalt("hashedemail1", testuserData1.get("salt")), testuserData1.get("emailHash")));
 
         Map<String, byte[]> testuserData2 = testuserPasswords.get("testUser2");
         assertTrue((encodeBase64("salt2")).equals(Base64.getEncoder().encodeToString(testuserData2.get("salt"))));
-        assertTrue((encodeBase64("hashedPassword2")).equals(Base64.getEncoder().encodeToString(testuserData2.get("passwordHash"))));
-        assertTrue((encodeBase64("hashedemail2")).equals(Base64.getEncoder().encodeToString(testuserData2.get("emailHash"))));
+        assertTrue(Arrays.equals(Server.hashSalt("hashedPassword2", testuserData2.get("salt")), testuserData2.get("passwordHash")));
+        assertTrue(Arrays.equals(Server.hashSalt("hashedemail2", testuserData2.get("salt")), testuserData2.get("emailHash")));
+
     }
 
     @Test
@@ -344,23 +346,13 @@ public class ClientServerTest {
     @Test
     public void testUserEmailMatch() {
         prepareTestFile();
-        // use "testUser2" "hashedemail2" case
-        // Map<String, byte[]> userData = Server.testGetUserPasswords().get("testUser2");
-        // System.out.println("userData: " + userData);
-        // System.out.println("Salt: " + Arrays.toString(userData.get("salt")));
-        // System.out.println("Email Hash: " + Arrays.toString(userData.get("emailHash")));
-        // System.out.println("Password Hash: " + Arrays.toString(userData.get("passwordHash")));
-        // boolean value = Client.UserEmailMatch("testUser2", "hashedemail2", "test");
-        // System.out.println(value);
-
-        // assertTrue(SimpleMailSender.isValidEmail("test@example.com"));
-        // Test with correct username and email
-        // assertTrue(Client.UserEmailMatch("testUser2", "hashedemail2", "test"));
-        // Test with incorrect username
+        // correct username and email
+        assertTrue(Client.UserEmailMatch("testUser2", "hashedemail2", "test"));
+        // incorrect username
         assertFalse(Client.UserEmailMatch("nonExistingUser", "hashedemail2", "test"));
-        // Test with incorrect email
+        // incorrect email
         assertFalse(Client.UserEmailMatch("testUser2", "wrong@example.com", "test"));
-        // Test with null username
+        // null username
         assertFalse(Client.UserEmailMatch(null, "hashedemail2", "test"));
     }
 

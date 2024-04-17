@@ -14,7 +14,7 @@ import javax.crypto.Mac;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
-import java.io.File;
+
 import java.nio.file.Files;
 
 import java.util.Base64;
@@ -30,7 +30,7 @@ public class FileEncryption {
 	private final int MAC_KEY_LENGTH = 256;
 	private final String MAC_HASH = "HmacSHA256";
 
-    private final File SERVER_KEY_FILE = new File("/workspaces/LodeLM/file_keys.csv");
+    private final File SERVER_KEY_FILE = new File("../file_keys.csv");
 
     private SecretKey sk;
     byte[] iv = null;

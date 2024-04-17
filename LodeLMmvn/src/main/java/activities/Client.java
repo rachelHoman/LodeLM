@@ -350,12 +350,8 @@ public class Client {
             if (storedSalt == null || storedEmailHash == null) {
                 return false;
             }
-            // System.out.println("Salt: " + Arrays.toString(storedSalt));
-            // System.out.println("Email Hash: " + Arrays.toString(storedEmailHash));
             // Hash the provided email
-            // byte[] providedEmailHash = Server.hashSalt(new String(providedEmail), storedSalt);
             byte[] providedEmailHash = Server.hashSalt(providedEmail, storedSalt);
-            // System.out.println("provided Email Hash: " + Arrays.toString(providedEmailHash));
             return Arrays.equals(providedEmailHash, storedEmailHash);
         }
     }
