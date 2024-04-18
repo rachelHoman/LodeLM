@@ -125,7 +125,7 @@ public class ClientHandler implements Runnable {
                     }
                 }
 
-                else if (action.equals("exit")) {
+                else if (action.equals("4") || action.equals("exit")) {
                     try {
                         // Close the socket
                         clientSocket.close();

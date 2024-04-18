@@ -239,6 +239,10 @@ public class ClientServerTest {
             digest.reset();
             digest.update(salt);
             byte[] expectedHash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            for (int i = 0; i < 20000; i++) {
+                digest.reset();
+                expectedHash = digest.digest(expectedHash);
+            }
             assertArrayEquals(expectedHash, hashedPassword);
         } catch (NoSuchAlgorithmException e) {
             fail("Exception occurred: " + e.getMessage());

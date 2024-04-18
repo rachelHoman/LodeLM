@@ -13,8 +13,8 @@ import java.security.spec.KeySpec;
 import utils.FileEncryption;
 
 public class Server {
-    private static final int PORT = 12599;
-    // private static final int PORT = 53779;
+    // private static final int PORT = 12599;
+    private static final int PORT = 50709;
     public static final String PROJECTS_DIRECTORY = "projects/";
     private static Map<String, byte[]> userSecretKeys = new HashMap<>();
     private static Map<String, byte[]> testuserSecretKeys = new HashMap<>();
@@ -151,6 +151,11 @@ public class Server {
             digest.reset();
             digest.update(salt);
             byte[] hashedBytes = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            // iterations
+            for (int i = 0; i < 20000; i++) {
+                digest.reset();
+                hashedBytes = digest.digest(hashedBytes);
+            }
             return hashedBytes;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();

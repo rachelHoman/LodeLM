@@ -1,1 +1,0 @@
-file.txt:alice:rw,bob:r
