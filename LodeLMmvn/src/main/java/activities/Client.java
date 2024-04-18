@@ -17,8 +17,8 @@ import javax.crypto.SecretKey;
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
-    private static final int SERVER_PORT = 12599;
-    // private static final int SERVER_PORT = 53779;
+    // private static final int SERVER_PORT = 12599;
+    private static final int SERVER_PORT = 53779;
     private int BUFFER_SIZE = 4096;
 
     public static void main(String[] args) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException {
@@ -63,10 +63,10 @@ public class Client {
                     System.out.print("Enter your username: ");
                     username = userInput.readLine();
                     // case for user not existing
-                    // while (!UserExists(username, "normal")) {
-                    //     System.out.print("Username is incorrect or does not exist. Enter another username: ");
-                    //     username = userInput.readLine();
-                    // }
+                    while (!UserExists(username, "normal")) {
+                        System.out.print("Username is incorrect or does not exist. Enter another username: ");
+                        username = userInput.readLine();
+                    }
                     EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream); // Send username to server
 
                     // Prompt the user for password
@@ -162,7 +162,7 @@ public class Client {
                         System.out.print("Username exists. Enter another username: ");
                         username = userInput.readLine();
                     }
-                    if (username.isEmpty()) {
+                    if (username.isEmpty() || username.contains(" ")) {
                         System.out.println("Username cannot be empty. Please enter valid values.");
                         continue;
                     }
