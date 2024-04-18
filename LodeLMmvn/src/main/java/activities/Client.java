@@ -18,7 +18,7 @@ import javax.crypto.SecretKey;
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
     // private static final int SERVER_PORT = 12599;
-    private static final int SERVER_PORT = 53779;
+    private static final int SERVER_PORT = 50709;
     private int BUFFER_SIZE = 4096;
 
     public static void main(String[] args) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException {
