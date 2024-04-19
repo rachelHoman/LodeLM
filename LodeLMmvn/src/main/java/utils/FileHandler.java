@@ -24,7 +24,7 @@ import java.util.ArrayList;
 public class FileHandler {
     String path;
     int MAX_BUFFER_SIZE = 4096;
-    String csv = "/workspaces/LodeLM/user_permissions.csv";
+    String csv = "../user_permissions.csv";
 
     /***
      * Constructor for FileHandler

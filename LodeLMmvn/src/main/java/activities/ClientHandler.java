@@ -30,7 +30,7 @@ public class ClientHandler implements Runnable {
         this.clientSocket = socket;
     }
 
-    DatabHandler dbhandler = new DatabHandler();
+    // DatabHandler dbhandler = new DatabHandler();
 
     public void run() {
         try {
