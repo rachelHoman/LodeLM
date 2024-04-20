@@ -17,8 +17,8 @@ import javax.crypto.SecretKey;
 
 <span class="nc" id="L18">public class Client {</span>
     private static final String SERVER_IP = &quot;127.0.0.1&quot;;
-    // private static final int SERVER_PORT = 12599;
-    private static final int SERVER_PORT = 50709;
+    private static final int SERVER_PORT = 14639;
+    // private static final int SERVER_PORT = 50709;
 <span class="nc" id="L22">    private int BUFFER_SIZE = 4096;</span>
 
     public static void main(String[] args) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException {
@@ -270,111 +270,122 @@ import javax.crypto.SecretKey;
 
 <span class="nc bnc" id="L271" title="All 2 branches missed.">                if (userMessage.startsWith(&quot;send &quot;)) {</span>
 <span class="nc" id="L272">                    String fileName = userMessage.substring(5);</span>
-<span class="nc" id="L273">                    FileHandler fileHandler = new FileHandler(&quot;client_data/&quot; + fileName);</span>
-                    try {
-<span class="nc" id="L275">                        fileHandler.sendFile(dataOutputStream, aesKey, false, username);</span>
-<span class="nc" id="L276">                    } catch (Exception e) {</span>
-<span class="nc" id="L277">                        System.out.println(e);</span>
-<span class="nc" id="L278">                    }</span>
-<span class="nc" id="L279">                }</span>
+<span class="nc" id="L273">                    String filePath = &quot;client_data/&quot; + fileName;</span>
+<span class="nc" id="L274">                    File fileToSend = new File(filePath);</span>
 
-<span class="nc bnc" id="L281" title="All 2 branches missed.">                else if (userMessage.startsWith(&quot;download &quot;)) {</span>
-<span class="nc" id="L282">                    String fileName = userMessage.substring(9);</span>
-<span class="nc" id="L283">                    FileHandler fileHandler = new FileHandler(&quot;client_data/&quot; + fileName);</span>
+<span class="nc bnc" id="L276" title="All 2 branches missed.">                    if (fileToSend.exists()) {</span>
+<span class="nc" id="L277">                    FileHandler fileHandler = new FileHandler(filePath);</span>
                     try {
-<span class="nc" id="L285">                        fileHandler.receiveFile(dataInputStream, aesKey, false, username);</span>
-<span class="nc" id="L286">                    } catch (Exception e) {</span>
-<span class="nc" id="L287">                        System.out.println(e);</span>
-<span class="nc" id="L288">                    }</span>
-<span class="nc" id="L289">                }</span>
+<span class="nc" id="L279">                        fileHandler.sendFile(dataOutputStream, aesKey, false, username);</span>
+<span class="nc" id="L280">                    } catch (Exception e) {</span>
+<span class="nc" id="L281">                        System.out.println(e);</span>
+<span class="nc" id="L282">                    }</span>
+<span class="nc" id="L283">                    }</span>
+
+                    else {
+<span class="nc" id="L286">                        System.out.println(&quot;This file does not exist or is a directory&quot;);</span>
+<span class="nc" id="L287">                        continue;</span>
+                    }
+                    
+<span class="nc" id="L290">                }</span>
+
+<span class="nc bnc" id="L292" title="All 2 branches missed.">                else if (userMessage.startsWith(&quot;download &quot;)) {</span>
+<span class="nc" id="L293">                    String fileName = userMessage.substring(9);</span>
+<span class="nc" id="L294">                    FileHandler fileHandler = new FileHandler(&quot;client_data/&quot; + fileName);</span>
+                    try {
+<span class="nc" id="L296">                        fileHandler.receiveFile(dataInputStream, aesKey, false, username);</span>
+<span class="nc" id="L297">                    } catch (Exception e) {</span>
+<span class="nc" id="L298">                        System.out.println(e);</span>
+<span class="nc" id="L299">                    }</span>
+<span class="nc" id="L300">                }</span>
 
                 // Exit loop if user types 'exit'
-<span class="nc bnc" id="L292" title="All 2 branches missed.">                else if (userMessage.equalsIgnoreCase(&quot;exit&quot;)) {</span>
-<span class="nc" id="L293">                    break;</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">                else if (userMessage.equalsIgnoreCase(&quot;exit&quot;)) {</span>
+<span class="nc" id="L304">                    break;</span>
                 }
 
                 // Print server responses
                 String response;
-<span class="nc bnc" id="L298" title="All 2 branches missed.">                while ((response = new String(EncryptedCom.receiveMessage(aesKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) { </span>
-<span class="nc" id="L299">                    System.out.println(response);</span>
+<span class="nc bnc" id="L309" title="All 2 branches missed.">                while ((response = new String(EncryptedCom.receiveMessage(aesKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) { </span>
+<span class="nc" id="L310">                    System.out.println(response);</span>
 
                     // Break out of inner loop to return to waiting for user input
                     break;
                 }
 
-<span class="nc" id="L305">            }</span>
+<span class="nc" id="L316">            }</span>
 
             // Close connections
-<span class="nc" id="L308">            userInput.close();</span>
-<span class="nc" id="L309">            socket.close();</span>
-<span class="nc" id="L310">        } catch (IOException e) {</span>
-<span class="nc" id="L311">            e.printStackTrace();</span>
-<span class="nc" id="L312">        }</span>
-<span class="nc" id="L313">    }</span>
+<span class="nc" id="L319">            userInput.close();</span>
+<span class="nc" id="L320">            socket.close();</span>
+<span class="nc" id="L321">        } catch (IOException e) {</span>
+<span class="nc" id="L322">            e.printStackTrace();</span>
+<span class="nc" id="L323">        }</span>
+<span class="nc" id="L324">    }</span>
 
     // add test mode
     public static boolean UserExists(String username, String userMode) {
         Map&lt;String, byte[]&gt; userData;
-<span class="pc bpc" id="L318" title="1 of 2 branches missed.">        if (userMode.equals(&quot;test&quot;)) {</span>
-<span class="fc" id="L319">            userData = Server.testGetUserPasswords().get(username);</span>
+<span class="pc bpc" id="L329" title="1 of 2 branches missed.">        if (userMode.equals(&quot;test&quot;)) {</span>
+<span class="fc" id="L330">            userData = Server.testGetUserPasswords().get(username);</span>
         }
         else {
-<span class="nc" id="L322">            userData = Server.getUserPasswords().get(username);</span>
+<span class="nc" id="L333">            userData = Server.getUserPasswords().get(username);</span>
         }
 
-<span class="fc bfc" id="L325" title="All 2 branches covered.">        if (userData == null) {</span>
-<span class="fc" id="L326">            return false;</span>
+<span class="fc bfc" id="L336" title="All 2 branches covered.">        if (userData == null) {</span>
+<span class="fc" id="L337">            return false;</span>
         }
         else {
-<span class="fc" id="L329">            return true;</span>
+<span class="fc" id="L340">            return true;</span>
         }
     }
 
     public static boolean UserEmailMatch (String username, String providedEmail, String userMode) {
         Map&lt;String, byte[]&gt; userData;
-<span class="pc bpc" id="L335" title="1 of 2 branches missed.">        if (userMode.equals(&quot;test&quot;)) {</span>
-<span class="fc" id="L336">            userData = Server.testGetUserPasswords().get(username);</span>
+<span class="pc bpc" id="L346" title="1 of 2 branches missed.">        if (userMode.equals(&quot;test&quot;)) {</span>
+<span class="fc" id="L347">            userData = Server.testGetUserPasswords().get(username);</span>
             // System.out.println(&quot;test: &quot; + userData);
         }
         else {
-<span class="nc" id="L340">            userData = Server.getUserPasswords().get(username);</span>
+<span class="nc" id="L351">            userData = Server.getUserPasswords().get(username);</span>
         }
         
-<span class="fc bfc" id="L343" title="All 2 branches covered.">        if (userData == null) {</span>
-<span class="fc" id="L344">            return false;</span>
+<span class="fc bfc" id="L354" title="All 2 branches covered.">        if (userData == null) {</span>
+<span class="fc" id="L355">            return false;</span>
         }
         else {
             // Get the stored salt and password email
-<span class="fc" id="L348">            byte[] storedSalt = userData.get(&quot;salt&quot;);</span>
-<span class="fc" id="L349">            byte[] storedEmailHash = userData.get(&quot;emailHash&quot;);</span>
-<span class="pc bpc" id="L350" title="2 of 4 branches missed.">            if (storedSalt == null || storedEmailHash == null) {</span>
-<span class="nc" id="L351">                return false;</span>
+<span class="fc" id="L359">            byte[] storedSalt = userData.get(&quot;salt&quot;);</span>
+<span class="fc" id="L360">            byte[] storedEmailHash = userData.get(&quot;emailHash&quot;);</span>
+<span class="pc bpc" id="L361" title="2 of 4 branches missed.">            if (storedSalt == null || storedEmailHash == null) {</span>
+<span class="nc" id="L362">                return false;</span>
             }
             // Hash the provided email
-<span class="fc" id="L354">            byte[] providedEmailHash = Server.hashSalt(providedEmail, storedSalt);</span>
-<span class="fc" id="L355">            return Arrays.equals(providedEmailHash, storedEmailHash);</span>
+<span class="fc" id="L365">            byte[] providedEmailHash = Server.hashSalt(providedEmail, storedSalt);</span>
+<span class="fc" id="L366">            return Arrays.equals(providedEmailHash, storedEmailHash);</span>
         }
     }
 
     private static boolean isPasswordStrong(String password) {
-<span class="nc bnc" id="L360" title="All 4 branches missed.">        if (StringUtils.isBlank(password) || password.length() &lt; 8) {</span>
-<span class="nc" id="L361">            return false;</span>
+<span class="nc bnc" id="L371" title="All 4 branches missed.">        if (StringUtils.isBlank(password) || password.length() &lt; 8) {</span>
+<span class="nc" id="L372">            return false;</span>
         }
     
         // Count special characters
-<span class="nc" id="L365">        int specialCharCount = 0;</span>
-<span class="nc bnc" id="L366" title="All 2 branches missed.">        for (char ch : password.toCharArray()) {</span>
-<span class="nc bnc" id="L367" title="All 2 branches missed.">            if (!Character.isLetterOrDigit(ch)) {</span>
-<span class="nc" id="L368">                specialCharCount++;</span>
+<span class="nc" id="L376">        int specialCharCount = 0;</span>
+<span class="nc bnc" id="L377" title="All 2 branches missed.">        for (char ch : password.toCharArray()) {</span>
+<span class="nc bnc" id="L378" title="All 2 branches missed.">            if (!Character.isLetterOrDigit(ch)) {</span>
+<span class="nc" id="L379">                specialCharCount++;</span>
             }
         }
     
         // Check if password contains at least one digit, one uppercase, and one lowercase character
-<span class="nc" id="L373">        boolean containsDigit = StringUtils.containsAny(password, &quot;1234567890&quot;);</span>
-<span class="nc" id="L374">        boolean containsUppercase = StringUtils.containsAny(password, &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;);</span>
-<span class="nc" id="L375">        boolean containsLowercase = StringUtils.containsAny(password, &quot;abcdefghijklmnopqrstuvwxyz&quot;);</span>
+<span class="nc" id="L384">        boolean containsDigit = StringUtils.containsAny(password, &quot;1234567890&quot;);</span>
+<span class="nc" id="L385">        boolean containsUppercase = StringUtils.containsAny(password, &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;);</span>
+<span class="nc" id="L386">        boolean containsLowercase = StringUtils.containsAny(password, &quot;abcdefghijklmnopqrstuvwxyz&quot;);</span>
     
-<span class="nc bnc" id="L377" title="All 8 branches missed.">        return containsDigit &amp;&amp; containsUppercase &amp;&amp; containsLowercase &amp;&amp; specialCharCount &gt;= 1;</span>
+<span class="nc bnc" id="L388" title="All 8 branches missed.">        return containsDigit &amp;&amp; containsUppercase &amp;&amp; containsLowercase &amp;&amp; specialCharCount &gt;= 1;</span>
     }
 
 }

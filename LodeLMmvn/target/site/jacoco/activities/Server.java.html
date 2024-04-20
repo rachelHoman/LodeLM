@@ -13,8 +13,8 @@ import java.security.spec.KeySpec;
 import utils.FileEncryption;
 
 <span class="nc" id="L15">public class Server {</span>
-    // private static final int PORT = 12599;
-    private static final int PORT = 50709;
+    private static final int PORT = 14639;
+    // private static final int PORT = 50709;
     public static final String PROJECTS_DIRECTORY = &quot;projects/&quot;;
 <span class="fc" id="L19">    private static Map&lt;String, byte[]&gt; userSecretKeys = new HashMap&lt;&gt;();</span>
 <span class="fc" id="L20">    private static Map&lt;String, byte[]&gt; testuserSecretKeys = new HashMap&lt;&gt;();</span>
@@ -163,18 +163,18 @@ import utils.FileEncryption;
         }
     }
 
-    private static byte[] concatenateByteArrays(byte[] a, byte[] b) {
-<span class="nc" id="L167">        byte[] result = new byte[a.length + b.length];</span>
-<span class="nc" id="L168">        System.arraycopy(a, 0, result, 0, a.length);</span>
-<span class="nc" id="L169">        System.arraycopy(b, 0, result, a.length, b.length);</span>
-<span class="nc" id="L170">        return result;</span>
-    }
+    // private static byte[] concatenateByteArrays(byte[] a, byte[] b) {
+    //     byte[] result = new byte[a.length + b.length];
+    //     System.arraycopy(a, 0, result, 0, a.length);
+    //     System.arraycopy(b, 0, result, a.length, b.length);
+    //     return result;
+    // }
 
-    private static byte[] generateRandomBytes(int length) {
-<span class="nc" id="L174">        byte[] bytes = new byte[length];</span>
-<span class="nc" id="L175">        new SecureRandom().nextBytes(bytes);</span>
-<span class="nc" id="L176">        return bytes;</span>
-    }
+    // private static byte[] generateRandomBytes(int length) {
+    //     byte[] bytes = new byte[length];
+    //     new SecureRandom().nextBytes(bytes);
+    //     return bytes;
+    // }
 
     public static boolean verifyPassword(byte[] providedPasswordHash, byte[] storedPasswordHash) {
         // Compare the provided password hash with the stored password hash

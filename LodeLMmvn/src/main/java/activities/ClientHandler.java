@@ -194,31 +194,40 @@ public class ClientHandler implements Runnable {
 
                     System.out.println("Received from client: " + inputLine);
 
-                    // Handle create project command
-                    if (inputLine.startsWith("create ")) {
-                        String projectName = inputLine.substring(7); // Extract project name
-                        // TODO: don't need this with databse -- delete
-                    } 
-                    // Handle list projects command
-                    else if (inputLine.equals("list projects")) {
-                        // TODO: don't need this with databse --> delete
+                    // // Handle create project command
+                    // if (inputLine.startsWith("create ")) {
+                    //     String projectName = inputLine.substring(7); // Extract project name
+                    //     // TODO: don't need this with databse -- delete
+                    // } 
+                    // // Handle list projects command
+                    // else if (inputLine.equals("list projects")) {
+                    //     // TODO: don't need this with databse --> delete
                         
-                    }
-                    else if (inputLine.startsWith("send ")) {
+                    // }
+                    if (inputLine.startsWith("send ")) {
                         String fileName = inputLine.substring(5);
                         String userOutput = null;
-                        FileHandler fileHandler = new FileHandler("server_data/" + fileName);
-                        try {
-                            userOutput = fileHandler.receiveFile(dataInputStream, aesSecretKey, true, username);
-                        } catch (Exception e) {
-                            System.out.println(e);
+
+                        File fileToSend = new File("client_data/" + fileName);
+                        if (!fileToSend.exists() || fileToSend.isDirectory()) {
+                            // output = fileName + " does not exist or is a directory";
                         }
-                        if (userOutput != null) {
-                            output = userOutput;
-                        } else {
-                            output = fileName + " has been received by server";
+                        else {
+                            FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                            try {
+                                userOutput = fileHandler.receiveFile(dataInputStream, aesSecretKey, true, username);
+                            } catch (Exception e) {
+                                System.out.println(e);
+                            }
+                            if (userOutput != null) {
+                                output = userOutput;
+                            } else {
+                                output = fileName + " has been received by server";
+                            }
+                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                         }
-                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
+
+                        // EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
 
                         //send to database
                         // dbhandler.DBsendFile("server_data/" + fileName, fileName);

@@ -1,7 +1,7 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
-LodeLMmvn,activities,Client,679,52,82,8,187,14,46,4,3,2
-LodeLMmvn,activities,ClientHandler,1351,0,104,0,298,0,63,0,11,0
-LodeLMmvn,activities,Server,152,285,4,12,43,72,9,14,6,9
+LodeLMmvn,activities,Client,694,52,84,8,193,14,47,4,3,2
+LodeLMmvn,activities,ClientHandler,1356,0,104,0,296,0,63,0,11,0
+LodeLMmvn,activities,Server,118,285,4,12,36,72,7,14,4,9
 LodeLMmvn,utils,EncryptedCom,153,0,0,0,41,0,8,0,8,0
 LodeLMmvn,utils,FileHandler,745,0,84,0,186,0,56,0,14,0
 LodeLMmvn,utils,MACUtils,57,0,0,0,18,0,4,0,4,0

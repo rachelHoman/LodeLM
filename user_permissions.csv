@@ -1,2 +1,3 @@
 "server_data/file_copy.txt","bob","rw"
 "server_data/file.txt","bob","rw"
+"server_data/test.txt","alice","rw"
