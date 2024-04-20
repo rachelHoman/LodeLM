@@ -236,15 +236,30 @@ public class ClientHandler implements Runnable {
                     }
                     else if (inputLine.startsWith("download ")) {
                         String fileName = inputLine.substring(9);
-                        FileHandler fileHandler = new FileHandler("server_data/" + fileName);
-                        output = "File was not downloaded for some reason...";
-                        try {
-                            output = fileHandler.sendFile(dataOutputStream, aesSecretKey, true, username);
-                            System.out.println(output);
-                        } catch (Exception e) {
-                            System.out.println(e);
+
+                        File fileToDownload = new File("server_data/" + fileName);
+                        if (!fileToDownload.exists() || fileToDownload.isDirectory()) {
+                            // output = fileName + " does not exist or is a directory";
+                            System.out.println("1");
                         }
-                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
+
+                        else {
+                            FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                            output = "File was not downloaded for some reason...";
+                            try {
+                                System.out.println("2");
+                                output = fileHandler.sendFile(dataOutputStream, aesSecretKey, true, username);
+                                System.out.println(output);
+                            } catch (Exception e) {
+                                System.out.println("3");
+                                System.out.println(e);
+                            }
+                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
+                        }
+                        // System.out.println("4");
+                        // System.out.println(output);
+                        // EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
+                        
                     }
                     else if (inputLine.startsWith("delete ")) {
                         String fileName = inputLine.substring(7);

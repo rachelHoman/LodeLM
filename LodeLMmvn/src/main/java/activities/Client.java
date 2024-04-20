@@ -17,8 +17,8 @@ import javax.crypto.SecretKey;
 
 public class Client {
     private static final String SERVER_IP = "127.0.0.1";
-    private static final int SERVER_PORT = 14639;
-    // private static final int SERVER_PORT = 50709;
+    // private static final int SERVER_PORT = 17639;
+    private static final int SERVER_PORT = 53789;
     private int BUFFER_SIZE = 4096;
 
     public static void main(String[] args) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException {
@@ -291,12 +291,22 @@ public class Client {
 
                 else if (userMessage.startsWith("download ")) {
                     String fileName = userMessage.substring(9);
-                    FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-                    try {
-                        fileHandler.receiveFile(dataInputStream, aesKey, false, username);
-                    } catch (Exception e) {
-                        System.out.println(e);
+                    File fileToDownload = new File("server_data/" + fileName);
+
+                    if (fileToDownload.exists()) {
+                        FileHandler fileHandler = new FileHandler("client_data/" + fileName);
+                        try {
+                            fileHandler.receiveFile(dataInputStream, aesKey, false, username);
+                        } catch (Exception e) {
+                            System.out.println(e);
+                        }
                     }
+
+                    else {
+                        System.out.println(fileName + " does not exist or is a directory");
+                        continue;
+                    }
+
                 }
 
                 // Exit loop if user types 'exit'
