@@ -14,7 +14,7 @@ import utils.FileEncryption;
 
 public class Server {
     // private static final int PORT = 17639;
-    private static final int PORT = 53789;
+    private static final int PORT = 57719;
     public static final String PROJECTS_DIRECTORY = "projects/";
     private static Map<String, byte[]> userSecretKeys = new HashMap<>();
     private static Map<String, byte[]> testuserSecretKeys = new HashMap<>();

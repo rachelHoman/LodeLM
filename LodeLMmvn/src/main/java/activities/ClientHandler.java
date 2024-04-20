@@ -210,7 +210,6 @@ public class ClientHandler implements Runnable {
 
                         File fileToSend = new File("client_data/" + fileName);
                         if (!fileToSend.exists() || fileToSend.isDirectory()) {
-                            // output = fileName + " does not exist or is a directory";
                         }
                         else {
                             FileHandler fileHandler = new FileHandler("server_data/" + fileName);
@@ -227,8 +226,6 @@ public class ClientHandler implements Runnable {
                             EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                         }
 
-                        // EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
-
                         //send to database
                         // dbhandler.DBsendFile("server_data/" + fileName, fileName);
                         // DatabHandler dbhandler = new DatabHandler();
@@ -239,33 +236,31 @@ public class ClientHandler implements Runnable {
 
                         File fileToDownload = new File("server_data/" + fileName);
                         if (!fileToDownload.exists() || fileToDownload.isDirectory()) {
-                            // output = fileName + " does not exist or is a directory";
-                            System.out.println("1");
                         }
 
                         else {
                             FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                             output = "File was not downloaded for some reason...";
                             try {
-                                System.out.println("2");
                                 output = fileHandler.sendFile(dataOutputStream, aesSecretKey, true, username);
                                 System.out.println(output);
                             } catch (Exception e) {
-                                System.out.println("3");
                                 System.out.println(e);
                             }
                             EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                         }
-                        // System.out.println("4");
-                        // System.out.println(output);
-                        // EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                         
                     }
                     else if (inputLine.startsWith("delete ")) {
                         String fileName = inputLine.substring(7);
-                        FileHandler fileHandler = new FileHandler("server_data/" + fileName);
-                        output = fileHandler.deleteFile(username);
-                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
+                        File fileToDelete = new File("server_data/" + fileName);
+                        if (!fileToDelete.exists() || fileToDelete.isDirectory()) {
+                        }
+                        else {
+                            FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                            output = fileHandler.deleteFile(username);
+                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
+                        }
                     }
                     else if (inputLine.equals("pwd")) {
                         FileHandler fileHandler = new FileHandler("server_data/");
@@ -293,12 +288,21 @@ public class ClientHandler implements Runnable {
                             if ((permission.length() == 1 && permission.contains("w")) || (permission.length() == 1 && permission.contains("r")) || (permission.length() == 2 && Character.toString(permission.charAt(1)).equals("w") && Character.toString(permission.charAt(0)).equals("r"))) {
                                 sharedUsername = arrOfStr[1];
                                 if (!sharedUsername.equals(username)) {
-                                    fileName = inputLine.substring(6 + permission.length() + 1 + sharedUsername.length() + 1);
-                                    FileHandler fileHandler = new FileHandler("server_data/" + fileName);
-                                    try {
-                                        output = fileHandler.shareFile(username, sharedUsername, permission);
-                                    } catch (Exception e) {
-                                        System.out.println(e);
+                                    if (Client.UserExists(sharedUsername, "normal")) {
+                                        fileName = inputLine.substring(6 + permission.length() + 1 + sharedUsername.length() + 1);
+                                        File fileToShare = new File("server_data/" + fileName);
+                                        if (fileToShare.exists()) {
+                                            FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                                            try {
+                                                output = fileHandler.shareFile(username, sharedUsername, permission);
+                                            } catch (Exception e) {
+                                                System.out.println(e);
+                                            }
+                                        } else {
+                                            output = fileName + " does not exist";
+                                        }
+                                    } else {
+                                        output = "This username is does not exist!";
                                     }
                                 } else {
                                     output = "You can not share files with yourself. Nice try.";
