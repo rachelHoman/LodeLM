@@ -1,0 +1,11 @@
+rachel,Normal,2024-04-20 20:55:44,Login
+rachel,Normal,2024-04-20 20:56:15,Login
+rachel,Normal,2024-04-20 21:19:40,Login
+bob,Create Account,2024-04-20 21:22:26,Account Created
+bob,Normal,2024-04-20 21:22:26,Login
+rachel,Normal,2024-04-20 21:23:23,Login
+rachel,Normal,2024-04-20 21:23:33,Exited
+,Client,2024-04-21 14:10:11,Logout
+rachel,Normal,2024-04-21 14:10:32,Login
+rachel,User,2024-04-21 14:10:36,Exited
+rachel,User,2024-04-21 14:10:36,Logout via exit
