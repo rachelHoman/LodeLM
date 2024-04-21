@@ -143,7 +143,7 @@ public class Client {
                                 System.out.println("Please try again: "); 
                                 password2 = userInput.readLine();
                             }
-                            logAuditAction(username, "Forgot Password", "Password Recovered");
+                            logAuditAction(username, "Forgot Password", "Password Recovered", "audit_log.txt");
                             EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
                             EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
                             EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
@@ -151,7 +151,7 @@ public class Client {
                         } else {
                             // TODO: add reports of inccorect attemps to login AUDIT milestone
                             System.out.println("Incorrect Answer");
-                            logAuditAction(username, "Forgot Password", "Failed Password Recovery");
+                            logAuditAction(username, "Forgot Password", "Failed Password Recovery", "audit_log.txt");
 
                         }
                     }
@@ -229,7 +229,7 @@ public class Client {
                     }
 
                     // Encrypt the password
-                    logAuditAction(username, "Create Account", "Account Created");
+                    logAuditAction(username, "Create Account", "Account Created", "audit_log.txt");
                     EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
                     EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
                     EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
@@ -244,7 +244,7 @@ public class Client {
                     dataInputStream.close();
                     dataOutputStream.close();
                     // System.exit(0);
-                    logAuditAction(username, "Client", "Logout");
+                    logAuditAction(username, "Client", "Logout", "audit_log.txt");
                     return;
                 }
                 else {
@@ -264,7 +264,7 @@ public class Client {
                 System.out.println(greeting);
                 if (!greeting.equals("Invalid username or password.")) {
                     loggedIn = true;
-                    logAuditAction(username, "Normal", "Login");
+                    logAuditAction(username, "Normal", "Login", "audit_log.txt");
                     // After successful authentication
                     String loggedInMessage = "logged-in";
                     EncryptedCom.sendMessage(loggedInMessage.getBytes(), aesKey, fe, dataOutputStream);
@@ -298,7 +298,7 @@ public class Client {
 
                 // Exit loop if user types 'exit'
                 else if (userMessage.equalsIgnoreCase("exit")) {
-                    logAuditAction(username, "User", "Logout");
+                    logAuditAction(username, "User", "Logout", "audit_log.txt");
                     break;
                 }
 
@@ -387,11 +387,11 @@ public class Client {
     }
 
     // Method to log audit action
-    private static void logAuditAction(String username, String permissionLevel, String action) {
+    private static void logAuditAction(String username, String permissionLevel, String action, String filename) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String logEntry = username + "," + permissionLevel + "," + timestamp + "," + action;
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("audit_log.txt", true))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
             writer.write(logEntry);
             writer.newLine();
         } catch (IOException e) {

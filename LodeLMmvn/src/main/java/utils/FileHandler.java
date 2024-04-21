@@ -393,11 +393,11 @@ public class FileHandler {
         writer.close();
     }
 
-    private static void logAuditAction(String username, String permissionLevel, String action) {
+    public static void logAuditAction(String username, String permissionLevel, String action, String filename) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String logEntry = username + "," + permissionLevel + "," + timestamp + "," + action;
 
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter("audit_log.txt", true))) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
             writer.write(logEntry);
             writer.newLine();
         } catch (IOException e) {
@@ -410,7 +410,7 @@ public class FileHandler {
         downloads++;
         fileDownloads.put(username, downloads);
         if (downloads >= DOWNLOAD_THRESHOLD) {
-            logAuditAction(username, "User", "Exceeded download threshold");
+            logAuditAction(username, "User", "Exceeded download threshold", "audit_log.txt");
         }
     }
 
@@ -419,7 +419,7 @@ public class FileHandler {
         attempts++;
         unauthorizedAccessAttempts.put(username, attempts);
         if (attempts >= UNAUTHORIZED_ATTEMPT_THRESHOLD) {
-            logAuditAction(username, "User", "Repeated unauthorized access attempts");
+            logAuditAction(username, "User", "Repeated unauthorized access attempts", "audit_log.txt");
         }
     }
 }
