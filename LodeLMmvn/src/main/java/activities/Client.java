@@ -244,6 +244,7 @@ public class Client {
                     dataInputStream.close();
                     dataOutputStream.close();
                     // System.exit(0);
+                    logAuditAction(username, "Client", "Logout");
                     return;
                 }
                 else {
@@ -297,7 +298,7 @@ public class Client {
 
                 // Exit loop if user types 'exit'
                 else if (userMessage.equalsIgnoreCase("exit")) {
-                    logAuditAction(username, "Normal", "Exited");
+                    logAuditAction(username, "User", "Logout");
                     break;
                 }
 
