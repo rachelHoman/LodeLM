@@ -355,7 +355,6 @@ public class Client {
         Map<String, byte[]> userData;
         if (userMode.equals("test")) {
             userData = Server.testGetUserPasswords().get(username);
-            // System.out.println("test: " + userData);
         }
         else {
             userData = Server.getUserPasswords().get(username);

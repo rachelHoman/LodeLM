@@ -194,16 +194,6 @@ public class ClientHandler implements Runnable {
 
                     System.out.println("Received from client: " + inputLine);
 
-                    // // Handle create project command
-                    // if (inputLine.startsWith("create ")) {
-                    //     String projectName = inputLine.substring(7); // Extract project name
-                    //     // TODO: don't need this with databse -- delete
-                    // } 
-                    // // Handle list projects command
-                    // else if (inputLine.equals("list projects")) {
-                    //     // TODO: don't need this with databse --> delete
-                        
-                    // }
                     if (inputLine.startsWith("send ")) {
                         String fileName = inputLine.substring(5);
                         String userOutput = null;
@@ -451,7 +441,7 @@ public class ClientHandler implements Runnable {
             // deleteUserFromFile(username);
             // writeToUserFile(username, salt, hashedNewPassword, userData.get("emailHash"));
             // Write updated data to the user file
-            System.out.println("WOHOO");
+            // System.out.println("WOHOO");
             updateUserDataFile(username, userData);
         } else {
             System.out.println("User does not exist.");

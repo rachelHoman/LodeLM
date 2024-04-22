@@ -163,19 +163,6 @@ public class Server {
         }
     }
 
-    // private static byte[] concatenateByteArrays(byte[] a, byte[] b) {
-    //     byte[] result = new byte[a.length + b.length];
-    //     System.arraycopy(a, 0, result, 0, a.length);
-    //     System.arraycopy(b, 0, result, a.length, b.length);
-    //     return result;
-    // }
-
-    // private static byte[] generateRandomBytes(int length) {
-    //     byte[] bytes = new byte[length];
-    //     new SecureRandom().nextBytes(bytes);
-    //     return bytes;
-    // }
-
     public static boolean verifyPassword(byte[] providedPasswordHash, byte[] storedPasswordHash) {
         // Compare the provided password hash with the stored password hash
         return Arrays.equals(providedPasswordHash, storedPasswordHash);
