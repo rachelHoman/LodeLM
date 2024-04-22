@@ -12,6 +12,8 @@ import java.io.*;
 import java.net.*;
 
 import java.security.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
@@ -359,6 +361,37 @@ public class ClientServerTest {
         // null username
         assertFalse(Client.UserEmailMatch(null, "hashedemail2", "test"));
     }
+
+    @Test
+public void testAuditLog() {
+    // Ensure the audit log file is empty before the test
+    File auditLogFile = new File("test_audit_log.txt");
+    if (auditLogFile.exists()) {
+        auditLogFile.delete();
+    }
+
+    // Mock login action
+    String username = "testUser";
+    String permissionLevel = "admin";
+    String action = "Login";
+    FileHandler.logAuditAction(username, permissionLevel, action, "test_audit_log.txt");
+
+    // Check if the audit log file has been created and contains the login action
+    assertTrue(auditLogFile.exists());
+
+    try (BufferedReader reader = new BufferedReader(new FileReader(auditLogFile))) {
+        String logEntry = reader.readLine();
+        assertNotNull(logEntry);
+
+        // Verify if the log entry contains the correct information
+        assertTrue(logEntry.contains(username));
+        assertTrue(logEntry.contains(permissionLevel));
+        assertTrue(logEntry.contains(action));
+    } catch (IOException e) {
+        fail("Exception occurred: " + e.getMessage());
+    }
+}
+
 
 
     // @Test

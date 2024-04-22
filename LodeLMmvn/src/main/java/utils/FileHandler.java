@@ -2,7 +2,7 @@ package utils;
 
 import java.io.*;
 import java.util.List;
-
+import java.util.Map;
 import java.security.*;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.IllegalBlockSizeException;
@@ -11,7 +11,10 @@ import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.SecretKey;
 
 import java.util.Base64;
+import java.util.HashMap;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 import com.opencsv.CSVWriter;
 import com.opencsv.CSVReader;
@@ -23,7 +26,11 @@ import java.util.ArrayList;
 public class FileHandler {
     String path;
     int MAX_BUFFER_SIZE = 4096;
-    String csv = "../user_permissions.csv";
+    String csv = "/workspaces/LodeLM/user_permissions.csv";
+    private static final int DOWNLOAD_THRESHOLD = 10; // Threshold for excessive file downloads
+    private static final int UNAUTHORIZED_ATTEMPT_THRESHOLD = 3; // Threshold for unauthorized access attempts
+    private Map<String, Integer> fileDownloads = new HashMap<>();
+    private Map<String, Integer> unauthorizedAccessAttempts = new HashMap<>();
 
     /***
      * Constructor for FileHandler
@@ -71,6 +78,9 @@ public class FileHandler {
             fileInputStream.read(buffer, 0, max_bytes);
             EncryptedCom.sendMessage(buffer, commKey, fe, dataOutputStream);
             fileInputStream.close();
+
+            // Check for excessive downloads
+            handleExcessiveDownloads(username);
         }
         // System.out.println(userOutput);
         return userOutput;
@@ -116,6 +126,9 @@ public class FileHandler {
             outputStream.write(iv);
             outputStream.write(cipherText);
             outputStream.close();
+
+            // Check for unauthorized access attempts
+            handleUnauthorizedAccess(username);
 
             // TODO: Store user permissions info
             // String encodedKey = Base64.getEncoder().encodeToString(sk.getEncoded());
@@ -377,5 +390,35 @@ public class FileHandler {
         writer.writeAll(allElements);
         reader.close();
         writer.close();
+    }
+
+    public static void logAuditAction(String username, String permissionLevel, String action, String filename) {
+        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        String logEntry = username + "," + permissionLevel + "," + timestamp + "," + action;
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
+            writer.write(logEntry);
+            writer.newLine();
+        } catch (IOException e) {
+            System.err.println("Error writing to audit log: " + e.getMessage());
+        }
+    }
+
+    private void handleExcessiveDownloads(String username) {
+        int downloads = fileDownloads.getOrDefault(username, 0);
+        downloads++;
+        fileDownloads.put(username, downloads);
+        if (downloads >= DOWNLOAD_THRESHOLD) {
+            logAuditAction(username, "User", "Exceeded download threshold", "audit_log.txt");
+        }
+    }
+
+    private void handleUnauthorizedAccess(String username) {
+        int attempts = unauthorizedAccessAttempts.getOrDefault(username, 0);
+        attempts++;
+        unauthorizedAccessAttempts.put(username, attempts);
+        if (attempts >= UNAUTHORIZED_ATTEMPT_THRESHOLD) {
+            logAuditAction(username, "User", "Repeated unauthorized access attempts", "audit_log.txt");
+        }
     }
 }
