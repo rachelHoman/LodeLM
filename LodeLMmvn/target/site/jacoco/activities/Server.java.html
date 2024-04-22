@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Server.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">LodeLMmvn</a> &gt; <a href="index.source.html" class="el_package">activities</a> &gt; <span class="el_source">Server.java</span></div><h1>Server.java</h1><pre class="source lang-java linenums">package activities;
+import javax.crypto.*;
+import javax.crypto.spec.*;
+
+import java.io.*;
+import java.net.*;
+import java.nio.charset.StandardCharsets;
+import java.security.*;
+import java.security.spec.InvalidKeySpecException;
+import java.util.*;
+import java.security.spec.KeySpec;
+
+import utils.FileEncryption;
+
+<span class="nc" id="L15">public class Server {</span>
+    // private static final int PORT = 17639;
+    private static final int PORT = 57719;
+    public static final String PROJECTS_DIRECTORY = &quot;projects/&quot;;
+<span class="fc" id="L19">    private static Map&lt;String, byte[]&gt; userSecretKeys = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L20">    private static Map&lt;String, byte[]&gt; testuserSecretKeys = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L21">    private static Map&lt;String, Map&lt;String, byte[]&gt;&gt; userPasswords = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L22">    private static Map&lt;String, Map&lt;String, byte[]&gt;&gt; testuserPasswords = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L23">    private static String userPath = &quot;src/main/java/activities/users.txt&quot;;</span>
+<span class="fc" id="L24">    private static String testPath = &quot;src/test/java/activities/test_users.txt&quot;;</span>
+<span class="fc" id="L25">    private static String secretPath = &quot;src/main/java/activities/secret_keys.txt&quot;;</span>
+<span class="fc" id="L26">    private static String testsecretPath = &quot;src/test/java/activities/test_secret_keys.txt&quot;;</span>
+
+    static {
+<span class="fc" id="L29">        loadUserPasswords(userPath);</span>
+<span class="fc" id="L30">        loadUserPasswords(testPath);</span>
+<span class="fc" id="L31">        loadUserSecretKeysFromFile(secretPath);</span>
+<span class="fc" id="L32">        loadUserSecretKeysFromFile(testsecretPath);</span>
+<span class="fc" id="L33">    }</span>
+
+    public static void main(String[] args) {
+
+        // Create server key to encrypt files if key does not exist
+<span class="nc" id="L38">        File serverKeyFile = new File(&quot;../file_keys.csv&quot;);</span>
+<span class="nc bnc" id="L39" title="All 2 branches missed.">        if (!serverKeyFile.exists()) {</span>
+            try {
+<span class="nc" id="L41">                FileEncryption fe = new FileEncryption();</span>
+<span class="nc" id="L42">                SecretKey serverKey = fe.getAESKey();</span>
+<span class="nc" id="L43">                fe.saveKey(serverKey, serverKeyFile);</span>
+<span class="nc" id="L44">            } catch (Exception e) {</span>
+<span class="nc" id="L45">                System.out.println(e);</span>
+<span class="nc" id="L46">            }</span>
+        }
+
+        try {
+<span class="nc" id="L50">            ServerSocket serverSocket = new ServerSocket(PORT);</span>
+<span class="nc" id="L51">            System.out.println(&quot;Server started. Waiting for clients...&quot;);</span>
+
+            while (true) {
+<span class="nc" id="L54">                Socket clientSocket = serverSocket.accept();</span>
+<span class="nc" id="L55">                System.out.println(&quot;Client connected: &quot; + clientSocket);</span>
+
+                // Handle client in a separate thread
+<span class="nc" id="L58">                ClientHandler clientHandler = new ClientHandler(clientSocket);</span>
+<span class="nc" id="L59">                new Thread(clientHandler).start();</span>
+<span class="nc" id="L60">            }</span>
+<span class="nc" id="L61">        } catch (IOException e) {</span>
+<span class="nc" id="L62">            e.printStackTrace();</span>
+        }
+<span class="nc" id="L64">    }</span>
+
+    public static Map&lt;String, byte[]&gt; getUserSecretKeys() {
+<span class="nc" id="L67">        return userSecretKeys;</span>
+    }
+
+    public static Map&lt;String, byte[]&gt; testGetUserSecretKeys() {
+<span class="fc" id="L71">        return testuserSecretKeys;</span>
+    }
+
+    public static Map&lt;String, Map&lt;String, byte[]&gt;&gt; getUserPasswords() {
+<span class="nc" id="L75">        return userPasswords;</span>
+    }
+
+    public static Map&lt;String, Map&lt;String, byte[]&gt;&gt; testGetUserPasswords() {
+<span class="fc" id="L79">        return testuserPasswords;</span>
+    }
+
+    private static void loadUserPasswords(String filePath) {
+
+<span class="fc" id="L84">        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {</span>
+            String line;
+<span class="fc bfc" id="L86" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
+                // Split the line into tokens
+<span class="fc" id="L88">                String[] tokens = line.split(&quot; &quot;);</span>
+<span class="pc bpc" id="L89" title="1 of 2 branches missed.">                if (tokens.length == 4) {</span>
+<span class="fc" id="L90">                    String uid = tokens[0];</span>
+<span class="fc" id="L91">                    byte[] salt = Base64.getDecoder().decode(tokens[1]);</span>
+<span class="fc" id="L92">                    byte[] hashedPassword = Base64.getDecoder().decode(tokens[2]);</span>
+<span class="fc" id="L93">                    byte[] hashedEmail = Base64.getDecoder().decode(tokens[3]);</span>
+<span class="fc bfc" id="L94" title="All 2 branches covered.">                    if (filePath.equals(userPath)) {</span>
+                        // Create a nested map to store salt and hashed password
+<span class="fc" id="L96">                        Map&lt;String, byte[]&gt; userData = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L97">                        userData.put(&quot;salt&quot;, salt);</span>
+<span class="fc" id="L98">                        userData.put(&quot;passwordHash&quot;, hashedPassword);</span>
+<span class="fc" id="L99">                        userData.put(&quot;emailHash&quot;, hashedEmail);</span>
+        
+                        // Store the user information in the map
+<span class="fc" id="L102">                        userPasswords.put(uid, userData);</span>
+<span class="fc" id="L103">                    }</span>
+<span class="pc bpc" id="L104" title="1 of 2 branches missed.">                    else if (filePath.equals(testPath)) {</span>
+                        // hash password and email for test
+<span class="fc" id="L106">                        byte[] hashedPasswordForTest = hashSalt(new String(Base64.getDecoder().decode(tokens[2]), StandardCharsets.UTF_8), salt);</span>
+<span class="fc" id="L107">                        byte[] hashedEmailForTest = hashSalt(new String(Base64.getDecoder().decode(tokens[3]), StandardCharsets.UTF_8), salt);</span>
+                        // Create a nested map to store salt and hashed password
+<span class="fc" id="L109">                        Map&lt;String, byte[]&gt; testuserData = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L110">                        testuserData.put(&quot;salt&quot;, salt);</span>
+<span class="fc" id="L111">                        testuserData.put(&quot;passwordHash&quot;, hashedPasswordForTest);</span>
+<span class="fc" id="L112">                        testuserData.put(&quot;emailHash&quot;, hashedEmailForTest);</span>
+        
+                        // Store the user information in the map
+<span class="fc" id="L115">                        testuserPasswords.put(uid, testuserData);</span>
+                    }
+<span class="fc" id="L117">                } else {</span>
+<span class="nc" id="L118">                    System.out.println(&quot;testData: &quot; + testuserPasswords);</span>
+<span class="nc" id="L119">                    System.out.println(&quot;Invalid format for user entry: &quot; + line);</span>
+                }
+<span class="fc" id="L121">            }</span>
+<span class="nc" id="L122">        } catch (IOException e) {</span>
+<span class="nc" id="L123">            System.out.println(&quot;Error reading user file: &quot; + e.getMessage());</span>
+<span class="fc" id="L124">        }</span>
+<span class="fc" id="L125">    }</span>
+
+    private static void loadUserSecretKeysFromFile(String filePath) {
+        // Load encrypted secret keys from a file
+<span class="fc" id="L129">        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {</span>
+            String line;
+<span class="fc bfc" id="L131" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
+<span class="fc" id="L132">                String[] parts = line.split(&quot;:&quot;);</span>
+<span class="fc" id="L133">                String username = parts[0];</span>
+<span class="fc" id="L134">                byte[] encryptedSecretKey = Base64.getDecoder().decode(parts[1]);</span>
+<span class="fc bfc" id="L135" title="All 2 branches covered.">                if (filePath.equals(testsecretPath)) {</span>
+<span class="fc" id="L136">                    testuserSecretKeys.put(username, encryptedSecretKey);</span>
+                }
+                else {
+<span class="fc" id="L139">                    userSecretKeys.put(username, encryptedSecretKey);</span>
+                }
+<span class="fc" id="L141">            }</span>
+<span class="nc" id="L142">        } catch (IOException e) {</span>
+<span class="nc" id="L143">            e.printStackTrace();</span>
+<span class="fc" id="L144">        }</span>
+<span class="fc" id="L145">    }</span>
+    
+
+    public static byte[] hashSalt(String password, byte[] salt) {
+        try {
+<span class="fc" id="L150">            MessageDigest digest = MessageDigest.getInstance(&quot;SHA-256&quot;);</span>
+<span class="fc" id="L151">            digest.reset();</span>
+<span class="fc" id="L152">            digest.update(salt);</span>
+<span class="fc" id="L153">            byte[] hashedBytes = digest.digest(password.getBytes(StandardCharsets.UTF_8));</span>
+            // iterations
+<span class="fc bfc" id="L155" title="All 2 branches covered.">            for (int i = 0; i &lt; 20000; i++) {</span>
+<span class="fc" id="L156">                digest.reset();</span>
+<span class="fc" id="L157">                hashedBytes = digest.digest(hashedBytes);</span>
+            }
+<span class="fc" id="L159">            return hashedBytes;</span>
+<span class="nc" id="L160">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L161">            e.printStackTrace();</span>
+<span class="nc" id="L162">            return null;</span>
+        }
+    }
+
+    // private static byte[] concatenateByteArrays(byte[] a, byte[] b) {
+    //     byte[] result = new byte[a.length + b.length];
+    //     System.arraycopy(a, 0, result, 0, a.length);
+    //     System.arraycopy(b, 0, result, a.length, b.length);
+    //     return result;
+    // }
+
+    // private static byte[] generateRandomBytes(int length) {
+    //     byte[] bytes = new byte[length];
+    //     new SecureRandom().nextBytes(bytes);
+    //     return bytes;
+    // }
+
+    public static boolean verifyPassword(byte[] providedPasswordHash, byte[] storedPasswordHash) {
+        // Compare the provided password hash with the stored password hash
+<span class="fc" id="L181">        return Arrays.equals(providedPasswordHash, storedPasswordHash);</span>
+    }
+
+    public static byte[] encryptSecretKey(byte[] secretKey, byte[] passwordHash) {
+        try {
+            // Ensure the password hash is of appropriate length for AES
+<span class="fc" id="L187">            byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16); // 16 bytes for AES-128</span>
+
+            // Derive a secret key from the trimmed password hash
+<span class="fc" id="L190">            SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, &quot;AES&quot;);</span>
+
+            // Encrypt the secret key using AES
+<span class="fc" id="L193">            Cipher cipher = Cipher.getInstance(&quot;AES&quot;);</span>
+<span class="fc" id="L194">            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);</span>
+<span class="fc" id="L195">            return cipher.doFinal(secretKey);</span>
+<span class="nc" id="L196">        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {</span>
+<span class="nc" id="L197">            e.printStackTrace();</span>
+<span class="nc" id="L198">            return null;</span>
+        }
+    }
+
+    public static byte[] decryptSecretKey(byte[] encryptedSecretKey, byte[] passwordHash) {
+        try {
+            // Ensure the password hash is of appropriate length for AES
+<span class="fc" id="L205">            byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16); // 16 bytes for AES-128</span>
+
+            // Derive a secret key from the trimmed password hash
+<span class="fc" id="L208">            SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, &quot;AES&quot;);</span>
+
+            // Decrypt the secret key using AES
+<span class="fc" id="L211">            Cipher cipher = Cipher.getInstance(&quot;AES&quot;);</span>
+<span class="fc" id="L212">            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);</span>
+<span class="fc" id="L213">            return cipher.doFinal(encryptedSecretKey);</span>
+<span class="nc" id="L214">        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {</span>
+<span class="nc" id="L215">            e.printStackTrace();</span>
+<span class="nc" id="L216">            return null;</span>
+        }
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

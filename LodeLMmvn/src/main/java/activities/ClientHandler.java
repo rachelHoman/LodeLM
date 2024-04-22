@@ -30,7 +30,7 @@ public class ClientHandler implements Runnable {
         this.clientSocket = socket;
     }
 
-    DatabHandler dbhandler = new DatabHandler();
+    // DatabHandler dbhandler = new DatabHandler();
 
     public void run() {
         try {
@@ -194,31 +194,27 @@ public class ClientHandler implements Runnable {
 
                     System.out.println("Received from client: " + inputLine);
 
-                    // Handle create project command
-                    if (inputLine.startsWith("create ")) {
-                        String projectName = inputLine.substring(7); // Extract project name
-                        // TODO: don't need this with databse -- delete
-                    } 
-                    // Handle list projects command
-                    else if (inputLine.equals("list projects")) {
-                        // TODO: don't need this with databse --> delete
-                        
-                    }
-                    else if (inputLine.startsWith("send ")) {
+                    if (inputLine.startsWith("send ")) {
                         String fileName = inputLine.substring(5);
                         String userOutput = null;
-                        FileHandler fileHandler = new FileHandler("server_data/" + fileName);
-                        try {
-                            userOutput = fileHandler.receiveFile(dataInputStream, aesSecretKey, true, username);
-                        } catch (Exception e) {
-                            System.out.println(e);
+
+                        File fileToSend = new File("client_data/" + fileName);
+                        if (!fileToSend.exists() || fileToSend.isDirectory()) {
                         }
-                        if (userOutput != null) {
-                            output = userOutput;
-                        } else {
-                            output = fileName + " has been received by server";
+                        else {
+                            FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                            try {
+                                userOutput = fileHandler.receiveFile(dataInputStream, aesSecretKey, true, username);
+                            } catch (Exception e) {
+                                System.out.println(e);
+                            }
+                            if (userOutput != null) {
+                                output = userOutput;
+                            } else {
+                                output = fileName + " has been received by server";
+                            }
+                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                         }
-                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
 
                         //send to database
                         // dbhandler.DBsendFile("server_data/" + fileName, fileName);
@@ -227,21 +223,34 @@ public class ClientHandler implements Runnable {
                     }
                     else if (inputLine.startsWith("download ")) {
                         String fileName = inputLine.substring(9);
-                        FileHandler fileHandler = new FileHandler("server_data/" + fileName);
-                        output = "File was not downloaded for some reason...";
-                        try {
-                            output = fileHandler.sendFile(dataOutputStream, aesSecretKey, true, username);
-                            System.out.println(output);
-                        } catch (Exception e) {
-                            System.out.println(e);
+
+                        File fileToDownload = new File("server_data/" + fileName);
+                        if (!fileToDownload.exists() || fileToDownload.isDirectory()) {
                         }
-                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
+
+                        else {
+                            FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                            output = "File was not downloaded for some reason...";
+                            try {
+                                output = fileHandler.sendFile(dataOutputStream, aesSecretKey, true, username);
+                                System.out.println(output);
+                            } catch (Exception e) {
+                                System.out.println(e);
+                            }
+                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
+                        }
+                        
                     }
                     else if (inputLine.startsWith("delete ")) {
                         String fileName = inputLine.substring(7);
-                        FileHandler fileHandler = new FileHandler("server_data/" + fileName);
-                        output = fileHandler.deleteFile(username);
-                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
+                        File fileToDelete = new File("server_data/" + fileName);
+                        if (!fileToDelete.exists() || fileToDelete.isDirectory()) {
+                        }
+                        else {
+                            FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                            output = fileHandler.deleteFile(username);
+                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
+                        }
                     }
                     else if (inputLine.equals("pwd")) {
                         FileHandler fileHandler = new FileHandler("server_data/");
@@ -269,12 +278,21 @@ public class ClientHandler implements Runnable {
                             if ((permission.length() == 1 && permission.contains("w")) || (permission.length() == 1 && permission.contains("r")) || (permission.length() == 2 && Character.toString(permission.charAt(1)).equals("w") && Character.toString(permission.charAt(0)).equals("r"))) {
                                 sharedUsername = arrOfStr[1];
                                 if (!sharedUsername.equals(username)) {
-                                    fileName = inputLine.substring(6 + permission.length() + 1 + sharedUsername.length() + 1);
-                                    FileHandler fileHandler = new FileHandler("server_data/" + fileName);
-                                    try {
-                                        output = fileHandler.shareFile(username, sharedUsername, permission);
-                                    } catch (Exception e) {
-                                        System.out.println(e);
+                                    if (Client.UserExists(sharedUsername, "normal")) {
+                                        fileName = inputLine.substring(6 + permission.length() + 1 + sharedUsername.length() + 1);
+                                        File fileToShare = new File("server_data/" + fileName);
+                                        if (fileToShare.exists()) {
+                                            FileHandler fileHandler = new FileHandler("server_data/" + fileName);
+                                            try {
+                                                output = fileHandler.shareFile(username, sharedUsername, permission);
+                                            } catch (Exception e) {
+                                                System.out.println(e);
+                                            }
+                                        } else {
+                                            output = fileName + " does not exist";
+                                        }
+                                    } else {
+                                        output = "This username is does not exist!";
                                     }
                                 } else {
                                     output = "You can not share files with yourself. Nice try.";
@@ -423,7 +441,7 @@ public class ClientHandler implements Runnable {
             // deleteUserFromFile(username);
             // writeToUserFile(username, salt, hashedNewPassword, userData.get("emailHash"));
             // Write updated data to the user file
-            System.out.println("WOHOO");
+            // System.out.println("WOHOO");
             updateUserDataFile(username, userData);
         } else {
             System.out.println("User does not exist.");

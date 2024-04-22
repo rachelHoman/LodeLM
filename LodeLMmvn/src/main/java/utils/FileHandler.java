@@ -10,7 +10,6 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 import javax.crypto.SecretKey;
 
-import java.io.FileWriter;
 import java.util.Base64;
 import java.util.HashMap;
 import java.nio.charset.StandardCharsets;
@@ -218,7 +217,7 @@ public class FileHandler {
         if (appendUserPermissionsCSV(username, sharedUsername, privileges)) {
             output = "File Shared";
         } else {
-            output = "Issue with File Share, do you write permissions on this file? If not, you cannot share the file.";
+            output = "Issue with File Share, do you have write permissions on this file? If not, you cannot share the file.";
         }
         return output;
     }

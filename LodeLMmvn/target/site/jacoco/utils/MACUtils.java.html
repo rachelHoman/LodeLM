@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>MACUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">LodeLMmvn</a> &gt; <a href="index.source.html" class="el_package">utils</a> &gt; <span class="el_source">MACUtils.java</span></div><h1>MACUtils.java</h1><pre class="source lang-java linenums">package utils;
+
+import javax.crypto.Mac;
+import javax.crypto.spec.SecretKeySpec;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
+import java.util.Arrays;
+import java.util.Base64;
+
+<span class="nc" id="L10">public class MACUtils {</span>
+    public static byte[] createMAC(byte[] data, byte[] key) {
+        try {
+            // Create a Mac instance with HMAC-SHA-256 algorithm
+<span class="nc" id="L14">            Mac mac = Mac.getInstance(&quot;HmacSHA256&quot;);</span>
+
+            // Create a SecretKeySpec with the provided key and algorithm
+<span class="nc" id="L17">            SecretKeySpec secretKeySpec = new SecretKeySpec(key, &quot;HmacSHA256&quot;);</span>
+
+            // Initialize the Mac with the key
+<span class="nc" id="L20">            mac.init(secretKeySpec);</span>
+
+            // Calculate the MAC
+<span class="nc" id="L23">            return mac.doFinal(data);</span>
+<span class="nc" id="L24">        } catch (NoSuchAlgorithmException | InvalidKeyException e) {</span>
+<span class="nc" id="L25">            e.printStackTrace();</span>
+<span class="nc" id="L26">            return null;</span>
+        }
+    }
+
+    public static String createMACBase64(byte[] data, byte[] key) {
+        // Create the MAC
+<span class="nc" id="L32">        byte[] macBytes = createMAC(data, key);</span>
+
+        // Encode the MAC bytes to Base64 for easy transmission
+<span class="nc" id="L35">        return Base64.getEncoder().encodeToString(macBytes);</span>
+    }
+
+    public static boolean verifyMAC(byte[] data, byte[] mac, byte[] key) {
+        try {
+            // Create a Mac instance with HMAC-SHA-256 algorithm
+<span class="nc" id="L41">            Mac macInstance = Mac.getInstance(&quot;HmacSHA256&quot;);</span>
+
+            // Create a SecretKeySpec with the provided key and algorithm
+<span class="nc" id="L44">            SecretKeySpec secretKeySpec = new SecretKeySpec(key, &quot;HmacSHA256&quot;);</span>
+
+            // Initialize the Mac with the key
+<span class="nc" id="L47">            macInstance.init(secretKeySpec);</span>
+
+            // Calculate the MAC for the data
+<span class="nc" id="L50">            byte[] calculatedMac = macInstance.doFinal(data);</span>
+
+            // Compare the calculated MAC with the provided MAC
+<span class="nc" id="L53">            return Arrays.equals(calculatedMac, mac);</span>
+<span class="nc" id="L54">        } catch (NoSuchAlgorithmException | InvalidKeyException e) {</span>
+<span class="nc" id="L55">            e.printStackTrace();</span>
+<span class="nc" id="L56">            return false;</span>
+        }
+    }
+}
+
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

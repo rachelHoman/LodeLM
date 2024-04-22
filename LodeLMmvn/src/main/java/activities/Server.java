@@ -13,8 +13,8 @@ import java.security.spec.KeySpec;
 import utils.FileEncryption;
 
 public class Server {
-    // private static final int PORT = 12599;
-    private static final int PORT = 50709;
+    // private static final int PORT = 17639;
+    private static final int PORT = 57719;
     public static final String PROJECTS_DIRECTORY = "projects/";
     private static Map<String, byte[]> userSecretKeys = new HashMap<>();
     private static Map<String, byte[]> testuserSecretKeys = new HashMap<>();
@@ -161,19 +161,6 @@ public class Server {
             e.printStackTrace();
             return null;
         }
-    }
-
-    private static byte[] concatenateByteArrays(byte[] a, byte[] b) {
-        byte[] result = new byte[a.length + b.length];
-        System.arraycopy(a, 0, result, 0, a.length);
-        System.arraycopy(b, 0, result, a.length, b.length);
-        return result;
-    }
-
-    private static byte[] generateRandomBytes(int length) {
-        byte[] bytes = new byte[length];
-        new SecureRandom().nextBytes(bytes);
-        return bytes;
     }
 
     public static boolean verifyPassword(byte[] providedPasswordHash, byte[] storedPasswordHash) {
