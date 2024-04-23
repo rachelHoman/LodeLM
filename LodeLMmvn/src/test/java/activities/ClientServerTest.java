@@ -404,10 +404,7 @@ public class ClientServerTest {
 
         FileEncryption fe = new FileEncryption();
         SecretKey secretKey = fe.getAESKey();
-
-        // KeyGenerator keyGen = KeyGenerator.getInstance("AES", "BC");
-		// keyGen.init(256); 
-		// SecretKey secretKey = keyGen.generateKey();
+        
         String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
 
         FileEncryption.saveKey(secretKey, tempFile);
