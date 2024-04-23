@@ -3,7 +3,12 @@
 
 By Anika Gupta, Rachel Homan, and Christy Marchese
 
-Download maven to use it to compile, package, and execute the maven project:
+Download maven.
+
+Navigate into this folder to run:
+    - cd LodeLMmvn
+
+To use it to compile, package, and execute the maven project:
 
 - mvn compile: compiles the main Java source code located in the src/
 - mvn test-compile: compiles the test Java source code located in the src/test/
@@ -85,3 +90,8 @@ The user can see what directory they are in
 The user can exit their session
 
 `exit`
+
+
+Command to run coverage testing analysis:
+    - mvn jacoco:prepare-agent test install jacoco:report
+    - index.html can be opened to see the results

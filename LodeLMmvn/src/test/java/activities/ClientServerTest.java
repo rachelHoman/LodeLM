@@ -7,6 +7,7 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.io.*;
 import java.net.*;
@@ -20,6 +21,7 @@ import java.util.Map;
 
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.Mac;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 
@@ -28,6 +30,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import java.nio.file.Files;
+import java.nio.file.Paths;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -363,34 +366,94 @@ public class ClientServerTest {
     }
 
     @Test
-public void testAuditLog() {
-    // Ensure the audit log file is empty before the test
-    File auditLogFile = new File("test_audit_log.txt");
-    if (auditLogFile.exists()) {
-        auditLogFile.delete();
+    public void testAuditLog() {
+        // Ensure the audit log file is empty before the test
+        File auditLogFile = new File("test_audit_log.txt");
+        if (auditLogFile.exists()) {
+            auditLogFile.delete();
+        }
+
+        // Mock login action
+        String username = "testUser";
+        String permissionLevel = "admin";
+        String action = "Login";
+        FileHandler.logAuditAction(username, permissionLevel, action, "test_audit_log.txt");
+
+        // Check if the audit log file has been created and contains the login action
+        assertTrue(auditLogFile.exists());
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(auditLogFile))) {
+            String logEntry = reader.readLine();
+            assertNotNull(logEntry);
+
+            // Verify if the log entry contains the correct information
+            assertTrue(logEntry.contains(username));
+            assertTrue(logEntry.contains(permissionLevel));
+            assertTrue(logEntry.contains(action));
+        } catch (IOException e) {
+            fail("Exception occurred: " + e.getMessage());
+        }
     }
 
-    // Mock login action
-    String username = "testUser";
-    String permissionLevel = "admin";
-    String action = "Login";
-    FileHandler.logAuditAction(username, permissionLevel, action, "test_audit_log.txt");
 
-    // Check if the audit log file has been created and contains the login action
-    assertTrue(auditLogFile.exists());
 
-    try (BufferedReader reader = new BufferedReader(new FileReader(auditLogFile))) {
-        String logEntry = reader.readLine();
-        assertNotNull(logEntry);
+    // testing utils FileEncryption
 
-        // Verify if the log entry contains the correct information
-        assertTrue(logEntry.contains(username));
-        assertTrue(logEntry.contains(permissionLevel));
-        assertTrue(logEntry.contains(action));
-    } catch (IOException e) {
-        fail("Exception occurred: " + e.getMessage());
+    public void testSaveKey() throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
+        File tempFile = new File("tempKey.txt");
+
+        FileEncryption fe = new FileEncryption();
+        SecretKey secretKey = fe.getAESKey();
+
+        // KeyGenerator keyGen = KeyGenerator.getInstance("AES", "BC");
+		// keyGen.init(256); 
+		// SecretKey secretKey = keyGen.generateKey();
+        String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
+
+        FileEncryption.saveKey(secretKey, tempFile);
+        String content = new String(Files.readAllBytes(Paths.get("tempKey.txt")));
+
+        assertEquals(encodedKey, content);
+
+        tempFile.delete();
     }
-}
+
+    public void testGethmacKey() throws IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
+        FileEncryption fe = new FileEncryption();
+        SecretKey hmacKey = fe.getAESKey();
+
+        assertNotNull(hmacKey);
+        assertTrue(hmacKey.getAlgorithm().equals("HmacSHA256"));
+        assertTrue(hmacKey.getEncoded().length==(256/8));
+    }
+
+
+
+    // testing utils MACUtils
+
+    public void testCreateMAC() throws InvalidKeyException, NoSuchAlgorithmException {
+
+        byte[] data = "test".getBytes();
+        byte[] key = "secret".getBytes();
+        byte[] mac = MACUtils.createMAC(data, key);
+
+        byte[] emptydata = new byte[0];
+        byte[] emptyDatamac = MACUtils.createMAC(emptydata, key);
+        byte[] MACnullKey = MACUtils.createMAC(data, null);
+        byte[] invalidkey = new byte[10];
+        byte[] MACinvalidKey = MACUtils.createMAC(data, invalidkey);
+
+        assertNotNull(mac);
+        assertNotNull(emptyDatamac);
+        assertNull(MACnullKey);
+        assertNotNull(MACinvalidKey);
+
+        Mac testMac = Mac.getInstance("HmacSHA256");
+        SecretKeySpec secretKey = new SecretKeySpec(key, "HmacSHA256");
+        testMac.init(secretKey);
+        byte[] expectedMAC = testMac.doFinal(data);
+        assertArrayEquals(expectedMAC,mac);
+    }
 
 
 
