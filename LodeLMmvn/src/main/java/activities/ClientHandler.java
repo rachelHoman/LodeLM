@@ -16,17 +16,19 @@ import java.util.Arrays;
 import utils.*;
 import javax.crypto.SecretKey;
 
+import javax.net.ssl.SSLSocket;
+
 public class ClientHandler implements Runnable {
     private int AES_KEY_LENGTH = 32;
     private int MAC_KEY_LENGTH = 32; // 256 bits to 32 bytes
     private int BUFFER_SIZE = 4096;
 
-    private Socket clientSocket;
+    private SSLSocket clientSocket;
 
     DataInputStream dataInputStream;
     DataOutputStream dataOutputStream;
 
-    public ClientHandler(Socket socket) {
+    public ClientHandler(SSLSocket socket) {
         this.clientSocket = socket;
     }
 

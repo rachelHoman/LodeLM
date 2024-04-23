@@ -109,6 +109,9 @@
   </dependency>
   </dependencies>
 
-  
+  <properties>
+    <javax.net.ssl.keyStore>/workspaces/LodeLM/LodeLMmvn/server_keystore_file.jks</javax.net.ssl.keyStore>
+    <javax.net.ssl.keyStorePassword>lodelm</javax.net.ssl.keyStorePassword>
+  </properties>
 
 </project>
