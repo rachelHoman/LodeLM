@@ -12,9 +12,22 @@ import java.security.spec.KeySpec;
 
 import utils.FileEncryption;
 
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLServerSocketFactory;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.TrustManagerFactory;
+
 public class Server {
     // private static final int PORT = 17639;
     private static final int PORT = 57719;
+
+    private static final String protocol = "TLSv1.2";
+    private static final String[] cipher_suites = new String[]{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"};
+
+    private static final String path_to_keystore = "./server.jks";
+
     public static final String PROJECTS_DIRECTORY = "projects/";
     private static Map<String, byte[]> userSecretKeys = new HashMap<>();
     private static Map<String, byte[]> testuserSecretKeys = new HashMap<>();
@@ -34,6 +47,8 @@ public class Server {
 
     public static void main(String[] args) {
 
+        SSLServerSocket serverSocket = null;
+
         // Create server key to encrypt files if key does not exist
         File serverKeyFile = new File("../file_keys.csv");
         if (!serverKeyFile.exists()) {
@@ -47,19 +62,62 @@ public class Server {
         }
 
         try {
-            ServerSocket serverSocket = new ServerSocket(PORT);
-            System.out.println("Server started. Waiting for clients...");
+            // Keystore Configuration
+            String keystorePath = "./server.keystore";
+            String keystorePassword = "lodelm";
 
-            while (true) {
-                Socket clientSocket = serverSocket.accept();
-                System.out.println("Client connected: " + clientSocket);
+            // Certificate Trust Configuration (if using a self-signed certificate)
+            String truststorePath = "./trust.keystore"; // Contains the self-signed cert or CA
+            String truststorePassword = "lodelm";
 
-                // Handle client in a separate thread
-                ClientHandler clientHandler = new ClientHandler(clientSocket);
-                new Thread(clientHandler).start();
+            try {
+                // Load Keystore (contains server's certificate and private key)
+                KeyStore keyStore = KeyStore.getInstance("JKS");
+                keyStore.load(new FileInputStream(keystorePath), keystorePassword.toCharArray());
+
+                // Load Truststore (contains trusted certificates)
+                KeyStore trustStore = KeyStore.getInstance("JKS");
+                trustStore.load(new FileInputStream(truststorePath), truststorePassword.toCharArray());
+
+                // Initialize KeyManager and TrustManager
+                KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+                kmf.init(keyStore, keystorePassword.toCharArray());
+
+                TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                tmf.init(trustStore);
+
+                // Create SSLContext
+                SSLContext sslContext = SSLContext.getInstance(protocol);
+                sslContext.init(kmf.getKeyManagers(), tmf.getTrustManagers(), null);
+
+                // Create Server Socket Factory
+                SSLServerSocketFactory factory = sslContext.getServerSocketFactory();
+
+                // Bind server to specified port and enable protocols and cipher suites.
+                // this.server = (SSLServerSocket) factory.createServerSocket(PORT);
+
+                // SSLServerSocketFactory factory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
+                serverSocket = (SSLServerSocket) factory.createServerSocket(PORT);
+                // serverSocket.setEnabledProtocols(protocols);
+                serverSocket.setEnabledCipherSuites(cipher_suites);
+
+                // ServerSocket serverSocket = new ServerSocket(PORT);
+                System.out.println("Server started. Waiting for clients...");
+
+                while (true) {
+                    // Socket clientSocket = serverSocket.accept();
+                    SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
+                    System.out.println("Client connected: " + clientSocket);
+
+                    // Handle client in a separate thread
+                    ClientHandler clientHandler = new ClientHandler(clientSocket);
+                    new Thread(clientHandler).start();
+                }
+            } catch (Exception e) {
+                System.out.println(e);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println(e);
         }
     }
 

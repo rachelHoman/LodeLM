@@ -14,6 +14,13 @@ import org.apache.commons.lang3.StringUtils;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
 import utils.*;
 import javax.crypto.SecretKey;
 
@@ -23,322 +30,352 @@ public class Client {
     private static final int SERVER_PORT = 57719;
     private int BUFFER_SIZE = 4096;
 
+    private static final String protocol = "TLSv1.2";
+    private static final String[] cipher_suites = new String[]{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"};
+
     public static void main(String[] args) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException {
+        SSLSocket socket = null;
+
         try {
-            Socket socket = new Socket(SERVER_IP, SERVER_PORT);
-            System.out.println("Connected to Server");
+            String truststorePath = "./trust.keystore"; // Contains the self-signed cert or CA
+            String truststorePassword = "lodelm"; 
 
-            BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in)); //user input stream
+            try {
+                // Load Truststore (contains trusted certificates)
+                KeyStore trustStore = KeyStore.getInstance("JKS");
+                trustStore.load(new FileInputStream(truststorePath), truststorePassword.toCharArray());
             
-            DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
-            DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
+                TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                tmf.init(trustStore);
+                
+                // Create SSLContext
+                SSLContext sslContext = SSLContext.getInstance(protocol);
+                sslContext.init(null, tmf.getTrustManagers(), null);
+                
+                SSLSocketFactory factory = sslContext.getSocketFactory();
+                // SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
+                socket = (SSLSocket) factory.createSocket(SERVER_IP, SERVER_PORT);
+                // socket.setEnabledProtocols(protocols);
+                socket.setEnabledCipherSuites(cipher_suites); 
+                socket.startHandshake(); 
 
-            FileEncryption fe = new FileEncryption();
-            SecretKey aesKey;
-            SecretKey macKey;
+                // Socket socket = new Socket(SERVER_IP, SERVER_PORT);
+                System.out.println("Connected to Server");
 
-            // AES KEY Communication
-            aesKey = fe.getAESKey();
-            byte[] keyData =  aesKey.getEncoded();
-            //TODO: Encrypt keydata
-            dataOutputStream.write(keyData);
-            dataOutputStream.flush();
-            System.out.println("Secret Key Shared");
+                BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in)); //user input stream
+                
+                DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
+                DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
 
-            // macKey = fe.getHmacKey();
-            // byte[] macKeyData =  macKey.getEncoded();
-            // //TODO: Encrypt keydata
-            // dataOutputStream.write(macKeyData);
-            // dataOutputStream.flush();
-            // System.out.println("MAC Key Shared");
+                FileEncryption fe = new FileEncryption();
+                SecretKey aesKey;
+                SecretKey macKey;
 
-            String username = "";
-            boolean loggedIn = false;
-            while (!loggedIn) {
-                // Prompt user to choose login method
-                System.out.print("Choose an option: 1. Login, 2. Forgot Password, 3. Create Account, 4. Exit\n");
-                String login = userInput.readLine();
-                if (login.equals("1") || login.equalsIgnoreCase("Login")) {
-                    // sending action to server
-                    EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
-                    // Prompt the user for username
-                    System.out.print("Enter your username: ");
-                    username = userInput.readLine();
-                    // case for user not existing
-                    while (!UserExists(username, "normal")) {
-                        System.out.print("Username is incorrect or does not exist. Enter another username: ");
-                        username = userInput.readLine();
-                    }
-                    EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream); // Send username to server
+                // AES KEY Communication
+                aesKey = fe.getAESKey();
+                byte[] keyData =  aesKey.getEncoded();
+                //TODO: Encrypt keydata
+                dataOutputStream.write(keyData);
+                dataOutputStream.flush();
+                System.out.println("Secret Key Shared");
 
-                    // Prompt the user for password
-                    System.out.print("Enter your password: ");
-                    String password = userInput.readLine();
-                    // Send encrypt password
-                    EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream); // Send password to server
-                }
-                else if (login.equals("2") || login.equalsIgnoreCase("Forgot Password")) {
-                    // sending action to server
-                    EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
+                // macKey = fe.getHmacKey();
+                // byte[] macKeyData =  macKey.getEncoded();
+                // //TODO: Encrypt keydata
+                // dataOutputStream.write(macKeyData);
+                // dataOutputStream.flush();
+                // System.out.println("MAC Key Shared");
 
-                    username = "";
-                    String email = "";
-                    // Get valid email entry
-                    while (true) {
+                String username = "";
+                boolean loggedIn = false;
+                while (!loggedIn) {
+                    // Prompt user to choose login method
+                    System.out.print("Choose an option: 1. Login, 2. Forgot Password, 3. Create Account, 4. Exit\n");
+                    String login = userInput.readLine();
+                    if (login.equals("1") || login.equalsIgnoreCase("Login")) {
+                        // sending action to server
+                        EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
                         // Prompt the user for username
                         System.out.print("Enter your username: ");
                         username = userInput.readLine();
-
                         // case for user not existing
                         while (!UserExists(username, "normal")) {
                             System.out.print("Username is incorrect or does not exist. Enter another username: ");
                             username = userInput.readLine();
                         }
-                        System.out.print("Enter your email: ");
-                        email = userInput.readLine();
+                        EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream); // Send username to server
 
-                        if (email.isEmpty()) {
-                            System.out.println("Email cannot be empty. Please enter valid values.");
-                            continue;
-                        }
+                        // Prompt the user for password
+                        System.out.print("Enter your password: ");
+                        String password = userInput.readLine();
+                        // Send encrypt password
+                        EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream); // Send password to server
+                    }
+                    else if (login.equals("2") || login.equalsIgnoreCase("Forgot Password")) {
+                        // sending action to server
+                        EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
 
-                        // Check if the email is valid
-                        if (!SimpleMailSender.isValidEmail(email)) {
-                            System.out.println("Invalid email format. Please enter valid values.");
-                            continue;
-                        }
+                        username = "";
+                        String email = "";
+                        // Get valid email entry
+                        while (true) {
+                            // Prompt the user for username
+                            System.out.print("Enter your username: ");
+                            username = userInput.readLine();
 
-                        // Check if email and username match
-                        if (!UserEmailMatch(username, email, "normal")) {
-                            System.out.println("Username or Email are incorrect. Please enter a valid username and email.");
-                            continue;
-                        }
-
-                        // Password re-set email
-                        System.out.println("Sending one-time passcode to your email...");
-                        String otpVal = SimpleMailSender.generateOTP();
-                        String emailSubject = "Password Reset";
-                        String emailBody = "Dear " + username + ",\n\n"
-                                        + "Your one-time passcode for password reset is: " + otpVal + "\n"
-                                        + "Please use this passcode to reset your password.\n\n"
-                                        + "Regards,\n"
-                                        + "Your LodeLM Team";
-                        SimpleMailSender.sendEmail(email, emailSubject, emailBody);
-
-                        System.out.print("Enter your one-time passcode: ");
-                        String answer = userInput.readLine();
-                        if (answer.equals(otpVal)) {
-                            System.out.print("Enter your new password: ");
-                            String password = userInput.readLine();
-                            while (!isPasswordStrong(password)) {
-                                String errorMessage = "Password is not strong enough. Please choose a password with at least 8 characters, containing at least one digit, one uppercase letter, one lowercase letter, and one special character. \n";
-                                System.out.print(errorMessage);
-                                System.out.print("Try again please. Enter your password: ");
-                                password = userInput.readLine();
+                            // case for user not existing
+                            while (!UserExists(username, "normal")) {
+                                System.out.print("Username is incorrect or does not exist. Enter another username: ");
+                                username = userInput.readLine();
                             }
-                            System.out.print("Retype your password: ");
-                            String password2 = userInput.readLine();
-                            while (!password.equals(password2)){
-                                System.out.println("Passwords do not match"); 
-                                System.out.println("Please try again: "); 
-                                password2 = userInput.readLine();
-                            }
-                            logAuditAction(username, "Forgot Password", "Password Recovered", "audit_log.txt");
-                            EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
-                            EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
-                            EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
-                            break;
-                        } else {
-                            // TODO: add reports of inccorect attemps to login AUDIT milestone
-                            System.out.println("Incorrect Answer");
-                            logAuditAction(username, "Forgot Password", "Failed Password Recovery", "audit_log.txt");
+                            System.out.print("Enter your email: ");
+                            email = userInput.readLine();
 
+                            if (email.isEmpty()) {
+                                System.out.println("Email cannot be empty. Please enter valid values.");
+                                continue;
+                            }
+
+                            // Check if the email is valid
+                            if (!SimpleMailSender.isValidEmail(email)) {
+                                System.out.println("Invalid email format. Please enter valid values.");
+                                continue;
+                            }
+
+                            // Check if email and username match
+                            if (!UserEmailMatch(username, email, "normal")) {
+                                System.out.println("Username or Email are incorrect. Please enter a valid username and email.");
+                                continue;
+                            }
+
+                            // Password re-set email
+                            System.out.println("Sending one-time passcode to your email...");
+                            String otpVal = SimpleMailSender.generateOTP();
+                            String emailSubject = "Password Reset";
+                            String emailBody = "Dear " + username + ",\n\n"
+                                            + "Your one-time passcode for password reset is: " + otpVal + "\n"
+                                            + "Please use this passcode to reset your password.\n\n"
+                                            + "Regards,\n"
+                                            + "Your LodeLM Team";
+                            SimpleMailSender.sendEmail(email, emailSubject, emailBody);
+
+                            System.out.print("Enter your one-time passcode: ");
+                            String answer = userInput.readLine();
+                            if (answer.equals(otpVal)) {
+                                System.out.print("Enter your new password: ");
+                                String password = userInput.readLine();
+                                while (!isPasswordStrong(password)) {
+                                    String errorMessage = "Password is not strong enough. Please choose a password with at least 8 characters, containing at least one digit, one uppercase letter, one lowercase letter, and one special character. \n";
+                                    System.out.print(errorMessage);
+                                    System.out.print("Try again please. Enter your password: ");
+                                    password = userInput.readLine();
+                                }
+                                System.out.print("Retype your password: ");
+                                String password2 = userInput.readLine();
+                                while (!password.equals(password2)){
+                                    System.out.println("Passwords do not match"); 
+                                    System.out.println("Please try again: "); 
+                                    password2 = userInput.readLine();
+                                }
+                                logAuditAction(username, "Forgot Password", "Password Recovered", "audit_log.txt");
+                                EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
+                                EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
+                                EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
+                                break;
+                            } else {
+                                // TODO: add reports of inccorect attemps to login AUDIT milestone
+                                System.out.println("Incorrect Answer");
+                                logAuditAction(username, "Forgot Password", "Failed Password Recovery", "audit_log.txt");
+
+                            }
                         }
                     }
-                }
-                else if (login.equals("3") || login.equalsIgnoreCase("Create Account")) {
-                    // Send a signal to the server indicating account creation
-                    EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
-                    // Prompt the user for username
-                    System.out.print("Enter your username: ");
-                    username = userInput.readLine();
-
-                    while (UserExists(username, "normal")) {
-                        System.out.print("Username exists. Enter another username: ");
+                    else if (login.equals("3") || login.equalsIgnoreCase("Create Account")) {
+                        // Send a signal to the server indicating account creation
+                        EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);
+                        // Prompt the user for username
+                        System.out.print("Enter your username: ");
                         username = userInput.readLine();
-                    }
-                    if (username.isEmpty() || username.contains(" ")) {
-                        System.out.println("Username cannot be empty. Please enter valid values.");
-                        continue;
-                    }
 
-                    // Prompt the user for password
-                    System.out.print("Enter your password: ");
-                    String password = userInput.readLine();
-                    while (!isPasswordStrong(password)) {
-                        String errorMessage = "Password is not strong enough. Please choose a password with at least 8 characters, containing at least one digit, one uppercase letter, one lowercase letter, and one special character.";
-                        System.out.print(errorMessage);
-                        System.out.print("Try again please. Enter your password: ");
-                        password = userInput.readLine();
-                    }
-                    System.out.print("Enter your password again: ");
-                    String password2 = userInput.readLine();
-                    while (!password.equals(password2)){
-                        System.out.print("Passwords do not match.");
-                        System.out.print("Please try again:");
-                        password2 = userInput.readLine();
-                    }
-
-                    String email = "";
-                    // Get valid email entry
-                    while (true) {
-                        System.out.print("Enter your email: ");
-                        email = userInput.readLine();
-
-                        if (email.isEmpty()) {
-                            System.out.println("Email cannot be empty. Please enter a valid email.");
+                        while (UserExists(username, "normal")) {
+                            System.out.print("Username exists. Enter another username: ");
+                            username = userInput.readLine();
+                        }
+                        if (username.isEmpty() || username.contains(" ")) {
+                            System.out.println("Username cannot be empty. Please enter valid values.");
                             continue;
                         }
 
-                        // Check if the email is valid
-                        if (!SimpleMailSender.isValidEmail(email)) {
-                            System.out.println("Invalid email format. Please enter a valid email.");
-                            continue;
+                        // Prompt the user for password
+                        System.out.print("Enter your password: ");
+                        String password = userInput.readLine();
+                        while (!isPasswordStrong(password)) {
+                            String errorMessage = "Password is not strong enough. Please choose a password with at least 8 characters, containing at least one digit, one uppercase letter, one lowercase letter, and one special character.";
+                            System.out.print(errorMessage);
+                            System.out.print("Try again please. Enter your password: ");
+                            password = userInput.readLine();
+                        }
+                        System.out.print("Enter your password again: ");
+                        String password2 = userInput.readLine();
+                        while (!password.equals(password2)){
+                            System.out.print("Passwords do not match.");
+                            System.out.print("Please try again:");
+                            password2 = userInput.readLine();
                         }
 
-                        // Verifying email
-                        System.out.println("Sending one-time passcode to your email...");
-                        String otpVal = SimpleMailSender.generateOTP();
-                        String emailSubject = "Email Verification";
-                        String emailBody = "Dear " + username + ",\n\n"
-                                        + "Your one-time passcode is: " + otpVal + "\n"
-                                        + "Please use this passcode to verify your email.\n\n"
-                                        + "Regards,\n"
-                                        + "Your LodeLM Team";
-                        SimpleMailSender.sendEmail(email, emailSubject, emailBody);
+                        String email = "";
+                        // Get valid email entry
+                        while (true) {
+                            System.out.print("Enter your email: ");
+                            email = userInput.readLine();
 
-                        System.out.print("Enter your one-time passcode: ");
-                        String answer = userInput.readLine();
-                        if (answer.equals(otpVal)) {
-                            System.out.println("Your email has been verified!");
-                            break;
-                        } else {
-                            // TODO: add reports of inccorect attemps to login AUDIT milestone
-                            System.out.println("Your email was invalid. Please enter a valid email.");
+                            if (email.isEmpty()) {
+                                System.out.println("Email cannot be empty. Please enter a valid email.");
+                                continue;
+                            }
+
+                            // Check if the email is valid
+                            if (!SimpleMailSender.isValidEmail(email)) {
+                                System.out.println("Invalid email format. Please enter a valid email.");
+                                continue;
+                            }
+
+                            // Verifying email
+                            System.out.println("Sending one-time passcode to your email...");
+                            String otpVal = SimpleMailSender.generateOTP();
+                            String emailSubject = "Email Verification";
+                            String emailBody = "Dear " + username + ",\n\n"
+                                            + "Your one-time passcode is: " + otpVal + "\n"
+                                            + "Please use this passcode to verify your email.\n\n"
+                                            + "Regards,\n"
+                                            + "Your LodeLM Team";
+                            SimpleMailSender.sendEmail(email, emailSubject, emailBody);
+
+                            System.out.print("Enter your one-time passcode: ");
+                            String answer = userInput.readLine();
+                            if (answer.equals(otpVal)) {
+                                System.out.println("Your email has been verified!");
+                                break;
+                            } else {
+                                // TODO: add reports of inccorect attemps to login AUDIT milestone
+                                System.out.println("Your email was invalid. Please enter a valid email.");
+                            }
                         }
+
+                        // Encrypt the password
+                        logAuditAction(username, "Create Account", "Account Created", "audit_log.txt");
+                        EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
+                        EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
+                        EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
+
                     }
-
-                    // Encrypt the password
-                    logAuditAction(username, "Create Account", "Account Created", "audit_log.txt");
-                    EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);
-                    EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);
-                    EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
-
-                }
-                else if (login.equals("4") || login.equalsIgnoreCase("Exit")) {
-                    // Send exit command to the server
-                    EncryptedCom.sendMessage("exit".getBytes(), aesKey, fe, dataOutputStream);
-                    // Close connections
-                    userInput.close();
-                    socket.close();
-                    dataInputStream.close();
-                    dataOutputStream.close();
-                    // System.exit(0);
-                    logAuditAction(username, "Client", "Logout", "audit_log.txt");
-                    return;
-                }
-                else {
-                    System.out.println("Not a valid login method");
-                    continue;
-                    // Close connections
-                    // userInput.close();
-                    // socket.close();
-                    // dataInputStream.close();
-                    // dataOutputStream.close();
-                    // return;
-                }
-
-                // Receive and print the greeting message from the server
-                byte[] greetingByte = EncryptedCom.receiveMessage(aesKey, fe, dataInputStream);
-                String greeting = new String(greetingByte, StandardCharsets.UTF_8);
-                System.out.println(greeting);
-                if (!greeting.equals("Invalid username or password.")) {
-                    loggedIn = true;
-                    logAuditAction(username, "Normal", "Login", "audit_log.txt");
-                    // After successful authentication
-                    String loggedInMessage = "logged-in";
-                    EncryptedCom.sendMessage(loggedInMessage.getBytes(), aesKey, fe, dataOutputStream);
-                }
-            }
-
-            String userMessage;
-            while ((userMessage = userInput.readLine()) != null) {
-
-                EncryptedCom.sendMessage(userMessage.getBytes(), aesKey, fe, dataOutputStream);
-
-                if (userMessage.startsWith("send ")) {
-                    String fileName = userMessage.substring(5);
-                    String filePath = "client_data/" + fileName;
-                    File fileToSend = new File(filePath);
-
-                    if (fileToSend.exists()) {
-                    FileHandler fileHandler = new FileHandler(filePath);
-                    try {
-                        fileHandler.sendFile(dataOutputStream, aesKey, false, username);
-                    } catch (Exception e) {
-                        System.out.println(e);
+                    else if (login.equals("4") || login.equalsIgnoreCase("Exit")) {
+                        // Send exit command to the server
+                        EncryptedCom.sendMessage("exit".getBytes(), aesKey, fe, dataOutputStream);
+                        // Close connections
+                        userInput.close();
+                        socket.close();
+                        dataInputStream.close();
+                        dataOutputStream.close();
+                        // System.exit(0);
+                        logAuditAction(username, "Client", "Logout", "audit_log.txt");
+                        return;
                     }
-                    }
-
                     else {
-                        System.out.println("This file does not exist or is a directory");
+                        System.out.println("Not a valid login method");
                         continue;
+                        // Close connections
+                        // userInput.close();
+                        // socket.close();
+                        // dataInputStream.close();
+                        // dataOutputStream.close();
+                        // return;
                     }
-                    
+
+                    // Receive and print the greeting message from the server
+                    byte[] greetingByte = EncryptedCom.receiveMessage(aesKey, fe, dataInputStream);
+                    String greeting = new String(greetingByte, StandardCharsets.UTF_8);
+                    System.out.println(greeting);
+                    if (!greeting.equals("Invalid username or password.")) {
+                        loggedIn = true;
+                        logAuditAction(username, "Normal", "Login", "audit_log.txt");
+                        // After successful authentication
+                        String loggedInMessage = "logged-in";
+                        EncryptedCom.sendMessage(loggedInMessage.getBytes(), aesKey, fe, dataOutputStream);
+                    }
                 }
 
-                else if (userMessage.startsWith("download ")) {
-                    String fileName = userMessage.substring(9);
-                    File fileToDownload = new File("server_data/" + fileName);
+                String userMessage;
+                while ((userMessage = userInput.readLine()) != null) {
 
-                    if (fileToDownload.exists()) {
-                        FileHandler fileHandler = new FileHandler("client_data/" + fileName);
+                    EncryptedCom.sendMessage(userMessage.getBytes(), aesKey, fe, dataOutputStream);
+
+                    if (userMessage.startsWith("send ")) {
+                        String fileName = userMessage.substring(5);
+                        String filePath = "client_data/" + fileName;
+                        File fileToSend = new File(filePath);
+
+                        if (fileToSend.exists()) {
+                        FileHandler fileHandler = new FileHandler(filePath);
                         try {
-                            fileHandler.receiveFile(dataInputStream, aesKey, false, username);
+                            fileHandler.sendFile(dataOutputStream, aesKey, false, username);
                         } catch (Exception e) {
                             System.out.println(e);
                         }
+                        }
+
+                        else {
+                            System.out.println("This file does not exist or is a directory");
+                            continue;
+                        }
+                        
                     }
 
-                    else {
-                        System.out.println(fileName + " does not exist or is a directory");
-                        continue;
+                    else if (userMessage.startsWith("download ")) {
+                        String fileName = userMessage.substring(9);
+                        File fileToDownload = new File("server_data/" + fileName);
+
+                        if (fileToDownload.exists()) {
+                            FileHandler fileHandler = new FileHandler("client_data/" + fileName);
+                            try {
+                                fileHandler.receiveFile(dataInputStream, aesKey, false, username);
+                            } catch (Exception e) {
+                                System.out.println(e);
+                            }
+                        }
+
+                        else {
+                            System.out.println(fileName + " does not exist or is a directory");
+                            continue;
+                        }
+
+                    }
+
+                    // Exit loop if user types 'exit'
+                    else if (userMessage.equalsIgnoreCase("exit")) {
+                        logAuditAction(username, "User", "Logout", "audit_log.txt");
+                        break;
+                    }
+
+                    // Print server responses
+                    String response;
+                    while ((response = new String(EncryptedCom.receiveMessage(aesKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) { 
+                        System.out.println(response);
+
+                        // Break out of inner loop to return to waiting for user input
+                        break;
                     }
 
                 }
 
-                // Exit loop if user types 'exit'
-                else if (userMessage.equalsIgnoreCase("exit")) {
-                    logAuditAction(username, "User", "Logout", "audit_log.txt");
-                    break;
-                }
-
-                // Print server responses
-                String response;
-                while ((response = new String(EncryptedCom.receiveMessage(aesKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) { 
-                    System.out.println(response);
-
-                    // Break out of inner loop to return to waiting for user input
-                    break;
-                }
-
+                // Close connections
+                userInput.close();
+                socket.close();
+            } catch (Exception e) {
+                System.out.println(e);
             }
-
-            // Close connections
-            userInput.close();
-            socket.close();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            System.out.println(e);
         }
     }
 
