@@ -94,11 +94,11 @@ public class FileEncryption {
 	}
 
     public static void saveKey(SecretKey key, File file) throws IOException {
-<span class="nc" id="L97">        String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());</span>
-<span class="nc" id="L98">        BufferedWriter bufferedWriter = new BufferedWriter (new FileWriter (file));</span>
-<span class="nc" id="L99">        bufferedWriter.write(encodedKey);</span>
-<span class="nc" id="L100">        bufferedWriter.close();</span>
-<span class="nc" id="L101">    }</span>
+<span class="fc" id="L97">        String encodedKey = Base64.getEncoder().encodeToString(key.getEncoded());</span>
+<span class="fc" id="L98">        BufferedWriter bufferedWriter = new BufferedWriter (new FileWriter (file));</span>
+<span class="fc" id="L99">        bufferedWriter.write(encodedKey);</span>
+<span class="fc" id="L100">        bufferedWriter.close();</span>
+<span class="fc" id="L101">    }</span>
 
     public static SecretKey loadKey(File file) throws IOException {
 <span class="fc" id="L104">        byte[] fileBytes = FileUtils.readFileToByteArray(file);</span>
@@ -114,10 +114,10 @@ public class FileEncryption {
      * Return (SecretKey) HMAC Key
      */
     public SecretKey getHmacKey() throws NoSuchAlgorithmException, InvalidKeyException {
-<span class="nc" id="L117">		KeyGenerator keyGen = KeyGenerator.getInstance(MAC_HASH);</span>
-<span class="nc" id="L118">		keyGen.init(MAC_KEY_LENGTH);</span>
-<span class="nc" id="L119">		SecretKey secretKey = keyGen.generateKey();</span>
-<span class="nc" id="L120">		return secretKey;</span>
+<span class="fc" id="L117">		KeyGenerator keyGen = KeyGenerator.getInstance(MAC_HASH);</span>
+<span class="fc" id="L118">		keyGen.init(MAC_KEY_LENGTH);</span>
+<span class="fc" id="L119">		SecretKey secretKey = keyGen.generateKey();</span>
+<span class="fc" id="L120">		return secretKey;</span>
 	}
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

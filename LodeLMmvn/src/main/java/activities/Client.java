@@ -379,7 +379,6 @@ public class Client {
         }
     }
 
-    // add test mode
     public static boolean UserExists(String username, String userMode) {
         Map<String, byte[]> userData;
         if (userMode.equals("test")) {
@@ -422,7 +421,7 @@ public class Client {
         }
     }
 
-    private static boolean isPasswordStrong(String password) {
+    public static boolean isPasswordStrong(String password) {
         if (StringUtils.isBlank(password) || password.length() < 8) {
             return false;
         }
@@ -444,7 +443,7 @@ public class Client {
     }
 
     // Method to log audit action
-    private static void logAuditAction(String username, String permissionLevel, String action, String filename) {
+    public static void logAuditAction(String username, String permissionLevel, String action, String filename) {
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String logEntry = username + "," + permissionLevel + "," + timestamp + "," + action;
 
