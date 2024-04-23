@@ -8,6 +8,7 @@ import static org.junit.Assert.fail;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertThrows;
 
 import java.io.*;
 import java.net.*;
@@ -21,6 +22,7 @@ import java.util.Map;
 
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
@@ -130,6 +132,8 @@ public class ClientServerTest {
         System.arraycopy(b, 0, result, a.length, b.length);
         return result;
     }
+
+
 
     // Testing Server.java
 
@@ -292,6 +296,8 @@ public class ClientServerTest {
         assertArrayEquals(secretKey, decryptedSecretKey);
     }
 
+
+
     // testing email methods from SimpleMailSender.java
 
     @Test
@@ -336,6 +342,8 @@ public class ClientServerTest {
         assertTrue(otp.matches("[A-Z0-9]+"));
     }
 
+
+
     // testing Client.java methods
 
     @Test
@@ -350,8 +358,6 @@ public class ClientServerTest {
         assertFalse(Client.UserExists("username", "test"));
     }
 
-
-
     @Test
     public void testUserEmailMatch() {
         prepareTestFile();
@@ -364,6 +370,48 @@ public class ClientServerTest {
         // null username
         assertFalse(Client.UserEmailMatch(null, "hashedemail2", "test"));
     }
+
+    @Test
+    public void testIsPasswordStrong() {
+        assertTrue(Client.isPasswordStrong("Password123#"));
+        assertFalse(Client.isPasswordStrong("pass#"));
+        assertFalse(Client.isPasswordStrong("Password#"));
+        assertFalse(Client.isPasswordStrong("password123#"));
+        assertFalse(Client.isPasswordStrong("PASSWORD123#"));
+        assertFalse(Client.isPasswordStrong("Password123"));
+        assertFalse(Client.isPasswordStrong("Password1234"));
+    }
+    
+    @Test
+    public void testlogAuditAction() throws IOException {
+        String username = "username";
+        String permission = "normal";
+        String action = "login";
+        String filename = "testlog.txt";
+
+        Client.logAuditAction(username, permission, action, filename);
+        String log;
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(filename))) {
+            StringBuilder content = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                content.append(line).append(System.lineSeparator());
+            }
+            log = content.toString();
+        } catch (IOException e) {
+            fail("Failed to read log file: " + e.getMessage());
+            log = "null";
+        }
+
+        String expectedLogEntry = String.format("%s,%s,%s,%s", username, permission, 
+        LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")), action);
+        
+        assertTrue("Log entry not found in the log file", log.contains(expectedLogEntry));
+
+    }
+
+
 
     @Test
     public void testAuditLog() {
@@ -397,37 +445,38 @@ public class ClientServerTest {
 
 
 
-    // testing utils FileEncryption
+    // test utils FileEncryption
 
-    public void testSaveKey() throws IOException, NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException {
-        File tempFile = new File("tempKey.txt");
-
-        FileEncryption fe = new FileEncryption();
-        SecretKey secretKey = fe.getAESKey();
-        
-        String encodedKey = Base64.getEncoder().encodeToString(secretKey.getEncoded());
-
-        FileEncryption.saveKey(secretKey, tempFile);
-        String content = new String(Files.readAllBytes(Paths.get("tempKey.txt")));
-
-        assertEquals(encodedKey, content);
-
+    @Test
+    public void testSaveKey() throws IOException, NoSuchAlgorithmException {
+        KeyGenerator keyGenerator = KeyGenerator.getInstance("AES");
+        keyGenerator.init(256);
+        SecretKey secretkey = keyGenerator.generateKey();
+        File tempFile = File.createTempFile("testkey", ".txt");
+        FileEncryption.saveKey(secretkey, tempFile);
+        byte[] encodedKeyBytes = Files.readAllBytes(Paths.get(tempFile.getAbsolutePath()));
+        String encodedKeyString = new String(encodedKeyBytes);
+        byte[] decodedKeyBytes = java.util.Base64.getDecoder().decode(encodedKeyString);
+        SecretKey savedKey = new javax.crypto.spec.SecretKeySpec(decodedKeyBytes, "AES");
+        assertTrue(tempFile.exists());
+        assertEquals(secretkey, savedKey);
         tempFile.delete();
     }
 
-    public void testGethmacKey() throws IOException, InvalidKeyException, NoSuchAlgorithmException, NoSuchProviderException {
+    @Test
+    public void testGethmacKey() throws IOException, InvalidKeyException, NoSuchAlgorithmException {
         FileEncryption fe = new FileEncryption();
-        SecretKey hmacKey = fe.getAESKey();
-
+        SecretKey hmacKey = fe.getHmacKey();
         assertNotNull(hmacKey);
-        assertTrue(hmacKey.getAlgorithm().equals("HmacSHA256"));
-        assertTrue(hmacKey.getEncoded().length==(256/8));
+        assertEquals("HmacSHA256", hmacKey.getAlgorithm());
+        assertEquals(32, hmacKey.getEncoded().length);
     }
 
 
 
     // testing utils MACUtils
 
+    @Test
     public void testCreateMAC() throws InvalidKeyException, NoSuchAlgorithmException {
 
         byte[] data = "test".getBytes();
@@ -436,13 +485,11 @@ public class ClientServerTest {
 
         byte[] emptydata = new byte[0];
         byte[] emptyDatamac = MACUtils.createMAC(emptydata, key);
-        byte[] MACnullKey = MACUtils.createMAC(data, null);
         byte[] invalidkey = new byte[10];
         byte[] MACinvalidKey = MACUtils.createMAC(data, invalidkey);
 
         assertNotNull(mac);
         assertNotNull(emptyDatamac);
-        assertNull(MACnullKey);
         assertNotNull(MACinvalidKey);
 
         Mac testMac = Mac.getInstance("HmacSHA256");
@@ -452,6 +499,31 @@ public class ClientServerTest {
         assertArrayEquals(expectedMAC,mac);
     }
 
+    @Test
+    public void testCreateMACWithInvalidKey() {
+        byte[] data = "test".getBytes();
+        byte[] invalidKey = new byte[0];
+        assertThrows(IllegalArgumentException.class, () -> {
+            MACUtils.createMAC(data, invalidKey);
+        });
+    }
+
+    @Test
+    public void testcreateMACBase64() {
+        byte[] data = "test".getBytes();
+        byte[] key = "secret".getBytes();
+        String MAC64str = MACUtils.createMACBase64(data, key);
+        byte[] mac = MACUtils.createMAC(data, key);
+        assertTrue(Base64.getEncoder().encodeToString(mac).equals(MAC64str));
+    }
+
+    @Test
+    public void testverifyMAC() {
+        byte[] data = "test".getBytes();
+        byte[] key = "secret".getBytes();
+        byte[] mac = MACUtils.createMAC(data, key);
+        assertTrue(MACUtils.verifyMAC(data, mac, key));
+    }
 
 
     // @Test

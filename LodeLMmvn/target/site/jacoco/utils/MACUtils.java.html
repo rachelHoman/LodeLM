@@ -11,16 +11,16 @@ import java.util.Base64;
     public static byte[] createMAC(byte[] data, byte[] key) {
         try {
             // Create a Mac instance with HMAC-SHA-256 algorithm
-<span class="nc" id="L14">            Mac mac = Mac.getInstance(&quot;HmacSHA256&quot;);</span>
+<span class="fc" id="L14">            Mac mac = Mac.getInstance(&quot;HmacSHA256&quot;);</span>
 
             // Create a SecretKeySpec with the provided key and algorithm
-<span class="nc" id="L17">            SecretKeySpec secretKeySpec = new SecretKeySpec(key, &quot;HmacSHA256&quot;);</span>
+<span class="fc" id="L17">            SecretKeySpec secretKeySpec = new SecretKeySpec(key, &quot;HmacSHA256&quot;);</span>
 
             // Initialize the Mac with the key
-<span class="nc" id="L20">            mac.init(secretKeySpec);</span>
+<span class="fc" id="L20">            mac.init(secretKeySpec);</span>
 
             // Calculate the MAC
-<span class="nc" id="L23">            return mac.doFinal(data);</span>
+<span class="fc" id="L23">            return mac.doFinal(data);</span>
 <span class="nc" id="L24">        } catch (NoSuchAlgorithmException | InvalidKeyException e) {</span>
 <span class="nc" id="L25">            e.printStackTrace();</span>
 <span class="nc" id="L26">            return null;</span>
@@ -29,28 +29,28 @@ import java.util.Base64;
 
     public static String createMACBase64(byte[] data, byte[] key) {
         // Create the MAC
-<span class="nc" id="L32">        byte[] macBytes = createMAC(data, key);</span>
+<span class="fc" id="L32">        byte[] macBytes = createMAC(data, key);</span>
 
         // Encode the MAC bytes to Base64 for easy transmission
-<span class="nc" id="L35">        return Base64.getEncoder().encodeToString(macBytes);</span>
+<span class="fc" id="L35">        return Base64.getEncoder().encodeToString(macBytes);</span>
     }
 
     public static boolean verifyMAC(byte[] data, byte[] mac, byte[] key) {
         try {
             // Create a Mac instance with HMAC-SHA-256 algorithm
-<span class="nc" id="L41">            Mac macInstance = Mac.getInstance(&quot;HmacSHA256&quot;);</span>
+<span class="fc" id="L41">            Mac macInstance = Mac.getInstance(&quot;HmacSHA256&quot;);</span>
 
             // Create a SecretKeySpec with the provided key and algorithm
-<span class="nc" id="L44">            SecretKeySpec secretKeySpec = new SecretKeySpec(key, &quot;HmacSHA256&quot;);</span>
+<span class="fc" id="L44">            SecretKeySpec secretKeySpec = new SecretKeySpec(key, &quot;HmacSHA256&quot;);</span>
 
             // Initialize the Mac with the key
-<span class="nc" id="L47">            macInstance.init(secretKeySpec);</span>
+<span class="fc" id="L47">            macInstance.init(secretKeySpec);</span>
 
             // Calculate the MAC for the data
-<span class="nc" id="L50">            byte[] calculatedMac = macInstance.doFinal(data);</span>
+<span class="fc" id="L50">            byte[] calculatedMac = macInstance.doFinal(data);</span>
 
             // Compare the calculated MAC with the provided MAC
-<span class="nc" id="L53">            return Arrays.equals(calculatedMac, mac);</span>
+<span class="fc" id="L53">            return Arrays.equals(calculatedMac, mac);</span>
 <span class="nc" id="L54">        } catch (NoSuchAlgorithmException | InvalidKeyException e) {</span>
 <span class="nc" id="L55">            e.printStackTrace();</span>
 <span class="nc" id="L56">            return false;</span>

@@ -1,0 +1,9 @@
+utils/MACUtils.class
+utils/EncryptedCom.class
+com/security/App.class
+activities/ClientHandler.class
+utils/SimpleMailSender.class
+activities/Client.class
+utils/FileHandler.class
+activities/Server.class
+utils/FileEncryption.class

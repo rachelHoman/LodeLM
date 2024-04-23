@@ -379,82 +379,81 @@ import javax.crypto.SecretKey;
 <span class="nc" id="L379">        }</span>
 <span class="nc" id="L380">    }</span>
 
-    // add test mode
     public static boolean UserExists(String username, String userMode) {
         Map&lt;String, byte[]&gt; userData;
-<span class="pc bpc" id="L385" title="1 of 2 branches missed.">        if (userMode.equals(&quot;test&quot;)) {</span>
-<span class="fc" id="L386">            userData = Server.testGetUserPasswords().get(username);</span>
+<span class="pc bpc" id="L384" title="1 of 2 branches missed.">        if (userMode.equals(&quot;test&quot;)) {</span>
+<span class="fc" id="L385">            userData = Server.testGetUserPasswords().get(username);</span>
         }
         else {
-<span class="nc" id="L389">            userData = Server.getUserPasswords().get(username);</span>
+<span class="nc" id="L388">            userData = Server.getUserPasswords().get(username);</span>
         }
 
-<span class="fc bfc" id="L392" title="All 2 branches covered.">        if (userData == null) {</span>
-<span class="fc" id="L393">            return false;</span>
+<span class="fc bfc" id="L391" title="All 2 branches covered.">        if (userData == null) {</span>
+<span class="fc" id="L392">            return false;</span>
         }
         else {
-<span class="fc" id="L396">            return true;</span>
+<span class="fc" id="L395">            return true;</span>
         }
     }
 
     public static boolean UserEmailMatch (String username, String providedEmail, String userMode) {
         Map&lt;String, byte[]&gt; userData;
-<span class="pc bpc" id="L402" title="1 of 2 branches missed.">        if (userMode.equals(&quot;test&quot;)) {</span>
-<span class="fc" id="L403">            userData = Server.testGetUserPasswords().get(username);</span>
+<span class="pc bpc" id="L401" title="1 of 2 branches missed.">        if (userMode.equals(&quot;test&quot;)) {</span>
+<span class="fc" id="L402">            userData = Server.testGetUserPasswords().get(username);</span>
         }
         else {
-<span class="nc" id="L406">            userData = Server.getUserPasswords().get(username);</span>
+<span class="nc" id="L405">            userData = Server.getUserPasswords().get(username);</span>
         }
         
-<span class="fc bfc" id="L409" title="All 2 branches covered.">        if (userData == null) {</span>
-<span class="fc" id="L410">            return false;</span>
+<span class="fc bfc" id="L408" title="All 2 branches covered.">        if (userData == null) {</span>
+<span class="fc" id="L409">            return false;</span>
         }
         else {
             // Get the stored salt and password email
-<span class="fc" id="L414">            byte[] storedSalt = userData.get(&quot;salt&quot;);</span>
-<span class="fc" id="L415">            byte[] storedEmailHash = userData.get(&quot;emailHash&quot;);</span>
-<span class="pc bpc" id="L416" title="2 of 4 branches missed.">            if (storedSalt == null || storedEmailHash == null) {</span>
-<span class="nc" id="L417">                return false;</span>
+<span class="fc" id="L413">            byte[] storedSalt = userData.get(&quot;salt&quot;);</span>
+<span class="fc" id="L414">            byte[] storedEmailHash = userData.get(&quot;emailHash&quot;);</span>
+<span class="pc bpc" id="L415" title="2 of 4 branches missed.">            if (storedSalt == null || storedEmailHash == null) {</span>
+<span class="nc" id="L416">                return false;</span>
             }
             // Hash the provided email
-<span class="fc" id="L420">            byte[] providedEmailHash = Server.hashSalt(providedEmail, storedSalt);</span>
-<span class="fc" id="L421">            return Arrays.equals(providedEmailHash, storedEmailHash);</span>
+<span class="fc" id="L419">            byte[] providedEmailHash = Server.hashSalt(providedEmail, storedSalt);</span>
+<span class="fc" id="L420">            return Arrays.equals(providedEmailHash, storedEmailHash);</span>
         }
     }
 
-    private static boolean isPasswordStrong(String password) {
-<span class="nc bnc" id="L426" title="All 4 branches missed.">        if (StringUtils.isBlank(password) || password.length() &lt; 8) {</span>
-<span class="nc" id="L427">            return false;</span>
+    public static boolean isPasswordStrong(String password) {
+<span class="pc bpc" id="L425" title="1 of 4 branches missed.">        if (StringUtils.isBlank(password) || password.length() &lt; 8) {</span>
+<span class="fc" id="L426">            return false;</span>
         }
     
         // Count special characters
-<span class="nc" id="L431">        int specialCharCount = 0;</span>
-<span class="nc bnc" id="L432" title="All 2 branches missed.">        for (char ch : password.toCharArray()) {</span>
-<span class="nc bnc" id="L433" title="All 2 branches missed.">            if (!Character.isLetterOrDigit(ch)) {</span>
-<span class="nc" id="L434">                specialCharCount++;</span>
+<span class="fc" id="L430">        int specialCharCount = 0;</span>
+<span class="fc bfc" id="L431" title="All 2 branches covered.">        for (char ch : password.toCharArray()) {</span>
+<span class="fc bfc" id="L432" title="All 2 branches covered.">            if (!Character.isLetterOrDigit(ch)) {</span>
+<span class="fc" id="L433">                specialCharCount++;</span>
             }
         }
     
         // Check if password contains at least one digit, one uppercase, and one lowercase character
-<span class="nc" id="L439">        boolean containsDigit = StringUtils.containsAny(password, &quot;1234567890&quot;);</span>
-<span class="nc" id="L440">        boolean containsUppercase = StringUtils.containsAny(password, &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;);</span>
-<span class="nc" id="L441">        boolean containsLowercase = StringUtils.containsAny(password, &quot;abcdefghijklmnopqrstuvwxyz&quot;);</span>
+<span class="fc" id="L438">        boolean containsDigit = StringUtils.containsAny(password, &quot;1234567890&quot;);</span>
+<span class="fc" id="L439">        boolean containsUppercase = StringUtils.containsAny(password, &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;);</span>
+<span class="fc" id="L440">        boolean containsLowercase = StringUtils.containsAny(password, &quot;abcdefghijklmnopqrstuvwxyz&quot;);</span>
     
-<span class="nc bnc" id="L443" title="All 8 branches missed.">        return containsDigit &amp;&amp; containsUppercase &amp;&amp; containsLowercase &amp;&amp; specialCharCount &gt;= 1;</span>
+<span class="fc bfc" id="L442" title="All 8 branches covered.">        return containsDigit &amp;&amp; containsUppercase &amp;&amp; containsLowercase &amp;&amp; specialCharCount &gt;= 1;</span>
     }
 
     // Method to log audit action
-    private static void logAuditAction(String username, String permissionLevel, String action, String filename) {
-<span class="nc" id="L448">        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
-<span class="nc" id="L449">        String logEntry = username + &quot;,&quot; + permissionLevel + &quot;,&quot; + timestamp + &quot;,&quot; + action;</span>
+    public static void logAuditAction(String username, String permissionLevel, String action, String filename) {
+<span class="fc" id="L447">        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
+<span class="fc" id="L448">        String logEntry = username + &quot;,&quot; + permissionLevel + &quot;,&quot; + timestamp + &quot;,&quot; + action;</span>
 
-<span class="nc" id="L451">        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {</span>
-<span class="nc" id="L452">            writer.write(logEntry);</span>
-<span class="nc" id="L453">            writer.newLine();</span>
-<span class="nc" id="L454">        } catch (IOException e) {</span>
-<span class="nc" id="L455">            System.err.println(&quot;Error writing to audit log: &quot; + e.getMessage());</span>
-<span class="nc" id="L456">        }</span>
-<span class="nc" id="L457">    }</span>
+<span class="fc" id="L450">        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {</span>
+<span class="fc" id="L451">            writer.write(logEntry);</span>
+<span class="fc" id="L452">            writer.newLine();</span>
+<span class="nc" id="L453">        } catch (IOException e) {</span>
+<span class="nc" id="L454">            System.err.println(&quot;Error writing to audit log: &quot; + e.getMessage());</span>
+<span class="fc" id="L455">        }</span>
+<span class="fc" id="L456">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
