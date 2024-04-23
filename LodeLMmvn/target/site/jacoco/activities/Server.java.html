@@ -163,57 +163,44 @@ import utils.FileEncryption;
         }
     }
 
-    // private static byte[] concatenateByteArrays(byte[] a, byte[] b) {
-    //     byte[] result = new byte[a.length + b.length];
-    //     System.arraycopy(a, 0, result, 0, a.length);
-    //     System.arraycopy(b, 0, result, a.length, b.length);
-    //     return result;
-    // }
-
-    // private static byte[] generateRandomBytes(int length) {
-    //     byte[] bytes = new byte[length];
-    //     new SecureRandom().nextBytes(bytes);
-    //     return bytes;
-    // }
-
     public static boolean verifyPassword(byte[] providedPasswordHash, byte[] storedPasswordHash) {
         // Compare the provided password hash with the stored password hash
-<span class="fc" id="L181">        return Arrays.equals(providedPasswordHash, storedPasswordHash);</span>
+<span class="fc" id="L168">        return Arrays.equals(providedPasswordHash, storedPasswordHash);</span>
     }
 
     public static byte[] encryptSecretKey(byte[] secretKey, byte[] passwordHash) {
         try {
             // Ensure the password hash is of appropriate length for AES
-<span class="fc" id="L187">            byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16); // 16 bytes for AES-128</span>
+<span class="fc" id="L174">            byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16); // 16 bytes for AES-128</span>
 
             // Derive a secret key from the trimmed password hash
-<span class="fc" id="L190">            SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, &quot;AES&quot;);</span>
+<span class="fc" id="L177">            SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, &quot;AES&quot;);</span>
 
             // Encrypt the secret key using AES
-<span class="fc" id="L193">            Cipher cipher = Cipher.getInstance(&quot;AES&quot;);</span>
-<span class="fc" id="L194">            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);</span>
-<span class="fc" id="L195">            return cipher.doFinal(secretKey);</span>
-<span class="nc" id="L196">        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {</span>
-<span class="nc" id="L197">            e.printStackTrace();</span>
-<span class="nc" id="L198">            return null;</span>
+<span class="fc" id="L180">            Cipher cipher = Cipher.getInstance(&quot;AES&quot;);</span>
+<span class="fc" id="L181">            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);</span>
+<span class="fc" id="L182">            return cipher.doFinal(secretKey);</span>
+<span class="nc" id="L183">        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {</span>
+<span class="nc" id="L184">            e.printStackTrace();</span>
+<span class="nc" id="L185">            return null;</span>
         }
     }
 
     public static byte[] decryptSecretKey(byte[] encryptedSecretKey, byte[] passwordHash) {
         try {
             // Ensure the password hash is of appropriate length for AES
-<span class="fc" id="L205">            byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16); // 16 bytes for AES-128</span>
+<span class="fc" id="L192">            byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16); // 16 bytes for AES-128</span>
 
             // Derive a secret key from the trimmed password hash
-<span class="fc" id="L208">            SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, &quot;AES&quot;);</span>
+<span class="fc" id="L195">            SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, &quot;AES&quot;);</span>
 
             // Decrypt the secret key using AES
-<span class="fc" id="L211">            Cipher cipher = Cipher.getInstance(&quot;AES&quot;);</span>
-<span class="fc" id="L212">            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);</span>
-<span class="fc" id="L213">            return cipher.doFinal(encryptedSecretKey);</span>
-<span class="nc" id="L214">        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {</span>
-<span class="nc" id="L215">            e.printStackTrace();</span>
-<span class="nc" id="L216">            return null;</span>
+<span class="fc" id="L198">            Cipher cipher = Cipher.getInstance(&quot;AES&quot;);</span>
+<span class="fc" id="L199">            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);</span>
+<span class="fc" id="L200">            return cipher.doFinal(encryptedSecretKey);</span>
+<span class="nc" id="L201">        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {</span>
+<span class="nc" id="L202">            e.printStackTrace();</span>
+<span class="nc" id="L203">            return null;</span>
         }
     }
 }

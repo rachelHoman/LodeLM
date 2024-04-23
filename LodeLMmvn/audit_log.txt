@@ -9,3 +9,5 @@ rachel,Normal,2024-04-20 21:23:33,Exited
 rachel,Normal,2024-04-21 14:10:32,Login
 rachel,User,2024-04-21 14:10:36,Exited
 rachel,User,2024-04-21 14:10:36,Logout via exit
+alice,Normal,2024-04-22 16:25:39,Login
+alice,User,2024-04-22 16:25:47,Logout

@@ -1,9 +1,9 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
-LodeLMmvn,activities,Client,721,52,86,8,198,14,48,4,3,2
-LodeLMmvn,activities,ClientHandler,1426,0,116,0,306,0,69,0,11,0
+LodeLMmvn,activities,Client,803,52,86,8,213,14,49,4,4,2
+LodeLMmvn,activities,ClientHandler,1423,0,116,0,305,0,69,0,11,0
 LodeLMmvn,activities,Server,118,285,4,12,36,72,7,14,4,9
-LodeLMmvn,utils,EncryptedCom,153,0,0,0,41,0,8,0,8,0
-LodeLMmvn,utils,FileHandler,745,0,84,0,186,0,56,0,14,0
+LodeLMmvn,utils,EncryptedCom,124,29,0,0,31,10,5,3,5,3
+LodeLMmvn,utils,FileHandler,825,40,88,0,204,7,60,1,16,1
 LodeLMmvn,utils,MACUtils,57,0,0,0,18,0,4,0,4,0
 LodeLMmvn,utils,SimpleMailSender,30,42,0,2,13,10,2,4,2,3
 LodeLMmvn,utils,FileEncryption,30,152,0,0,9,39,2,8,2,8

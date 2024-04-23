@@ -23,7 +23,7 @@ import java.nio.charset.StandardCharsets;
 import javax.crypto.SecretKey;
 
 <span class="nc" id="L25">public class EncryptedCom {</span>
-<span class="nc" id="L26">    public static int MAX_BUFFER_SIZE = 4096;</span>
+<span class="fc" id="L26">    public static int MAX_BUFFER_SIZE = 4096;</span>
     private static final String MAC_HASH = &quot;HmacSHA256&quot;;
 
     public static byte[] RSAEncrypt(byte[] text, PublicKey key) throws Exception {
@@ -51,22 +51,22 @@ import javax.crypto.SecretKey;
     public static void sendMessage(byte[] byteText, SecretKey aesKey, FileEncryption fe, DataOutputStream dataOutputStream) throws InvalidAlgorithmParameterException, IOException, InvalidKeyException {
         try {
             // Implement encryption here
-<span class="nc" id="L54">            byte[] cipherText = fe.AESEncrypt(byteText, aesKey);</span>
-<span class="nc" id="L55">            byte[] iv_cipher = fe.getIV();</span>
-<span class="nc" id="L56">            dataOutputStream.write(iv_cipher);</span>
-<span class="nc" id="L57">            dataOutputStream.writeLong(cipherText.length);</span>
-<span class="nc" id="L58">            dataOutputStream.write(cipherText);</span>
-<span class="nc" id="L59">            dataOutputStream.flush();</span>
+<span class="fc" id="L54">            byte[] cipherText = fe.AESEncrypt(byteText, aesKey);</span>
+<span class="fc" id="L55">            byte[] iv_cipher = fe.getIV();</span>
+<span class="fc" id="L56">            dataOutputStream.write(iv_cipher);</span>
+<span class="fc" id="L57">            dataOutputStream.writeLong(cipherText.length);</span>
+<span class="fc" id="L58">            dataOutputStream.write(cipherText);</span>
+<span class="fc" id="L59">            dataOutputStream.flush();</span>
         }
 <span class="nc" id="L61">        catch (Exception e) { </span>
 <span class="nc" id="L62">            System.out.println(e);</span>
-<span class="nc" id="L63">        }</span>
-<span class="nc" id="L64">        return; </span>
+<span class="fc" id="L63">        }</span>
+<span class="fc" id="L64">        return; </span>
     }
 
     public static byte[] receiveMessage(SecretKey aesKey, FileEncryption fe, DataInputStream dataInputStream) {
         try {
-<span class="nc" id="L69">            byte[] iv_cipher = new byte[16];</span>
+<span class="fc" id="L69">            byte[] iv_cipher = new byte[16];</span>
 <span class="nc" id="L70">            dataInputStream.read(iv_cipher, 0, 16);</span>
             
 <span class="nc" id="L72">            long size = dataInputStream.readLong();</span>

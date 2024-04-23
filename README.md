@@ -85,3 +85,7 @@ The user can see what directory they are in
 The user can exit their session
 
 `exit`
+
+
+The coverage testing analysis can be run using this:
+mvn jacoco:prepare-agent test install jacoco:report
