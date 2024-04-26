@@ -19,6 +19,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.crypto.NoSuchPaddingException;
@@ -44,6 +45,8 @@ import org.mockito.Mockito;
 import activities.Client;
 import activities.Server;
 import utils.*;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -52,6 +55,8 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.google.firebase.database.DatabaseReference;
+import com.opencsv.CSVReader;
+import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
 import com.opencsv.exceptions.CsvValidationException;
 import org.junit.runner.RunWith;
@@ -586,6 +591,45 @@ public class ClientServerTest {
 
     // ReceiveFile is already being covered.
 
+    @Test
+    public void testpwd() {
+        String path = "testFile.txt";
+        FileHandler fileHandler = new FileHandler(path);
+        String currentDirectory = new File("").getAbsolutePath();
+        currentDirectory = "Working Directory: " + currentDirectory + "/testFile.txt";
+        assertEquals(currentDirectory, fileHandler.pwd());
+    }
+
+    @Test
+    public void testListFiles() {
+        String path = "tempDir";
+        File tempDir = new File(path);
+        tempDir.mkdir();
+        File file1 = new File(tempDir, "file1.txt");
+        File file2 = new File(tempDir, "file2.txt");
+        try {
+            file1.createNewFile();
+            file2.createNewFile();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        FileHandler fileHandler = new FileHandler(path);
+
+        String expectedString = "Files in the directory: file2.txt file1.txt ";
+        assertEquals(expectedString, fileHandler.listFiles());
+
+        file1.delete();
+        file2.delete();
+        tempDir.delete();
+    }
+
+    
+    
+    
+    
+    
     // @Test
     // public void testReceiveFile_ClientPass() throws NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, CsvException{
     //     String path = "testFile.txt";

@@ -11,3 +11,5 @@ rachel,User,2024-04-21 14:10:36,Exited
 rachel,User,2024-04-21 14:10:36,Logout via exit
 alice,Normal,2024-04-25 23:41:52,Login
 alice,User,2024-04-25 23:42:04,Logout
+alice,Normal,2024-04-26 01:13:16,Login
+alice,User,2024-04-26 01:14:18,Logout
