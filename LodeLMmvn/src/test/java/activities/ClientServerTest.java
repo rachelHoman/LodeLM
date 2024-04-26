@@ -1,4 +1,5 @@
 package activities;
+import org.checkerframework.checker.units.qual.kN;
 import org.junit.*;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -51,6 +52,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import com.google.firebase.database.DatabaseReference;
+import com.opencsv.exceptions.CsvException;
 import com.opencsv.exceptions.CsvValidationException;
 import org.junit.runner.RunWith;
 import org.powermock.core.classloader.annotations.PrepareForTest;
@@ -524,6 +526,89 @@ public class ClientServerTest {
         byte[] mac = MACUtils.createMAC(data, key);
         assertTrue(MACUtils.verifyMAC(data, mac, key));
     }
+
+
+
+    // testing FileHandler
+
+    @Test
+    public void testSendFile_PermissionFail() throws CsvValidationException, NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException{
+        String path = "testFile.txt";
+        String username = "testUser";
+        File tempFile = new File(path);
+        String tempContent = "testing send file.";
+        Files.write(tempFile.toPath(), tempContent.getBytes());
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+        FileHandler fileHandler = new FileHandler(path);
+        SecretKey commKey = new SecretKeySpec("testKey".getBytes(), "AES");
+        boolean isServer = true;
+
+        String result = fileHandler.sendFile(dataOutputStream, commKey, isServer, username);
+        assertEquals("You do not have the required permissions to download this file.", result);
+        tempFile.delete();
+    }
+
+    @Test
+    public void testSendFile_ServerPass() throws CsvValidationException, NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException{
+        String path = "server_data/test.txt";
+        String username = "alice";
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+        FileHandler fileHandler = new FileHandler(path);
+        SecretKey commKey = new SecretKeySpec("testKey".getBytes(), "AES");
+        boolean isServer = true;
+
+        String result = fileHandler.sendFile(dataOutputStream, commKey, isServer, username);
+        assertEquals("File Downloaded", result);
+    }
+
+    @Test
+    public void testSendFile_ClientPass() throws CsvValidationException, NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException{
+        String path = "testFile.txt";
+        String username = "testUser";
+        SecretKey commKey = new SecretKeySpec("testKey".getBytes(), "AES");
+        boolean isServer = false;
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+        File tempFile = new File(path);
+        String tempContent = "testing send file.";
+        Files.write(tempFile.toPath(), tempContent.getBytes());
+        FileHandler fileHandler = new FileHandler(path);
+
+        String result = fileHandler.sendFile(dataOutputStream, commKey, isServer, username);
+        assertEquals("File Downloaded", result);
+        tempFile.delete();
+    }
+
+    // ReceiveFile is already being covered.
+
+    // @Test
+    // public void testReceiveFile_ClientPass() throws NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, CsvException{
+    //     String path = "testFile.txt";
+    //     String username = "testUser";
+    //     SecretKey commKey = new SecretKeySpec("testKey".getBytes(), "AES");
+    //     boolean isServer = false;
+
+    //     File tempFile = new File(path);
+    //     String tempContent = "testing receive file.";
+    //     Files.write(tempFile.toPath(), tempContent.getBytes());
+    //     FileHandler fileHandler = new FileHandler(path);
+    //     ByteArrayInputStream inputStream = new ByteArrayInputStream(tempContent.getBytes());
+    //     DataInputStream dataInputStream = new DataInputStream(inputStream);
+
+    //     String result = fileHandler.receiveFile(dataInputStream, commKey, isServer, username);
+    //     assertEquals(null, result);
+    //     tempFile.delete();
+    // }
+
+
+
+
+
 
 
     // @Test
