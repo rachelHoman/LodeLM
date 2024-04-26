@@ -380,18 +380,18 @@ public class FileHandler {
 <span class="fc" id="L380">    }</span>
 
     public void deleteFileCSV(ArrayList&lt;Integer&gt; rowList) throws IOException, CsvException, CsvValidationException {
-<span class="nc" id="L383">        CSVReader reader = new CSVReader(new FileReader(this.csv));</span>
-<span class="nc" id="L384">        List&lt;String[]&gt; allElements = reader.readAll();</span>
-<span class="nc bnc" id="L385" title="All 2 branches missed.">        for (int i = rowList.size() - 1; i &gt;= 0; i--) {</span>
-<span class="nc" id="L386">            int row = rowList.get(i);</span>
-<span class="nc" id="L387">            allElements.remove(row);</span>
+<span class="fc" id="L383">        CSVReader reader = new CSVReader(new FileReader(this.csv));</span>
+<span class="fc" id="L384">        List&lt;String[]&gt; allElements = reader.readAll();</span>
+<span class="fc bfc" id="L385" title="All 2 branches covered.">        for (int i = rowList.size() - 1; i &gt;= 0; i--) {</span>
+<span class="fc" id="L386">            int row = rowList.get(i);</span>
+<span class="fc" id="L387">            allElements.remove(row);</span>
         }
-<span class="nc" id="L389">        System.out.println(allElements);</span>
-<span class="nc" id="L390">        CSVWriter writer = new CSVWriter(new FileWriter(this.csv));</span>
-<span class="nc" id="L391">        writer.writeAll(allElements);</span>
-<span class="nc" id="L392">        reader.close();</span>
-<span class="nc" id="L393">        writer.close();</span>
-<span class="nc" id="L394">    }</span>
+<span class="fc" id="L389">        System.out.println(allElements);</span>
+<span class="fc" id="L390">        CSVWriter writer = new CSVWriter(new FileWriter(this.csv));</span>
+<span class="fc" id="L391">        writer.writeAll(allElements);</span>
+<span class="fc" id="L392">        reader.close();</span>
+<span class="fc" id="L393">        writer.close();</span>
+<span class="fc" id="L394">    }</span>
 
     public static void logAuditAction(String username, String permissionLevel, String action, String filename) {
 <span class="fc" id="L397">        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
