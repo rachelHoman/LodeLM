@@ -108,17 +108,6 @@ public class Client {
                         // Prompt the user for password
                         System.out.print("Enter your password: ");
                         String password = userInput.readLine();
-                        if (password.equals("3 Failed Attempts")){
-                            System.out.println("HERE");
-                            // EncryptedCom.sendMessage("3 Failed Attempts".getBytes(), aesKey, fe, dataOutputStream);
-                            // // Close connections
-                            // userInput.close();
-                            // socket.close();
-                            // dataInputStream.close();
-                            // dataOutputStream.close();
-                            // logAuditAction(username, "Client", "3 Failed Login Attempts", "audit_log.txt");
-                            // return;
-                        }
                         // Send encrypt password
                         EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream); // Send password to server
                     }

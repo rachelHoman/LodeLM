@@ -24,11 +24,11 @@ public class ClientHandler implements Runnable {
     private int BUFFER_SIZE = 4096;
     private int wrongPasswordAttempts = 0;
 
-    private static SSLSocket clientSocket;
+    private SSLSocket clientSocket;
     private IdleTimeoutManager idleTimeoutManager;
 
-    static DataInputStream dataInputStream;
-    static DataOutputStream dataOutputStream;
+    DataInputStream dataInputStream;
+    DataOutputStream dataOutputStream;
 
     public ClientHandler(SSLSocket socket) {
         this.clientSocket = socket;
@@ -184,9 +184,10 @@ public class ClientHandler implements Runnable {
                             EncryptedCom.sendMessage(authenticationFailure.getBytes(), aesSecretKey, fe, dataOutputStream);
                             wrongPasswordAttempts++;
                             if (wrongPasswordAttempts >= 3){
-                                Client.logAuditAction(username, "Admin", "Too many failed password attempts", "audit_log.txt");
+                                Client.logAuditAction(username, "Admin", "3 failed password attempts on login", "audit_log.txt");
                                 String failedAttempts = "3 Failed login attempts";
                                 EncryptedCom.sendMessage(failedAttempts.getBytes(), aesSecretKey, fe, dataOutputStream);
+                                clientSocket.close();
                                 return;
                             }
 
