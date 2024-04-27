@@ -185,9 +185,9 @@ public class ClientHandler implements Runnable {
                             wrongPasswordAttempts++;
                             if (wrongPasswordAttempts >= 3){
                                 Client.logAuditAction(username, "Admin", "Too many failed password attempts", "audit_log.txt");
-                                Client.logoutUser(clientSocket, dataInputStream, dataOutputStream, userInput);
+                                String failedAttempts = "3 Failed login attempts";
+                                EncryptedCom.sendMessage(failedAttempts.getBytes(), aesSecretKey, fe, dataOutputStream);
                                 return;
-                                
                             }
 
                         } catch(Exception e) {

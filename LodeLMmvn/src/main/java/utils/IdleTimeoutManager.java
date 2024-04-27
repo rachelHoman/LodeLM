@@ -47,7 +47,7 @@ public class IdleTimeoutManager {
         System.out.println("Logging out user: " + user);
         FileHandler.logAuditAction(user, "admin", "Logout due to inactivity", "audit_log.txt");
         
-        Client.logoutUser(clientSocket, dataInputStream, dataOutputStream, userInput);
+        //Client.logoutUser(clientSocket, dataInputStream, dataOutputStream, userInput);
     }
 
     // Method to update the last activity time for a user
