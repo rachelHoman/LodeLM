@@ -22,14 +22,17 @@ public class ClientHandler implements Runnable {
     private int AES_KEY_LENGTH = 32;
     private int MAC_KEY_LENGTH = 32; // 256 bits to 32 bytes
     private int BUFFER_SIZE = 4096;
+    private int wrongPasswordAttempts = 0;
 
-    private SSLSocket clientSocket;
+    private static SSLSocket clientSocket;
+    private IdleTimeoutManager idleTimeoutManager;
 
-    DataInputStream dataInputStream;
-    DataOutputStream dataOutputStream;
+    static DataInputStream dataInputStream;
+    static DataOutputStream dataOutputStream;
 
     public ClientHandler(SSLSocket socket) {
         this.clientSocket = socket;
+        this.idleTimeoutManager = new IdleTimeoutManager(null, new FileHandler(null));
     }
 
     // DatabHandler dbhandler = new DatabHandler();
@@ -55,10 +58,12 @@ public class ClientHandler implements Runnable {
             // // macKey = decryptRSA(macKey, rsaKey);
             // System.out.println("MAC Key Received");
             String username = "";
+            IdleTimeoutManager.updateUserActivity(username);
 
             // Loop until "logged-in" message is received
             String action;
             while ((action = new String(EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) {
+                IdleTimeoutManager.updateUserActivity(username);
                 if (action.equalsIgnoreCase("logged-in")) {
                     // User is logged in, break the loop and proceed to handle commands
                     break;
@@ -177,6 +182,14 @@ public class ClientHandler implements Runnable {
                         try {
                             String authenticationFailure = "Invalid username or password.";
                             EncryptedCom.sendMessage(authenticationFailure.getBytes(), aesSecretKey, fe, dataOutputStream);
+                            wrongPasswordAttempts++;
+                            if (wrongPasswordAttempts >= 3){
+                                Client.logAuditAction(username, "Admin", "Too many failed password attempts", "audit_log.txt");
+                                Client.logoutUser(clientSocket, dataInputStream, dataOutputStream, userInput);
+                                return;
+                                
+                            }
+
                         } catch(Exception e) {
                             System.out.println(e);
                         } 
@@ -195,6 +208,8 @@ public class ClientHandler implements Runnable {
                 while ((inputLine = new String(EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) {
 
                     System.out.println("Received from client: " + inputLine);
+
+                    IdleTimeoutManager.updateUserActivity(username);
 
                     if (inputLine.startsWith("send ")) {
                         String fileName = inputLine.substring(5);
@@ -316,6 +331,8 @@ public class ClientHandler implements Runnable {
                         output = "No command like that available";
                         EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                     }
+
+                    IdleTimeoutManager.updateUserActivity(username);
                 }
             } catch(Exception e) {
                 System.out.println(e);
@@ -556,5 +573,18 @@ public class ClientHandler implements Runnable {
             System.out.println("Could not rename the temporary file.");
         }
     }
+
+    // public static void logoutUser(){
+    //     try {
+    //         // Close the socket
+    //         clientSocket.close();
+    //         dataInputStream.close();
+    //         dataOutputStream.close();
+    //         userInput.close();
+    //     } catch (IOException e) {
+    //         System.out.println("Error closing socket: " + e.getMessage());
+    //     }
+    //     return;
+    // }
     
 }

@@ -13,3 +13,21 @@ alice,Normal,2024-04-25 23:41:52,Login
 alice,User,2024-04-25 23:42:04,Logout
 alice,Normal,2024-04-26 01:13:16,Login
 alice,User,2024-04-26 01:14:18,Logout
+homan,Create Account,2024-04-26 21:21:27,Account Created
+homan,Normal,2024-04-26 21:21:27,Login
+homan,User,2024-04-26 21:21:41,Logout
+rachel,Normal,2024-04-26 21:22:50,Login
+rachel,User,2024-04-26 21:22:54,Logout
+rachel,Normal,2024-04-26 21:26:36,Login
+rachel,User,2024-04-26 21:50:16,Logout
+rachel,Normal,2024-04-26 21:52:00,Login
+rachel,User,2024-04-26 22:04:55,Logout
+rachel,Client,2024-04-26 22:06:03,Logout
+rachel,Client,2024-04-26 22:08:41,Logout
+rachel,Normal,2024-04-26 22:08:51,Login
+rachel,User,2024-04-26 22:08:53,Logout
+rachel,Client,2024-04-26 22:10:14,Logout
+rachel,Admin,2024-04-26 22:16:07,Too many failed password attempts
+rachel,Admin,2024-04-26 22:17:44,Too many failed password attempts
+rachel,Normal,2024-04-26 22:17:52,Login
+rachel,User,2024-04-26 22:17:58,Logout

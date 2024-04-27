@@ -455,4 +455,17 @@ public class Client {
         }
     }
 
+    public static void logoutUser(Socket clientSocket, DataInputStream dataInputStream, DataOutputStream dataOutputStream, BufferedReader userInput){
+        try {
+            // Close the socket
+            clientSocket.close();
+            dataInputStream.close();
+            dataOutputStream.close();
+            userInput.close();
+        } catch (IOException e) {
+            System.out.println("Error closing socket: " + e.getMessage());
+        }
+        return;
+    }
+
 }
