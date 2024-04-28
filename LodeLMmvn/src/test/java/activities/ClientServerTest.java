@@ -12,12 +12,14 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.net.*;
 
 import java.security.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,7 +36,9 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -557,8 +561,8 @@ public class ClientServerTest {
 
     @Test
     public void testSendFile_ServerPass() throws CsvValidationException, NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException{
-        String path = "server_data/test.txt";
-        String username = "alice";
+        String path = "server_data/file.txt";
+        String username = "bob";
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
@@ -625,29 +629,94 @@ public class ClientServerTest {
         tempDir.delete();
     }
 
-    
-    
-    
-    
-    
-    // @Test
-    // public void testReceiveFile_ClientPass() throws NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException, CsvException{
-    //     String path = "testFile.txt";
-    //     String username = "testUser";
-    //     SecretKey commKey = new SecretKeySpec("testKey".getBytes(), "AES");
-    //     boolean isServer = false;
 
-    //     File tempFile = new File(path);
-    //     String tempContent = "testing receive file.";
-    //     Files.write(tempFile.toPath(), tempContent.getBytes());
-    //     FileHandler fileHandler = new FileHandler(path);
-    //     ByteArrayInputStream inputStream = new ByteArrayInputStream(tempContent.getBytes());
-    //     DataInputStream dataInputStream = new DataInputStream(inputStream);
 
-    //     String result = fileHandler.receiveFile(dataInputStream, commKey, isServer, username);
-    //     assertEquals(null, result);
-    //     tempFile.delete();
-    // }
+    // ClientHandler methods
+
+    @Test
+    public void testCreateAccount() throws IOException {
+        String username = "testUser";
+        byte[] password = "testPassword".getBytes(StandardCharsets.UTF_8);
+        String email = "testEmail";
+        ClientHandler.createAccount(username, password, email);
+        // check after instantiating new account
+        try {
+            Field userPasswordsField = Server.class.getDeclaredField("userPasswords");
+            userPasswordsField.setAccessible(true);
+            Map<String, Map<String,byte[]>> userPasswords = (Map<String, Map<String,byte[]>>) userPasswordsField.get(null);
+            assertTrue(userPasswords.containsKey(username));
+            Map<String, byte[]> userData = userPasswords.get(username);
+            assertNotNull(userData);
+            // check keys
+            assertTrue(userData.containsKey("salt"));
+            assertTrue(userData.containsKey("passwordHash"));
+            assertTrue(userData.containsKey("emailHash"));
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            fail("Failed to access private field: " + e.getMessage());
+        }
+
+        // deleting this testuser from userData, secret_key, and users file
+        try {
+            Field userPasswordsField = Server.class.getDeclaredField("userPasswords");
+            userPasswordsField.setAccessible(true);
+            Map<String, Map<String, byte[]>> userPasswords = (Map<String, Map<String, byte[]>>) userPasswordsField.get(null);
+            userPasswords.remove("testUser"); // Assuming "testUser" is the username used for testing
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            fail("Failed to access private field: " + e.getMessage());
+        }
+        removeTestUserFromFile();
+        removeTestUserFromSecretFile();
+    }
+
+    public static void removeTestUserFromFile() {
+        File usersFile = new File("src/main/java/activities/users.txt");
+        File tempFile = new File("src/main/java/activities/users_temp.txt");
+    
+        try (BufferedReader reader = new BufferedReader(new FileReader(usersFile));
+             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+            String line;
+            boolean isFirstLine = true;
+            while ((line = reader.readLine()) != null) {
+                if (!line.contains("testUser")) {
+                    if (!isFirstLine) {
+                        writer.newLine(); // Add new line only if it's not the first line
+                    } else {
+                        isFirstLine = false;
+                    }
+                    writer.write(line);
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    
+        // Replace the original file with the temporary file
+        try {
+            Files.move(tempFile.toPath(), usersFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void removeTestUserFromSecretFile() throws IOException {
+        File usersFile = new File("src/main/java/activities/secret_keys.txt");
+        File tempFile = new File("src/main/java/activities/secret_keys_temp.txt");
+    
+        try (BufferedReader reader = new BufferedReader(new FileReader(usersFile));
+             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                if (!line.contains("testUser")) {
+                    System.out.println("Line to keep: " + line);
+                    writer.write(line + System.lineSeparator());
+                } else {
+                    System.out.println("Line to remove: " + line);
+                }
+            }
+        }
+        Files.move(tempFile.toPath(), usersFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+    }
+
 
 
 

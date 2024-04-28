@@ -20,7 +20,7 @@ import javax.net.ssl.SSLSocket;
 
 public class ClientHandler implements Runnable {
     private int AES_KEY_LENGTH = 32;
-    private int MAC_KEY_LENGTH = 32; // 256 bits to 32 bytes
+    private int MAC_KEY_LENGTH = 32;
     private int BUFFER_SIZE = 4096;
 
     private SSLSocket clientSocket;
@@ -31,8 +31,6 @@ public class ClientHandler implements Runnable {
     public ClientHandler(SSLSocket socket) {
         this.clientSocket = socket;
     }
-
-    // DatabHandler dbhandler = new DatabHandler();
 
     public void run() {
         try {
@@ -217,11 +215,6 @@ public class ClientHandler implements Runnable {
                             }
                             EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                         }
-
-                        //send to database
-                        // dbhandler.DBsendFile("server_data/" + fileName, fileName);
-                        // DatabHandler dbhandler = new DatabHandler();
-                        // dbHandler.uploadFile("server_data/" + fileName, fileName);
                     }
                     else if (inputLine.startsWith("download ")) {
                         String fileName = inputLine.substring(9);
@@ -382,26 +375,10 @@ public class ClientHandler implements Runnable {
         System.out.println("stored: " + encodedHashedPasswordS);
         System.out.println("salt: " + encodedSalt);
 
-        System.out.println("p: " + bytesToHex(providedPasswordHash));
-        System.out.println("s: " + bytesToHex(storedPasswordHash));
-
         return Arrays.equals(providedPasswordHash, storedPasswordHash);
     }
 
-    private static String bytesToHex(byte[] bytes) {
-        StringBuilder hexString = new StringBuilder(2 * bytes.length);
-        for (byte b : bytes) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) {
-                hexString.append('0');
-            }
-            hexString.append(hex);
-        }
-        return hexString.toString();
-    }
-
-
-    private static void createAccount(String username, byte[] password, String email) {
+    public static void createAccount(String username, byte[] password, String email) {
 
         byte[] salt = generateSalt();
         // Hash the password and email with Salt
