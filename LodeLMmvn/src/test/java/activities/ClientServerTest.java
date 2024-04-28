@@ -16,6 +16,8 @@ import java.lang.reflect.Field;
 import java.net.*;
 
 import java.security.*;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
@@ -30,10 +32,13 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import java.security.spec.MGF1ParameterSpec;
 
 import java.nio.charset.StandardCharsets;
 import javax.crypto.SecretKey;
+import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.spec.PSource;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -561,8 +566,8 @@ public class ClientServerTest {
 
     @Test
     public void testSendFile_ServerPass() throws CsvValidationException, NoSuchProviderException, BadPaddingException, IllegalBlockSizeException, NoSuchPaddingException, InvalidKeyException, FileNotFoundException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, IOException{
-        String path = "server_data/file.txt";
-        String username = "bob";
+        String path = "server_data/test.txt";
+        String username = "alice";
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
@@ -634,7 +639,7 @@ public class ClientServerTest {
     // ClientHandler methods
 
     @Test
-    public void testCreateAccount() throws IOException {
+    public void testCreateAndUpdateAccount() throws IOException {
         String username = "testUser";
         byte[] password = "testPassword".getBytes(StandardCharsets.UTF_8);
         byte[] newPassword = "testNewPassword".getBytes(StandardCharsets.UTF_8);
@@ -660,6 +665,12 @@ public class ClientServerTest {
             // System.out.println(strcalculatedpwdhash);
             assertTrue((storedpwdhash).equals(strcalculatedpwdhash));
 
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            PrintStream printStream = new PrintStream(outputStream);
+            System.setOut(printStream);
+            ClientHandler.resetPassword("bbbbbbbbbbb", newPassword, email);
+            String consoleOutput = outputStream.toString();
+            assertTrue(consoleOutput.contains("User does not exist."));
             ClientHandler.resetPassword(username, newPassword, email);
             // check after updating account
             // check keys
@@ -738,87 +749,55 @@ public class ClientServerTest {
 
     // this tests most of the other dependant methods
 
-    // @Test
-    // public void testResetPassword() throws IOException {
-    //     String username = "testUser";
-    //     byte[] password = "testPassword".getBytes(StandardCharsets.UTF_8);
-    //     byte[] newPassword = "testNewPassword".getBytes(StandardCharsets.UTF_8);
-    //     String email = "testEmail";
-    //     ClientHandler.createAccount(username, password, email);
-    //     // check after instantiating new account
-    //     try {
-    //         Field userPasswordsField = Server.class.getDeclaredField("userPasswords");
-    //         userPasswordsField.setAccessible(true);
-    //         Map<String, Map<String,byte[]>> userPasswords = (Map<String, Map<String,byte[]>>) userPasswordsField.get(null);
-    //         assertTrue(userPasswords.containsKey(username));
-    //         Map<String, byte[]> userData = userPasswords.get(username);
-    //         assertNotNull(userData);
-    //         // check keys
-    //         assertTrue(userData.containsKey("salt"));
-    //         assertTrue(userData.containsKey("passwordHash"));
-    //         assertTrue(userData.containsKey("emailHash"));
-    //     } catch (NoSuchFieldException | IllegalAccessException e) {
-    //         fail("Failed to access private field: " + e.getMessage());
-    //     }
-    //     ClientHandler.resetPassword(username, newPassword, email);
-    //     try {
-    //         Field userPasswordsField = Server.class.getDeclaredField("userPasswords");
-    //         userPasswordsField.setAccessible(true);
-    //         Map<String, Map<String,byte[]>> userPasswords = (Map<String, Map<String,byte[]>>) userPasswordsField.get(null);
-    //         assertTrue(userPasswords.containsKey(username));
-    //         Map<String, byte[]> userData = userPasswords.get(username);
-    //         assertNotNull(userData);
-    //         // check keys
-    //         assertTrue(userData.containsKey("salt"));
-    //         assertTrue(userData.containsKey("passwordHash"));
-    //         assertTrue(userData.containsKey("emailHash"));
-    //     } catch (NoSuchFieldException | IllegalAccessException e) {
-    //         fail("Failed to access private field: " + e.getMessage());
-    //     }
-
-    //     // deleting this testuser from userData, secret_key, and users file
-    //     try {
-    //         Field userPasswordsField = Server.class.getDeclaredField("userPasswords");
-    //         userPasswordsField.setAccessible(true);
-    //         Map<String, Map<String, byte[]>> userPasswords = (Map<String, Map<String, byte[]>>) userPasswordsField.get(null);
-    //         userPasswords.remove("testUser"); // Assuming "testUser" is the username used for testing
-    //     } catch (NoSuchFieldException | IllegalAccessException e) {
-    //         fail("Failed to access private field: " + e.getMessage());
-    //     }
-    //     removeTestUserFromFile();
-    //     removeTestUserFromSecretFile();
-    // }
-
-    // @Test
-    // public void testResetPassword() {
-    //     // Set up initial user data
-    //     Map<String, Map<String, byte[]>> userPasswords = new HashMap<>();
-    //     Map<String, byte[]> userData = new HashMap<>();
-    //     byte[] salt = ClientHandler.generateSalt();
-    //     byte[] hashedPassword = Server.hashSalt("oldPassword", salt);
-    //     byte[] emailHash = Server.hashSalt("test@example.com", salt);
-    //     userData.put("salt", salt);
-    //     userData.put("passwordHash", hashedPassword);
-    //     userData.put("emailHash", emailHash);
-    //     userPasswords.put("testUser", userData);
-
-    //     // Define the new password and email
-    //     byte[] newPassword = "newPassword".getBytes(StandardCharsets.UTF_8);
-    //     String newEmail = "new@example.com";
-
-    //     // Call the method under test
-    //     ClientHandler.resetPassword(userPasswords, "testUser", newPassword, newEmail);
-
-    //     // Assert that the password and email have been updated
-    //     byte[] updatedPassword = userPasswords.get("testUser").get("passwordHash");
-    //     byte[] updatedEmail = userPasswords.get("testUser").get("emailHash");
-    //     assertNotNull(updatedPassword);
-    //     assertNotNull(updatedEmail);
-    //     // Add more assertions as needed
-    // }
 
 
+    // EncryptedCom.java
 
+    @Test
+    public void testRSAEncryptAndDecrypt() throws Exception {
+        // Generate RSA key pair for testing
+        KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
+        keyGen.initialize(2048); // Key size
+        KeyPair keyPair = keyGen.generateKeyPair();
+        PublicKey publicKey = keyPair.getPublic();
+        PrivateKey privateKey = keyPair.getPrivate();
+
+        // Test data
+        byte[] originalData = "Hello, World!".getBytes();
+
+        // Encrypt data
+        byte[] encryptedData = EncryptedCom.RSAEncrypt(originalData, publicKey);
+
+        // Decrypt data
+        byte[] decryptedData = EncryptedCom.decryptRSA(encryptedData, (RSAPrivateKey) privateKey);
+
+        // Verify decryption
+        assertArrayEquals(originalData, decryptedData);
+    }
+
+    @Test
+    public void testSendMessageAndReceiveMessage() throws Exception {
+        // Setup
+        FileEncryption fe = new FileEncryption();
+        SecretKey aesKey = fe.getAESKey();
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
+        byte[] originalData = "Hello, World!".getBytes();
+
+        // Sending a message
+        EncryptedCom.sendMessage(originalData, aesKey, fe, dataOutputStream);
+        byte[] encryptedMessage = outputStream.toByteArray();
+
+        // Receiving a message
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(encryptedMessage);
+        DataInputStream dataInputStream = new DataInputStream(inputStream);
+        byte[] decryptedData = EncryptedCom.receiveMessage(aesKey, fe, dataInputStream);
+
+        // Verify decryption
+        assertArrayEquals(originalData, decryptedData);
+    }
+
+    
 
 
 

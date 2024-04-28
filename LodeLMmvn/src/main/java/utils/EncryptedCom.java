@@ -84,15 +84,4 @@ public class EncryptedCom {
         return "".getBytes();
     }
 
-    private static byte[] hashMessage(byte[] key, byte[] message) throws NoSuchAlgorithmException, InvalidKeyException {
-		SecretKeySpec secretKeySpec = new SecretKeySpec(key, MAC_HASH);
-		Mac mac = Mac.getInstance(MAC_HASH);
-		mac.init(secretKeySpec);
-		return mac.doFinal(message);
-	}
-
-    private static boolean verifyMAC(byte[] key, byte[] hashedMessage, byte[] message) throws Exception {
-        byte[] computedMac = hashMessage(key, message);
-        return Arrays.equals(hashedMessage, computedMac);
-    }
 }

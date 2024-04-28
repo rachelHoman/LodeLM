@@ -46,12 +46,6 @@ public class ClientHandler implements Runnable {
             // aesKey = decryptRSA(aesKey, rsaKey);
             SecretKey aesSecretKey = new SecretKeySpec(aesKey, 0, AES_KEY_LENGTH, "AES");
             System.out.println("AES Key Received");
-
-            // // Receive MAC Key
-            // byte[] macKey = new byte[MAC_KEY_LENGTH];
-            // dataInputStream.read(macKey, 0, MAC_KEY_LENGTH);
-            // // macKey = decryptRSA(macKey, rsaKey);
-            // System.out.println("MAC Key Received");
             String username = "";
 
             // Loop until "logged-in" message is received
@@ -62,9 +56,6 @@ public class ClientHandler implements Runnable {
                     break;
                 }
                 // Receive login or create account signal from client
-                // byte[] actionByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                // String action = new String(actionByte, StandardCharsets.UTF_8);
-
                 else if (action.equals("Create Account") || action.equals("3")) {
                     // Receive username from client
                     byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
@@ -103,8 +94,6 @@ public class ClientHandler implements Runnable {
                     username = new String(usernameByte, StandardCharsets.UTF_8);
                     byte[] newPasswordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
                     String newPasswordString = new String(newPasswordByte, StandardCharsets.UTF_8);
-                    // byte[] newPasswordByteSecond = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
-                    // String newPasswordStringSecond = new String(newPasswordByte, StandardCharsets.UTF_8);
                     String sub = Base64.getEncoder().encodeToString(newPasswordString.getBytes());
                     // Ensure proper padding by adding '=' characters if necessary
                     int padding = sub.length() % 4;
@@ -129,12 +118,10 @@ public class ClientHandler implements Runnable {
                     try {
                         // Close the socket
                         clientSocket.close();
-                        // return;
                     } catch (IOException e) {
                         System.out.println("Error closing socket: " + e.getMessage());
                     }
                     // Exit the loop to terminate the client connection
-                    // break;
                     return;
                 }
 
@@ -177,16 +164,12 @@ public class ClientHandler implements Runnable {
                             EncryptedCom.sendMessage(authenticationFailure.getBytes(), aesSecretKey, fe, dataOutputStream);
                         } catch(Exception e) {
                             System.out.println(e);
-                        } 
-                        // TODO: add .close() for cases exit/invalid cases
-                        // clientSocket.close();
-                        // return;
+                        }
                     }
                 }
             }
             
             // Handle client requests
-            // TODO: give the users a list of things they can do on the server to prompt them
             try {
                 String output;
                 String inputLine;
@@ -315,9 +298,6 @@ public class ClientHandler implements Runnable {
             } 
             clientSocket.close();
         }
-        // catch (IOException e) {
-        //     e.printStackTrace();
-        // } 
         catch (EOFException | SocketException e) {
             // Client has closed the connection abruptly
             System.out.println("Client connection terminated.");
@@ -345,7 +325,7 @@ public class ClientHandler implements Runnable {
         // Get the stored user data for the given username
         Map<String, byte[]> userData = Server.getUserPasswords().get(username);
         if (userData == null) {
-            return false; // User not found
+            return false;
         }
 
         while (!Client.UserExists(username, "normal")) {
@@ -357,17 +337,15 @@ public class ClientHandler implements Runnable {
         byte[] storedPasswordHash = userData.get("passwordHash");
 
         if (storedSalt == null || storedPasswordHash == null) {
-            return false; // Salt or password hash not found
+            return false;
         }
 
         // Hash the provided password with the stored salt
         byte[] providedPasswordHash = Server.hashSalt(new String(providedPassword), storedSalt);
-        // String providedPasswordHash = Server.hashPasswordSalt(new String(providedPassword), storedSalt);
 
         // Convert salt, provided password hash, and stored password hash to Base64 for comparison
         String encodedSalt = Base64.getEncoder().encodeToString(storedSalt);
         String encodedHashedPasswordP = Base64.getEncoder().encodeToString(providedPasswordHash);
-        // byte[] byteprovidedHash = providedPasswordHash.getBytes(StandardCharsets.UTF_8);
         String encodedHashedPasswordS = Base64.getEncoder().encodeToString(storedPasswordHash);
 
         // Compare the hashed passwords
@@ -437,7 +415,6 @@ public class ClientHandler implements Runnable {
     }
 
     private static void writeToSecretKeysFile(String username, byte[] secretKey) {
-        // TODO: fix this so that it is only on the server and not my laptop
         File file = new File("src/main/java/activities/secret_keys.txt");
         try (FileReader fr = new FileReader(file);
             BufferedReader br = new BufferedReader(fr)) {
@@ -448,11 +425,9 @@ public class ClientHandler implements Runnable {
                 String[] parts = line.split(":");
                 if (parts.length >= 2 && parts[0].equals(username)) {
                     // Update the secret key for the existing user
-                    // fileContent.append(username).append(":").append(Base64.getEncoder().encodeToString(secretKey)).append("\n");
                     found = true;
                     String message = "User already exists. Please log in.";
                     System.out.println(message);
-                    //EncryptedCom.sendMessage(message.getBytes(), aesSecretKey, fe, dataOutputStream);
                     break;
                 } else {
                     // Keep the line unchanged

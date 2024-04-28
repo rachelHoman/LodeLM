@@ -144,7 +144,7 @@ import javax.net.ssl.TrustManagerFactory;
 <span class="fc bfc" id="L144" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
                 // Split the line into tokens
 <span class="fc" id="L146">                String[] tokens = line.split(&quot; &quot;);</span>
-<span class="fc bfc" id="L147" title="All 2 branches covered.">                if (tokens.length == 4) {</span>
+<span class="pc bpc" id="L147" title="1 of 2 branches missed.">                if (tokens.length == 4) {</span>
 <span class="fc" id="L148">                    String uid = tokens[0];</span>
 <span class="fc" id="L149">                    byte[] salt = Base64.getDecoder().decode(tokens[1]);</span>
 <span class="fc" id="L150">                    byte[] hashedPassword = Base64.getDecoder().decode(tokens[2]);</span>
@@ -173,8 +173,8 @@ import javax.net.ssl.TrustManagerFactory;
 <span class="fc" id="L173">                        testuserPasswords.put(uid, testuserData);</span>
                     }
 <span class="fc" id="L175">                } else {</span>
-<span class="fc" id="L176">                    System.out.println(&quot;testData: &quot; + testuserPasswords);</span>
-<span class="fc" id="L177">                    System.out.println(&quot;Invalid format for user entry: &quot; + line);</span>
+<span class="nc" id="L176">                    System.out.println(&quot;testData: &quot; + testuserPasswords);</span>
+<span class="nc" id="L177">                    System.out.println(&quot;Invalid format for user entry: &quot; + line);</span>
                 }
 <span class="fc" id="L179">            }</span>
 <span class="nc" id="L180">        } catch (IOException e) {</span>
