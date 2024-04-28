@@ -94,4 +94,4 @@ The user can exit their session
 
 Command to run coverage testing analysis:
     - mvn jacoco:prepare-agent test install jacoco:report
-    - index.html can be opened to see the results
+    - index.html can be opened to see the results (LodeLMmvn/target/site/jacoco/index.html)
