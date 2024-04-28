@@ -1,6 +1,4 @@
 package activities;
-import org.checkerframework.checker.units.qual.kN;
-import org.junit.*;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -8,22 +6,16 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThrows;
 
 import java.io.*;
 import java.lang.reflect.Field;
-import java.net.*;
 
 import java.security.*;
 import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Base64;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import javax.crypto.NoSuchPaddingException;
@@ -32,48 +24,23 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.Mac;
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
-import java.security.spec.MGF1ParameterSpec;
 
 import java.nio.charset.StandardCharsets;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.OAEPParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
-import javax.crypto.spec.PSource;
 
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 
-import org.junit.Before;
 import org.junit.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Mock;
-import org.mockito.Mockito;
 
-import activities.Client;
-import activities.Server;
 import utils.*;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
-
-import com.google.firebase.database.DatabaseReference;
-import com.opencsv.CSVReader;
-import com.opencsv.CSVWriter;
 import com.opencsv.exceptions.CsvException;
 import com.opencsv.exceptions.CsvValidationException;
-import org.junit.runner.RunWith;
-import org.powermock.core.classloader.annotations.PrepareForTest;
-import org.powermock.modules.junit4.PowerMockRunner;
-import org.simplejavamail.api.mailer.Mailer;
-import org.simplejavamail.email.EmailBuilder;
-import org.powermock.api.mockito.PowerMockito;
 
 
 public class ClientServerTest {
@@ -314,7 +281,7 @@ public class ClientServerTest {
 
 
 
-    // testing email methods from SimpleMailSender.java
+    // testing SimpleMailSender.java
 
     @Test
     public void testEmptyEmail() {
@@ -461,7 +428,7 @@ public class ClientServerTest {
 
 
 
-    // test utils FileEncryption
+    // test FileEncryption
 
     @Test
     public void testSaveKey() throws IOException, NoSuchAlgorithmException {
@@ -490,7 +457,7 @@ public class ClientServerTest {
 
 
 
-    // testing utils MACUtils
+    // testing MACUtils
 
     @Test
     public void testCreateMAC() throws InvalidKeyException, NoSuchAlgorithmException {
@@ -598,8 +565,6 @@ public class ClientServerTest {
         tempFile.delete();
     }
 
-    // ReceiveFile is already being covered.
-
     @Test
     public void testpwd() {
         String path = "testFile.txt";
@@ -634,9 +599,46 @@ public class ClientServerTest {
         tempDir.delete();
     }
 
+    @Test
+    public void testDeleteFile_NoPermissions() throws IOException, CsvValidationException, CsvException {
+        String path = "testFile.txt";
+        String username = "testUser";
+        File tempFile = new File(path);
+        String tempContent = "testing send file.";
+        Files.write(tempFile.toPath(), tempContent.getBytes());
+        FileHandler fileHandler = new FileHandler(path);
+
+        String result = fileHandler.deleteFile(username);
+        assertEquals("File has not been deleted...either does not exist or something else went wrong.", result);
+        tempFile.delete();
+    }
+
+    // @Test
+    // public void testReceiveFile() throws Exception {
+    //     String path = "testFile.txt";
+    //     String username = "testUser";
+    //     File tempFile = new File(path);
+    //     String tempContent = "testing send file.";
+
+    //     ByteArrayInputStream inputStream = new ByteArrayInputStream(tempContent.getBytes());
+    //     DataInputStream dataInputStream = new DataInputStream(inputStream);
+    //     FileHandler fileHandler = new FileHandler(path);
+    //     SecretKey commKey = new SecretKeySpec("testKey".getBytes(), "AES");
+    //     boolean isServer = true;
+
+    //     // Invoke method
+    //     String result = fileHandler.receiveFile(dataInputStream, commKey, isServer, username);
+
+    //     // Verify output
+    //     assertEquals("null", result);
+    //     // String result = fileHandler.sendFile(dataOutputStream, commKey, isServer, username);
+    //     // assertEquals("You do not have the required permissions to download this file.", result);
+    //     tempFile.delete();
+    // }
 
 
-    // ClientHandler methods
+
+    // testing ClientHandler methods
 
     @Test
     public void testCreateAndUpdateAccount() throws IOException {
@@ -661,8 +663,6 @@ public class ClientServerTest {
             String storedpwdhash = Base64.getEncoder().encodeToString(userData.get("passwordHash"));
             byte[] calculatedpwdhash = Server.hashSalt("testPassword", userData.get("salt"));
             String strcalculatedpwdhash = Base64.getEncoder().encodeToString(calculatedpwdhash);
-            // System.out.println("VIBESSS: " + storedpwdhash);
-            // System.out.println(strcalculatedpwdhash);
             assertTrue((storedpwdhash).equals(strcalculatedpwdhash));
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -712,7 +712,8 @@ public class ClientServerTest {
             while ((line = reader.readLine()) != null) {
                 if (!line.contains("testUser")) {
                     if (!isFirstLine) {
-                        writer.newLine(); // Add new line only if it's not the first line
+                        writer.newLine(); 
+                        // Add new line only if it's not the first line
                     } else {
                         isFirstLine = false;
                     }
@@ -751,351 +752,39 @@ public class ClientServerTest {
 
 
 
-    // EncryptedCom.java
+    // testing EncryptedCom
 
     @Test
     public void testRSAEncryptAndDecrypt() throws Exception {
         // Generate RSA key pair for testing
         KeyPairGenerator keyGen = KeyPairGenerator.getInstance("RSA");
-        keyGen.initialize(2048); // Key size
+        keyGen.initialize(2048);
         KeyPair keyPair = keyGen.generateKeyPair();
         PublicKey publicKey = keyPair.getPublic();
         PrivateKey privateKey = keyPair.getPrivate();
-
-        // Test data
         byte[] originalData = "Hello, World!".getBytes();
 
-        // Encrypt data
         byte[] encryptedData = EncryptedCom.RSAEncrypt(originalData, publicKey);
-
-        // Decrypt data
         byte[] decryptedData = EncryptedCom.decryptRSA(encryptedData, (RSAPrivateKey) privateKey);
 
-        // Verify decryption
         assertArrayEquals(originalData, decryptedData);
     }
 
     @Test
     public void testSendMessageAndReceiveMessage() throws Exception {
-        // Setup
         FileEncryption fe = new FileEncryption();
         SecretKey aesKey = fe.getAESKey();
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         DataOutputStream dataOutputStream = new DataOutputStream(outputStream);
         byte[] originalData = "Hello, World!".getBytes();
 
-        // Sending a message
         EncryptedCom.sendMessage(originalData, aesKey, fe, dataOutputStream);
         byte[] encryptedMessage = outputStream.toByteArray();
 
-        // Receiving a message
         ByteArrayInputStream inputStream = new ByteArrayInputStream(encryptedMessage);
         DataInputStream dataInputStream = new DataInputStream(inputStream);
         byte[] decryptedData = EncryptedCom.receiveMessage(aesKey, fe, dataInputStream);
 
-        // Verify decryption
         assertArrayEquals(originalData, decryptedData);
     }
-
-    
-
-
-
-
-    // @Test
-    // public void testAuthenticationWithCorrectCredentials() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
-    //     // Simulate client sending correct username and password to the server
-    //     // For simplicity, assume a mock client is used for testing
-    //     try {
-    //         ServerSocket serverSocket = new ServerSocket(port);
-    //         Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
-    //         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-    //         DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-    //         FileEncryption fe = new FileEncryption();
-
-    //         SecretKey sk = fe.getAESKey();
-    //         byte[] keyData =  sk.getEncoded();
-    //         dataOutputStream.write(keyData);
-
-    //         // Test login
-    //         EncryptedCom.sendMessage("1".getBytes(), sk, fe, dataOutputStream);
-
-    //         // Send username and password
-    //         EncryptedCom.sendMessage("bob".getBytes(), sk, fe, dataOutputStream); 
-    //         EncryptedCom.sendMessage("secret456".getBytes(), sk, fe, dataOutputStream); 
-    //         // Receive authentication response from the server
-    //         byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
-    //         String response = new String(responseByte, StandardCharsets.UTF_8);
-    //         assertEquals("Authentication successful. Proceeding with connection...", response);
-
-    //         // Close the client socket
-    //         serverSocket.close();
-    //         clientSocket.close();
-    //         dataInputStream.close();
-    //         dataOutputStream.close();
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //         fail("Connection failed: " + e.getMessage());
-    //     }
-    // }
-
-    // @Test
-    // public void testAuthenticationWithIncorrectCredentials() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
-    //     // Simulate client sending correct username and password to the server
-    //     // For simplicity, assume a mock client is used for testing
-    //     try {
-    //         ServerSocket serverSocket = new ServerSocket(port);
-    //         Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
-    //         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-    //         DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-    //         FileEncryption fe = new FileEncryption();
-
-    //         SecretKey sk = fe.getAESKey();
-    //         byte[] keyData =  sk.getEncoded();
-    //         dataOutputStream.write(keyData);
-
-    //         // Test login
-    //         EncryptedCom.sendMessage("1".getBytes(), sk, fe, dataOutputStream);
-
-    //         // Send username and password
-    //         EncryptedCom.sendMessage("alice".getBytes(), sk, fe, dataOutputStream); 
-    //         EncryptedCom.sendMessage("pass1234".getBytes(), sk, fe, dataOutputStream); 
-    //         // Receive authentication response from the server
-    //         byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
-    //         String response = new String(responseByte, StandardCharsets.UTF_8);
-    //         assertEquals("Invalid username or password.", response);
-
-    //         // Close the client socket
-    //         serverSocket.close();
-    //         clientSocket.close();
-    //         dataInputStream.close();
-    //         dataOutputStream.close();
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //         fail("Connection failed: " + e.getMessage());
-    //     }
-    // }
-
-    // @Test
-    // public void testAuthorizationUnpermissioned() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
-    //     // Simulate client sending correct username and password to the server
-    //     // For simplicity, assume a mock client is used for testing
-    //     try {
-    //         ServerSocket serverSocket = new ServerSocket(port);
-    //         Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
-    //         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-    //         DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-    //         FileEncryption fe = new FileEncryption();
-
-    //         SecretKey sk = fe.getAESKey();
-    //         byte[] keyData =  sk.getEncoded();
-    //         dataOutputStream.write(keyData);
-
-    //         // Test login
-    //         EncryptedCom.sendMessage("1".getBytes(), sk, fe, dataOutputStream);
-
-    //         // Send username and password
-    //         String username = "christy";
-    //         EncryptedCom.sendMessage(username.getBytes(), sk, fe, dataOutputStream); 
-    //         EncryptedCom.sendMessage("password".getBytes(), sk, fe, dataOutputStream); 
-    //         // Receive authentication response from the server
-    //         byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
-    //         String response = new String(responseByte, StandardCharsets.UTF_8);
-
-    //         String userMessage = "send file_copy.txt";
-
-    //         // test send permission
-    //         if (userMessage.startsWith("send ")) {
-    //             String fileName = userMessage.substring(5);
-    //             FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-    //             try {
-    //                 fileHandler.sendFile(dataOutputStream, sk, false, username);
-    //             } catch (Exception e) {
-    //                 System.out.println(e);
-    //             }
-    //         }
-    //         String consoleOutput = new String(EncryptedCom.receiveMessage(sk, fe, dataInputStream), StandardCharsets.UTF_8);
-    //         assertEquals("You do not have permission to override the current file with that name on the server. Please change the name of your file.", consoleOutput);
-
-    //         // test download permission
-
-    //         if (userMessage.startsWith("download ")) {
-    //             String fileName = userMessage.substring(5);
-    //             FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-    //             try {
-    //                 fileHandler.sendFile(dataOutputStream, sk, false, username);
-    //             } catch (Exception e) {
-    //                 System.out.println(e);
-    //             }
-    //         }
-    //         consoleOutput = new String(EncryptedCom.receiveMessage(sk, fe, dataInputStream), StandardCharsets.UTF_8);
-    //         assertEquals("You do not have the required permissions to download this file.", consoleOutput);
-
-
-    //         // Close the client socket
-    //         serverSocket.close();
-    //         clientSocket.close();
-    //         dataInputStream.close();
-    //         dataOutputStream.close();
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //         fail("Connection failed: " + e.getMessage());
-    //     }
-    // }
-
-    // @Test
-    // public void testAuthorizationPermissioned() throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, IOException, InvalidAlgorithmParameterException {
-    //     // Simulate client sending correct username and password to the server
-    //     // For simplicity, assume a mock client is used for testing
-    //     try {
-    //         ServerSocket serverSocket = new ServerSocket(port);
-    //         Socket clientSocket = new Socket("localhost", port); // Assuming server is running on localhost and port 12345
-    //         DataInputStream dataInputStream = new DataInputStream(clientSocket.getInputStream());
-    //         DataOutputStream dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
-    //         FileEncryption fe = new FileEncryption();
-
-    //         SecretKey sk = fe.getAESKey();
-    //         byte[] keyData =  sk.getEncoded();
-    //         dataOutputStream.write(keyData);
-
-    //         // Test login
-    //         EncryptedCom.sendMessage("1".getBytes(), sk, fe, dataOutputStream);
-
-    //         // Send username and password
-    //         String username = "bob";
-    //         EncryptedCom.sendMessage(username.getBytes(), sk, fe, dataOutputStream); 
-    //         EncryptedCom.sendMessage("secret456".getBytes(), sk, fe, dataOutputStream); 
-    //         // Receive authentication response from the server
-    //         byte[] responseByte = EncryptedCom.receiveMessage(sk, fe, dataInputStream);
-    //         String response = new String(responseByte, StandardCharsets.UTF_8);
-
-    //         String userMessage = "send file_copy.txt";
-    //         String consoleOutput = "";
-
-    //         // test send permission
-    //         if (userMessage.startsWith("send ")) {
-    //             String fileName = userMessage.substring(5);
-    //             FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-    //             try {
-    //                 fileHandler.sendFile(dataOutputStream, sk, false, username);
-    //             } catch (Exception e) {
-    //                 System.out.println(e);
-    //             }
-    //             consoleOutput = new String(EncryptedCom.receiveMessage(sk, fe, dataInputStream), StandardCharsets.UTF_8);
-    //             assertEquals(fileName + " has been received by server", consoleOutput);
-    //         }
-
-    //         // test download permission
-
-    //         if (userMessage.startsWith("download ")) {
-    //             String fileName = userMessage.substring(5);
-    //             FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-    //             try {
-    //                 fileHandler.sendFile(dataOutputStream, sk, false, username);
-    //             } catch (Exception e) {
-    //                 System.out.println(e);
-    //             }
-    //         }
-    //         consoleOutput = new String(EncryptedCom.receiveMessage(sk, fe, dataInputStream), StandardCharsets.UTF_8);
-    //         assertEquals("File Downloaded", consoleOutput);
-
-
-    //         // Close the client socket
-    //         serverSocket.close();
-    //         clientSocket.close();
-    //         dataInputStream.close();
-    //         dataOutputStream.close();
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //         fail("Connection failed: " + e.getMessage());
-    //     }
-    // }
 }
-
-    
-
-    // @Test
-    // public void testFileCommands() {
-    //     // Simulate client sending correct username and password to the server
-    //     // For simplicity, assume a mock client is used for testing
-    //     try {
-    //         Socket clientSocket = new Socket("localhost", 12345); // Assuming server is running on localhost and port 12345
-    //         PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
-    //         BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
-    //         // Send username and password
-    //         out.println("bob"); 
-    //         out.println("secret456"); 
-    //         // Receive authentication response from the server
-    //         String response = in.readLine();
-    //         // Verify that the server authenticates the user successfully
-    //         //assertEquals("Authentication successful. Proceeding with connection...", response);
-    //         assertEquals("Invalid username or password.", response);
-    //         // Close the client socket
-    //         clientSocket.close();
-    //         in.close();
-    //         out.close();
-    //         clientSocket.close();
-    //     } catch (IOException e) {
-    //         e.printStackTrace();
-    //         fail("Connection failed: " + e.getMessage());
-    //     }
-
-    // @Before
-    // public void setUp() {
-    //     // Initialize the server
-    //     server = new Server();
-    //     // Start the server in a separate thread
-    //     Thread serverThread = new Thread(() -> Server.main(null));
-    //     serverThread.start();
-    //     // Allow some time for the server to start
-    //     try {
-    //         Thread.sleep(1000);
-    //     } catch (InterruptedException e) {
-    //         e.printStackTrace();
-    //     }
-    //     // Initialize the client
-    //     client = new Client();
-    // }
-
-//     // @Test
-//     // public void testAuthenticationSuccess() {
-//     //     // Test authentication with correct username and password
-//     //     assertTrue(client.authenticate("alice", "password123"));
-//     // }
-
-//     // @Test
-//     // public void testAuthenticationFailure() {
-//     //     // Test authentication with incorrect username and password
-//     //     assertFalse(client.authenticate("alice", "wrongpassword"));
-//     // }
-
-//     // @Test
-//     // public void testCreateProject() {
-//     //     // Test creating a project
-//     //     assertTrue(client.createProject("new_project"));
-//     // }
-
-//     // @Test
-//     // public void testListProjects() {
-//     //     // Test listing projects
-//     //     String projects = client.listProjects();
-//     //     assertEquals("project1\nproject2\n", projects); // Assuming project1 and project2 are existing projects
-//     // }
-
-//     // @Test
-//     // public void testSendFile() {
-//     //     // Test sending a file
-//     //     assertTrue(client.sendFile("test.txt"));
-//     // }
-
-//     // @Test
-//     // public void testDownloadFile() {
-//     //     // Test downloading a file
-//     //     assertTrue(client.downloadFile("test.txt"));
-//     // }
-
-//     // @Test
-//     // public void testDeleteFile() {
-//     //     // Test deleting a file
-//     //     assertTrue(client.deleteFile("test.txt"));
-//     // }

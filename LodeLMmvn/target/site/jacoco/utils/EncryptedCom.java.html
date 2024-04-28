@@ -78,18 +78,11 @@ import javax.crypto.SecretKey;
 <span class="fc" id="L78">            byte[] textByte = fe.AESDecrypt(buffer, aesKey, iv_cipher);</span>
         
 <span class="fc" id="L80">            return textByte; </span>
-<span class="nc" id="L81">        } catch (Exception e) {</span>
-<span class="nc" id="L82">            System.out.println(e);</span>
+<span class="fc" id="L81">        } catch (Exception e) {</span>
+<span class="fc" id="L82">            System.out.println(e);</span>
         }
-<span class="nc" id="L84">        return &quot;&quot;.getBytes();</span>
+<span class="fc" id="L84">        return &quot;&quot;.getBytes();</span>
     }
-
-    private static byte[] hashMessage(byte[] key, byte[] message) throws NoSuchAlgorithmException, InvalidKeyException {
-<span class="nc" id="L88">		SecretKeySpec secretKeySpec = new SecretKeySpec(key, MAC_HASH);</span>
-<span class="nc" id="L89">		Mac mac = Mac.getInstance(MAC_HASH);</span>
-<span class="nc" id="L90">		mac.init(secretKeySpec);</span>
-<span class="nc" id="L91">		return mac.doFinal(message);</span>
-	}
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
