@@ -399,140 +399,134 @@ public class ClientHandler implements Runnable {
 <span class="fc" id="L399">        writeToUserFile(username, salt, storedPasswordHash, hashedEmail);</span>
 <span class="fc" id="L400">    }</span>
 
-    private static void resetPassword(String username, byte[] resetPassword, String email) {
+    public static void resetPassword(String username, byte[] resetPassword, String email) {
 
         // Check if the user exists
-<span class="nc bnc" id="L405" title="All 2 branches missed.">        if (Server.getUserPasswords().containsKey(username)) {</span>
-<span class="nc" id="L406">            byte[] salt = generateSalt();</span>
-<span class="nc" id="L407">            byte[] hashedNewPassword = Server.hashSalt(new String(resetPassword, StandardCharsets.UTF_8), salt);</span>
-<span class="nc" id="L408">            byte[] hashedEmail = Server.hashSalt(email, salt);</span>
-<span class="nc" id="L409">            Map&lt;String, byte[]&gt; userData = Server.getUserPasswords().get(username);</span>
+<span class="pc bpc" id="L405" title="1 of 2 branches missed.">        if (Server.getUserPasswords().containsKey(username)) {</span>
+<span class="fc" id="L406">            byte[] salt = generateSalt();</span>
+<span class="fc" id="L407">            byte[] hashedNewPassword = Server.hashSalt(new String(resetPassword, StandardCharsets.UTF_8), salt);</span>
+<span class="fc" id="L408">            byte[] hashedEmail = Server.hashSalt(email, salt);</span>
+<span class="fc" id="L409">            Map&lt;String, byte[]&gt; userData = Server.getUserPasswords().get(username);</span>
             
             // Update the user data with the new salt, hashed password, and hashed email
-<span class="nc" id="L412">            userData.put(&quot;salt&quot;, salt);</span>
-<span class="nc" id="L413">            userData.put(&quot;passwordHash&quot;, hashedNewPassword);</span>
-<span class="nc" id="L414">            userData.put(&quot;emailHash&quot;, hashedEmail);</span>
-<span class="nc" id="L415">            Server.getUserPasswords().put(username, userData);</span>
+<span class="fc" id="L412">            userData.put(&quot;salt&quot;, salt);</span>
+<span class="fc" id="L413">            userData.put(&quot;passwordHash&quot;, hashedNewPassword);</span>
+<span class="fc" id="L414">            userData.put(&quot;emailHash&quot;, hashedEmail);</span>
+<span class="fc" id="L415">            Server.getUserPasswords().put(username, userData);</span>
 
-            // not updating secret key with new password
-            // byte[] secretKey = generateSecretKey();
-
-            // deleteUserFromFile(username);
-            // writeToUserFile(username, salt, hashedNewPassword, userData.get(&quot;emailHash&quot;));
             // Write updated data to the user file
-            // System.out.println(&quot;WOHOO&quot;);
-<span class="nc" id="L424">            updateUserDataFile(username, userData);</span>
-<span class="nc" id="L425">        } else {</span>
-<span class="nc" id="L426">            System.out.println(&quot;User does not exist.&quot;);</span>
+<span class="fc" id="L418">            updateUserDataFile(username, userData);</span>
+<span class="fc" id="L419">        } else {</span>
+<span class="nc" id="L420">            System.out.println(&quot;User does not exist.&quot;);</span>
         }
-<span class="nc" id="L428">    }</span>
+<span class="fc" id="L422">    }</span>
     
     private static byte[] generateSecretKey() {
         // Generate new random 32-byte secret-key
-<span class="fc" id="L432">        SecureRandom random = new SecureRandom();</span>
-<span class="fc" id="L433">        byte[] secretKey = new byte[32];</span>
-<span class="fc" id="L434">        random.nextBytes(secretKey);</span>
-<span class="fc" id="L435">        return secretKey;</span>
+<span class="fc" id="L426">        SecureRandom random = new SecureRandom();</span>
+<span class="fc" id="L427">        byte[] secretKey = new byte[32];</span>
+<span class="fc" id="L428">        random.nextBytes(secretKey);</span>
+<span class="fc" id="L429">        return secretKey;</span>
     }
 
     private static byte[] generateSalt() {
-<span class="fc" id="L439">        SecureRandom random = new SecureRandom();</span>
-<span class="fc" id="L440">        byte[] salt = new byte[32];</span>
-<span class="fc" id="L441">        random.nextBytes(salt);</span>
-<span class="fc" id="L442">        return salt;</span>
+<span class="fc" id="L433">        SecureRandom random = new SecureRandom();</span>
+<span class="fc" id="L434">        byte[] salt = new byte[32];</span>
+<span class="fc" id="L435">        random.nextBytes(salt);</span>
+<span class="fc" id="L436">        return salt;</span>
     }
 
     private static void writeToSecretKeysFile(String username, byte[] secretKey) {
         // TODO: fix this so that it is only on the server and not my laptop
-<span class="fc" id="L447">        File file = new File(&quot;src/main/java/activities/secret_keys.txt&quot;);</span>
-<span class="fc" id="L448">        try (FileReader fr = new FileReader(file);</span>
-<span class="fc" id="L449">            BufferedReader br = new BufferedReader(fr)) {</span>
+<span class="fc" id="L441">        File file = new File(&quot;src/main/java/activities/secret_keys.txt&quot;);</span>
+<span class="fc" id="L442">        try (FileReader fr = new FileReader(file);</span>
+<span class="fc" id="L443">            BufferedReader br = new BufferedReader(fr)) {</span>
             String line;
-<span class="fc" id="L451">            StringBuilder fileContent = new StringBuilder();</span>
-<span class="fc" id="L452">            boolean found = false;</span>
-<span class="fc bfc" id="L453" title="All 2 branches covered.">            while ((line = br.readLine()) != null) {</span>
-<span class="fc" id="L454">                String[] parts = line.split(&quot;:&quot;);</span>
-<span class="pc bpc" id="L455" title="1 of 4 branches missed.">                if (parts.length &gt;= 2 &amp;&amp; parts[0].equals(username)) {</span>
+<span class="fc" id="L445">            StringBuilder fileContent = new StringBuilder();</span>
+<span class="fc" id="L446">            boolean found = false;</span>
+<span class="fc bfc" id="L447" title="All 2 branches covered.">            while ((line = br.readLine()) != null) {</span>
+<span class="fc" id="L448">                String[] parts = line.split(&quot;:&quot;);</span>
+<span class="pc bpc" id="L449" title="1 of 4 branches missed.">                if (parts.length &gt;= 2 &amp;&amp; parts[0].equals(username)) {</span>
                     // Update the secret key for the existing user
                     // fileContent.append(username).append(&quot;:&quot;).append(Base64.getEncoder().encodeToString(secretKey)).append(&quot;\n&quot;);
-<span class="fc" id="L458">                    found = true;</span>
-<span class="fc" id="L459">                    String message = &quot;User already exists. Please log in.&quot;;</span>
-<span class="fc" id="L460">                    System.out.println(message);</span>
+<span class="fc" id="L452">                    found = true;</span>
+<span class="fc" id="L453">                    String message = &quot;User already exists. Please log in.&quot;;</span>
+<span class="fc" id="L454">                    System.out.println(message);</span>
                     //EncryptedCom.sendMessage(message.getBytes(), aesSecretKey, fe, dataOutputStream);
-<span class="fc" id="L462">                    break;</span>
+<span class="fc" id="L456">                    break;</span>
                 } else {
                     // Keep the line unchanged
-<span class="fc" id="L465">                    fileContent.append(line).append(&quot;\n&quot;);</span>
+<span class="fc" id="L459">                    fileContent.append(line).append(&quot;\n&quot;);</span>
                 }
-<span class="fc" id="L467">            }</span>
-<span class="fc bfc" id="L468" title="All 2 branches covered.">            if (!found) {</span>
+<span class="fc" id="L461">            }</span>
+<span class="fc bfc" id="L462" title="All 2 branches covered.">            if (!found) {</span>
                 // Append a new entry for the user if not found
-<span class="fc" id="L470">                fileContent.append(username).append(&quot;:&quot;).append(Base64.getEncoder().encodeToString(secretKey)).append(&quot;\n&quot;);</span>
+<span class="fc" id="L464">                fileContent.append(username).append(&quot;:&quot;).append(Base64.getEncoder().encodeToString(secretKey)).append(&quot;\n&quot;);</span>
             }
     
             // Write the updated file content back to the file
-<span class="fc" id="L474">            try (FileWriter fw = new FileWriter(file)) {</span>
-<span class="fc" id="L475">                fw.write(fileContent.toString());</span>
+<span class="fc" id="L468">            try (FileWriter fw = new FileWriter(file)) {</span>
+<span class="fc" id="L469">                fw.write(fileContent.toString());</span>
             }
-<span class="nc" id="L477">        } catch (IOException e) {</span>
-<span class="nc" id="L478">            e.printStackTrace();</span>
-<span class="fc" id="L479">        }</span>
-<span class="fc" id="L480">    }</span>
+<span class="nc" id="L471">        } catch (IOException e) {</span>
+<span class="nc" id="L472">            e.printStackTrace();</span>
+<span class="fc" id="L473">        }</span>
+<span class="fc" id="L474">    }</span>
 
     private static void writeToUserFile(String username, byte[] salt, byte[] hashedPassword, byte[] hashedEmail) {
-<span class="fc" id="L483">        File file = new File(&quot;src/main/java/activities/users.txt&quot;);</span>
-<span class="fc" id="L484">        try (FileWriter fw = new FileWriter(file, true);</span>
-<span class="fc" id="L485">             BufferedWriter bw = new BufferedWriter(fw)) {</span>
-<span class="fc" id="L486">            String encodedSalt = Base64.getEncoder().encodeToString(salt);</span>
-<span class="fc" id="L487">            String encodedHashedPassword = Base64.getEncoder().encodeToString(hashedPassword);</span>
-<span class="fc" id="L488">            String encodedHashedEmail = Base64.getEncoder().encodeToString(hashedEmail);</span>
-<span class="pc bpc" id="L489" title="1 of 2 branches missed.">            if (file.length() != 0) {</span>
-<span class="fc" id="L490">                bw.newLine();</span>
+<span class="fc" id="L477">        File file = new File(&quot;src/main/java/activities/users.txt&quot;);</span>
+<span class="fc" id="L478">        try (FileWriter fw = new FileWriter(file, true);</span>
+<span class="fc" id="L479">             BufferedWriter bw = new BufferedWriter(fw)) {</span>
+<span class="fc" id="L480">            String encodedSalt = Base64.getEncoder().encodeToString(salt);</span>
+<span class="fc" id="L481">            String encodedHashedPassword = Base64.getEncoder().encodeToString(hashedPassword);</span>
+<span class="fc" id="L482">            String encodedHashedEmail = Base64.getEncoder().encodeToString(hashedEmail);</span>
+<span class="pc bpc" id="L483" title="1 of 2 branches missed.">            if (file.length() != 0) {</span>
+<span class="fc" id="L484">                bw.newLine();</span>
         }
-<span class="fc" id="L492">        bw.write(username + &quot; &quot; + encodedSalt + &quot; &quot; + encodedHashedPassword + &quot; &quot; + encodedHashedEmail);</span>
+<span class="fc" id="L486">        bw.write(username + &quot; &quot; + encodedSalt + &quot; &quot; + encodedHashedPassword + &quot; &quot; + encodedHashedEmail);</span>
 
-<span class="nc" id="L494">    } catch (IOException e) {</span>
-<span class="nc" id="L495">            e.printStackTrace();</span>
-<span class="fc" id="L496">        }</span>
-<span class="fc" id="L497">    }</span>
+<span class="nc" id="L488">    } catch (IOException e) {</span>
+<span class="nc" id="L489">            e.printStackTrace();</span>
+<span class="fc" id="L490">        }</span>
+<span class="fc" id="L491">    }</span>
 
     private static void updateUserDataFile(String username, Map&lt;String, byte[]&gt; userData) {
-<span class="nc" id="L500">        File inputFile = new File(&quot;src/main/java/activities/users.txt&quot;);</span>
-<span class="nc" id="L501">        File tempFile = new File(inputFile.getAbsolutePath() + &quot;.tmp&quot;);</span>
+<span class="fc" id="L494">        File inputFile = new File(&quot;src/main/java/activities/users.txt&quot;);</span>
+<span class="fc" id="L495">        File tempFile = new File(inputFile.getAbsolutePath() + &quot;.tmp&quot;);</span>
     
-<span class="nc" id="L503">        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));</span>
-<span class="nc" id="L504">             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {</span>
+<span class="fc" id="L497">        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));</span>
+<span class="fc" id="L498">             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {</span>
             String line;
     
             // Read each line from the original file
-<span class="nc bnc" id="L508" title="All 2 branches missed.">            while ((line = reader.readLine()) != null) {</span>
+<span class="fc bfc" id="L502" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
                 // Check if the line contains the username to be updated
-<span class="nc bnc" id="L510" title="All 2 branches missed.">                if (line.startsWith(username + &quot; &quot;)) {</span>
+<span class="fc bfc" id="L504" title="All 2 branches covered.">                if (line.startsWith(username + &quot; &quot;)) {</span>
                     // Replace user-specific data with updated data
-<span class="nc" id="L512">                    String updatedLine = username + &quot; &quot; +</span>
-<span class="nc" id="L513">                            Base64.getEncoder().encodeToString(userData.get(&quot;salt&quot;)) + &quot; &quot; +</span>
-<span class="nc" id="L514">                            Base64.getEncoder().encodeToString(userData.get(&quot;passwordHash&quot;)) + &quot; &quot; +</span>
-<span class="nc" id="L515">                            Base64.getEncoder().encodeToString(userData.get(&quot;emailHash&quot;));</span>
+<span class="fc" id="L506">                    String updatedLine = username + &quot; &quot; +</span>
+<span class="fc" id="L507">                            Base64.getEncoder().encodeToString(userData.get(&quot;salt&quot;)) + &quot; &quot; +</span>
+<span class="fc" id="L508">                            Base64.getEncoder().encodeToString(userData.get(&quot;passwordHash&quot;)) + &quot; &quot; +</span>
+<span class="fc" id="L509">                            Base64.getEncoder().encodeToString(userData.get(&quot;emailHash&quot;));</span>
                     // Write the updated line to the temporary file
-<span class="nc" id="L517">                    writer.write(updatedLine + System.lineSeparator());</span>
-<span class="nc" id="L518">                } else {</span>
+<span class="fc" id="L511">                    writer.write(updatedLine + System.lineSeparator());</span>
+<span class="fc" id="L512">                } else {</span>
                     // Write all other lines to the temporary file
-<span class="nc" id="L520">                    writer.write(line + System.lineSeparator());</span>
+<span class="fc" id="L514">                    writer.write(line + System.lineSeparator());</span>
                 }
             }
-<span class="nc" id="L523">        } catch (IOException e) {</span>
-<span class="nc" id="L524">            e.printStackTrace();</span>
-<span class="nc" id="L525">        }</span>
+<span class="nc" id="L517">        } catch (IOException e) {</span>
+<span class="nc" id="L518">            e.printStackTrace();</span>
+<span class="fc" id="L519">        }</span>
     
         // Replace the original file with the temporary file
-<span class="nc bnc" id="L528" title="All 2 branches missed.">        if (!inputFile.delete()) {</span>
-<span class="nc" id="L529">            System.out.println(&quot;Could not delete the original file.&quot;);</span>
-<span class="nc" id="L530">            return;</span>
+<span class="pc bpc" id="L522" title="1 of 2 branches missed.">        if (!inputFile.delete()) {</span>
+<span class="nc" id="L523">            System.out.println(&quot;Could not delete the original file.&quot;);</span>
+<span class="nc" id="L524">            return;</span>
         }
-<span class="nc bnc" id="L532" title="All 2 branches missed.">        if (!tempFile.renameTo(inputFile)) {</span>
-<span class="nc" id="L533">            System.out.println(&quot;Could not rename the temporary file.&quot;);</span>
+<span class="pc bpc" id="L526" title="1 of 2 branches missed.">        if (!tempFile.renameTo(inputFile)) {</span>
+<span class="nc" id="L527">            System.out.println(&quot;Could not rename the temporary file.&quot;);</span>
         }
-<span class="nc" id="L535">    }</span>
+<span class="fc" id="L529">    }</span>
     
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

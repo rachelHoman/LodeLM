@@ -1,3 +1,4 @@
 "server_data/file.txt","bob","rw"
 "server_data/test.txt","alice","rw"
 "server_data/test.txt","bob","r"
+"server_data/test.txt","anika","r"

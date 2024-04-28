@@ -399,7 +399,7 @@ public class ClientHandler implements Runnable {
         writeToUserFile(username, salt, storedPasswordHash, hashedEmail);
     }
 
-    private static void resetPassword(String username, byte[] resetPassword, String email) {
+    public static void resetPassword(String username, byte[] resetPassword, String email) {
 
         // Check if the user exists
         if (Server.getUserPasswords().containsKey(username)) {
@@ -414,13 +414,7 @@ public class ClientHandler implements Runnable {
             userData.put("emailHash", hashedEmail);
             Server.getUserPasswords().put(username, userData);
 
-            // not updating secret key with new password
-            // byte[] secretKey = generateSecretKey();
-
-            // deleteUserFromFile(username);
-            // writeToUserFile(username, salt, hashedNewPassword, userData.get("emailHash"));
             // Write updated data to the user file
-            // System.out.println("WOHOO");
             updateUserDataFile(username, userData);
         } else {
             System.out.println("User does not exist.");

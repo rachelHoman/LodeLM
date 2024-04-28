@@ -637,6 +637,7 @@ public class ClientServerTest {
     public void testCreateAccount() throws IOException {
         String username = "testUser";
         byte[] password = "testPassword".getBytes(StandardCharsets.UTF_8);
+        byte[] newPassword = "testNewPassword".getBytes(StandardCharsets.UTF_8);
         String email = "testEmail";
         ClientHandler.createAccount(username, password, email);
         // check after instantiating new account
@@ -651,6 +652,27 @@ public class ClientServerTest {
             assertTrue(userData.containsKey("salt"));
             assertTrue(userData.containsKey("passwordHash"));
             assertTrue(userData.containsKey("emailHash"));
+            // check value
+            String storedpwdhash = Base64.getEncoder().encodeToString(userData.get("passwordHash"));
+            byte[] calculatedpwdhash = Server.hashSalt("testPassword", userData.get("salt"));
+            String strcalculatedpwdhash = Base64.getEncoder().encodeToString(calculatedpwdhash);
+            // System.out.println("VIBESSS: " + storedpwdhash);
+            // System.out.println(strcalculatedpwdhash);
+            assertTrue((storedpwdhash).equals(strcalculatedpwdhash));
+
+            ClientHandler.resetPassword(username, newPassword, email);
+            // check after updating account
+            // check keys
+            assertTrue(userData.containsKey("salt"));
+            assertTrue(userData.containsKey("passwordHash"));
+            assertTrue(userData.containsKey("emailHash"));
+            // check value
+            String newsalt = Base64.getEncoder().encodeToString(userData.get("salt"));
+            String newstoredpwdhash = Base64.getEncoder().encodeToString(userData.get("passwordHash"));
+            byte[] newcalculatedpwdhash = Server.hashSalt(new String(newPassword, StandardCharsets.UTF_8), userData.get("salt"));
+            String newstrcalculatedpwdhash = Base64.getEncoder().encodeToString(newcalculatedpwdhash);
+            assertTrue((newstoredpwdhash).equals(newstrcalculatedpwdhash));
+
         } catch (NoSuchFieldException | IllegalAccessException e) {
             fail("Failed to access private field: " + e.getMessage());
         }
@@ -660,7 +682,7 @@ public class ClientServerTest {
             Field userPasswordsField = Server.class.getDeclaredField("userPasswords");
             userPasswordsField.setAccessible(true);
             Map<String, Map<String, byte[]>> userPasswords = (Map<String, Map<String, byte[]>>) userPasswordsField.get(null);
-            userPasswords.remove("testUser"); // Assuming "testUser" is the username used for testing
+            userPasswords.remove("testUser");
         } catch (NoSuchFieldException | IllegalAccessException e) {
             fail("Failed to access private field: " + e.getMessage());
         }
@@ -707,16 +729,93 @@ public class ClientServerTest {
             String line;
             while ((line = reader.readLine()) != null) {
                 if (!line.contains("testUser")) {
-                    System.out.println("Line to keep: " + line);
                     writer.write(line + System.lineSeparator());
-                } else {
-                    System.out.println("Line to remove: " + line);
                 }
             }
         }
         Files.move(tempFile.toPath(), usersFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
     }
 
+    // this tests most of the other dependant methods
+
+    // @Test
+    // public void testResetPassword() throws IOException {
+    //     String username = "testUser";
+    //     byte[] password = "testPassword".getBytes(StandardCharsets.UTF_8);
+    //     byte[] newPassword = "testNewPassword".getBytes(StandardCharsets.UTF_8);
+    //     String email = "testEmail";
+    //     ClientHandler.createAccount(username, password, email);
+    //     // check after instantiating new account
+    //     try {
+    //         Field userPasswordsField = Server.class.getDeclaredField("userPasswords");
+    //         userPasswordsField.setAccessible(true);
+    //         Map<String, Map<String,byte[]>> userPasswords = (Map<String, Map<String,byte[]>>) userPasswordsField.get(null);
+    //         assertTrue(userPasswords.containsKey(username));
+    //         Map<String, byte[]> userData = userPasswords.get(username);
+    //         assertNotNull(userData);
+    //         // check keys
+    //         assertTrue(userData.containsKey("salt"));
+    //         assertTrue(userData.containsKey("passwordHash"));
+    //         assertTrue(userData.containsKey("emailHash"));
+    //     } catch (NoSuchFieldException | IllegalAccessException e) {
+    //         fail("Failed to access private field: " + e.getMessage());
+    //     }
+    //     ClientHandler.resetPassword(username, newPassword, email);
+    //     try {
+    //         Field userPasswordsField = Server.class.getDeclaredField("userPasswords");
+    //         userPasswordsField.setAccessible(true);
+    //         Map<String, Map<String,byte[]>> userPasswords = (Map<String, Map<String,byte[]>>) userPasswordsField.get(null);
+    //         assertTrue(userPasswords.containsKey(username));
+    //         Map<String, byte[]> userData = userPasswords.get(username);
+    //         assertNotNull(userData);
+    //         // check keys
+    //         assertTrue(userData.containsKey("salt"));
+    //         assertTrue(userData.containsKey("passwordHash"));
+    //         assertTrue(userData.containsKey("emailHash"));
+    //     } catch (NoSuchFieldException | IllegalAccessException e) {
+    //         fail("Failed to access private field: " + e.getMessage());
+    //     }
+
+    //     // deleting this testuser from userData, secret_key, and users file
+    //     try {
+    //         Field userPasswordsField = Server.class.getDeclaredField("userPasswords");
+    //         userPasswordsField.setAccessible(true);
+    //         Map<String, Map<String, byte[]>> userPasswords = (Map<String, Map<String, byte[]>>) userPasswordsField.get(null);
+    //         userPasswords.remove("testUser"); // Assuming "testUser" is the username used for testing
+    //     } catch (NoSuchFieldException | IllegalAccessException e) {
+    //         fail("Failed to access private field: " + e.getMessage());
+    //     }
+    //     removeTestUserFromFile();
+    //     removeTestUserFromSecretFile();
+    // }
+
+    // @Test
+    // public void testResetPassword() {
+    //     // Set up initial user data
+    //     Map<String, Map<String, byte[]>> userPasswords = new HashMap<>();
+    //     Map<String, byte[]> userData = new HashMap<>();
+    //     byte[] salt = ClientHandler.generateSalt();
+    //     byte[] hashedPassword = Server.hashSalt("oldPassword", salt);
+    //     byte[] emailHash = Server.hashSalt("test@example.com", salt);
+    //     userData.put("salt", salt);
+    //     userData.put("passwordHash", hashedPassword);
+    //     userData.put("emailHash", emailHash);
+    //     userPasswords.put("testUser", userData);
+
+    //     // Define the new password and email
+    //     byte[] newPassword = "newPassword".getBytes(StandardCharsets.UTF_8);
+    //     String newEmail = "new@example.com";
+
+    //     // Call the method under test
+    //     ClientHandler.resetPassword(userPasswords, "testUser", newPassword, newEmail);
+
+    //     // Assert that the password and email have been updated
+    //     byte[] updatedPassword = userPasswords.get("testUser").get("passwordHash");
+    //     byte[] updatedEmail = userPasswords.get("testUser").get("emailHash");
+    //     assertNotNull(updatedPassword);
+    //     assertNotNull(updatedEmail);
+    //     // Add more assertions as needed
+    // }
 
 
 
