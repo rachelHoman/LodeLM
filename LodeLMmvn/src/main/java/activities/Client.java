@@ -74,17 +74,9 @@ public class Client {
                 // AES KEY Communication
                 aesKey = fe.getAESKey();
                 byte[] keyData =  aesKey.getEncoded();
-                //TODO: Encrypt keydata
                 dataOutputStream.write(keyData);
                 dataOutputStream.flush();
                 System.out.println("Secret Key Shared");
-
-                // macKey = fe.getHmacKey();
-                // byte[] macKeyData =  macKey.getEncoded();
-                // //TODO: Encrypt keydata
-                // dataOutputStream.write(macKeyData);
-                // dataOutputStream.flush();
-                // System.out.println("MAC Key Shared");
 
                 String username = "";
                 boolean loggedIn = false;
@@ -206,7 +198,7 @@ public class Client {
                             continue;
                         }
 
-                        // Prompt the user for password
+                        // Prompt the user for password twice
                         System.out.print("Enter your password: ");
                         String password = userInput.readLine();
                         while (!isPasswordStrong(password)) {
@@ -277,19 +269,12 @@ public class Client {
                         socket.close();
                         dataInputStream.close();
                         dataOutputStream.close();
-                        // System.exit(0);
                         logAuditAction(username, "Client", "Logout", "audit_log.txt");
                         return;
                     }
                     else {
                         System.out.println("Not a valid login method");
                         continue;
-                        // Close connections
-                        // userInput.close();
-                        // socket.close();
-                        // dataInputStream.close();
-                        // dataOutputStream.close();
-                        // return;
                     }
 
                     // Receive and print the greeting message from the server

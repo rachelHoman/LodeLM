@@ -24,28 +24,28 @@ import javax.crypto.SecretKey;
 
 <span class="nc" id="L25">public class EncryptedCom {</span>
 <span class="fc" id="L26">    public static int MAX_BUFFER_SIZE = 4096;</span>
-    private static final String MAC_HASH = &quot;HmacSHA256&quot;;
+<span class="fc" id="L27">    private static final String MAC_HASH = &quot;HmacSHA256&quot;;</span>
 
     public static byte[] RSAEncrypt(byte[] text, PublicKey key) throws Exception {
-<span class="nc" id="L30">		byte[] cipherText = null;</span>
+<span class="fc" id="L30">		byte[] cipherText = null;</span>
 
         //get an RSA cipher object and print the provider
-<span class="nc" id="L33">        Cipher cipher = Cipher.getInstance(&quot;RSA/ECB/OAEPPadding&quot;);</span>
-<span class="nc" id="L34">        OAEPParameterSpec oaepParams = new OAEPParameterSpec(&quot;SHA-256&quot;, &quot;MGF1&quot;, new MGF1ParameterSpec(&quot;SHA-256&quot;), PSource.PSpecified.DEFAULT);</span>
-<span class="nc" id="L35">        cipher.init(Cipher.ENCRYPT_MODE, key, oaepParams);</span>
+<span class="fc" id="L33">        Cipher cipher = Cipher.getInstance(&quot;RSA/ECB/OAEPPadding&quot;);</span>
+<span class="fc" id="L34">        OAEPParameterSpec oaepParams = new OAEPParameterSpec(&quot;SHA-256&quot;, &quot;MGF1&quot;, new MGF1ParameterSpec(&quot;SHA-256&quot;), PSource.PSpecified.DEFAULT);</span>
+<span class="fc" id="L35">        cipher.init(Cipher.ENCRYPT_MODE, key, oaepParams);</span>
 
         //encrypt the plaintext
-<span class="nc" id="L38">        cipherText = cipher.doFinal(text);</span>
-<span class="nc" id="L39">        return cipherText;</span>
+<span class="fc" id="L38">        cipherText = cipher.doFinal(text);</span>
+<span class="fc" id="L39">        return cipherText;</span>
     }
 
     public static byte[] decryptRSA(byte[] text, RSAPrivateKey privateKey) throws NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, InvalidKeyException {
-<span class="nc" id="L43">        byte[] decryptedText = null;</span>
-<span class="nc" id="L44">        Cipher cipher = Cipher.getInstance(&quot;RSA/ECB/OAEPPadding&quot;);</span>
-<span class="nc" id="L45">        OAEPParameterSpec oaepParams = new OAEPParameterSpec(&quot;SHA-256&quot;, &quot;MGF1&quot;, new MGF1ParameterSpec(&quot;SHA-256&quot;), PSource.PSpecified.DEFAULT);</span>
-<span class="nc" id="L46">        cipher.init(Cipher.DECRYPT_MODE, privateKey, oaepParams);</span>
-<span class="nc" id="L47">        decryptedText = cipher.doFinal(text);</span>
-<span class="nc" id="L48">        return decryptedText;</span>
+<span class="fc" id="L43">        byte[] decryptedText = null;</span>
+<span class="fc" id="L44">        Cipher cipher = Cipher.getInstance(&quot;RSA/ECB/OAEPPadding&quot;);</span>
+<span class="fc" id="L45">        OAEPParameterSpec oaepParams = new OAEPParameterSpec(&quot;SHA-256&quot;, &quot;MGF1&quot;, new MGF1ParameterSpec(&quot;SHA-256&quot;), PSource.PSpecified.DEFAULT);</span>
+<span class="fc" id="L46">        cipher.init(Cipher.DECRYPT_MODE, privateKey, oaepParams);</span>
+<span class="fc" id="L47">        decryptedText = cipher.doFinal(text);</span>
+<span class="fc" id="L48">        return decryptedText;</span>
     }
 
     public static void sendMessage(byte[] byteText, SecretKey aesKey, FileEncryption fe, DataOutputStream dataOutputStream) throws InvalidAlgorithmParameterException, IOException, InvalidKeyException {
@@ -57,10 +57,10 @@ import javax.crypto.SecretKey;
 <span class="fc" id="L57">            dataOutputStream.writeLong(cipherText.length);</span>
 <span class="fc" id="L58">            dataOutputStream.write(cipherText);</span>
 <span class="fc" id="L59">            dataOutputStream.flush();</span>
-        }
+<span class="fc" id="L60">        }</span>
 <span class="fc" id="L61">        catch (Exception e) { </span>
 <span class="fc" id="L62">            System.out.println(e);</span>
-<span class="fc" id="L63">        }</span>
+        }
 <span class="fc" id="L64">        return; </span>
     }
 
@@ -69,31 +69,20 @@ import javax.crypto.SecretKey;
 <span class="fc" id="L69">            byte[] iv_cipher = new byte[16];</span>
 <span class="fc" id="L70">            dataInputStream.read(iv_cipher, 0, 16);</span>
             
-<span class="nc" id="L72">            long size = dataInputStream.readLong();</span>
-<span class="nc" id="L73">            int max_bytes = (int) Math.min(MAX_BUFFER_SIZE, size);</span>
-<span class="nc" id="L74">            byte[] buffer = new byte[max_bytes];</span>
-<span class="nc" id="L75">            dataInputStream.read(buffer, 0, max_bytes);</span>
+<span class="fc" id="L72">            long size = dataInputStream.readLong();</span>
+<span class="fc" id="L73">            int max_bytes = (int) Math.min(MAX_BUFFER_SIZE, size);</span>
+<span class="fc" id="L74">            byte[] buffer = new byte[max_bytes];</span>
+<span class="fc" id="L75">            dataInputStream.read(buffer, 0, max_bytes);</span>
 
             // Decrypt
-<span class="nc" id="L78">            byte[] textByte = fe.AESDecrypt(buffer, aesKey, iv_cipher);</span>
+<span class="fc" id="L78">            byte[] textByte = fe.AESDecrypt(buffer, aesKey, iv_cipher);</span>
         
-<span class="nc" id="L80">            return textByte; </span>
+<span class="fc" id="L80">            return textByte; </span>
 <span class="fc" id="L81">        } catch (Exception e) {</span>
 <span class="fc" id="L82">            System.out.println(e);</span>
         }
 <span class="fc" id="L84">        return &quot;&quot;.getBytes();</span>
     }
 
-    private static byte[] hashMessage(byte[] key, byte[] message) throws NoSuchAlgorithmException, InvalidKeyException {
-<span class="nc" id="L88">		SecretKeySpec secretKeySpec = new SecretKeySpec(key, MAC_HASH);</span>
-<span class="nc" id="L89">		Mac mac = Mac.getInstance(MAC_HASH);</span>
-<span class="nc" id="L90">		mac.init(secretKeySpec);</span>
-<span class="nc" id="L91">		return mac.doFinal(message);</span>
-	}
-
-    private static boolean verifyMAC(byte[] key, byte[] hashedMessage, byte[] message) throws Exception {
-<span class="nc" id="L95">        byte[] computedMac = hashMessage(key, message);</span>
-<span class="nc" id="L96">        return Arrays.equals(hashedMessage, computedMac);</span>
-    }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

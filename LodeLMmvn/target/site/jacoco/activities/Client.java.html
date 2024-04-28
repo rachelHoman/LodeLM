@@ -74,386 +74,371 @@ import javax.crypto.SecretKey;
                 // AES KEY Communication
 <span class="nc" id="L75">                aesKey = fe.getAESKey();</span>
 <span class="nc" id="L76">                byte[] keyData =  aesKey.getEncoded();</span>
-                //TODO: Encrypt keydata
-<span class="nc" id="L78">                dataOutputStream.write(keyData);</span>
-<span class="nc" id="L79">                dataOutputStream.flush();</span>
-<span class="nc" id="L80">                System.out.println(&quot;Secret Key Shared&quot;);</span>
+<span class="nc" id="L77">                dataOutputStream.write(keyData);</span>
+<span class="nc" id="L78">                dataOutputStream.flush();</span>
+<span class="nc" id="L79">                System.out.println(&quot;Secret Key Shared&quot;);</span>
 
-                // macKey = fe.getHmacKey();
-                // byte[] macKeyData =  macKey.getEncoded();
-                // //TODO: Encrypt keydata
-                // dataOutputStream.write(macKeyData);
-                // dataOutputStream.flush();
-                // System.out.println(&quot;MAC Key Shared&quot;);
-
-<span class="nc" id="L89">                String username = &quot;&quot;;</span>
-<span class="nc" id="L90">                boolean loggedIn = false;</span>
-<span class="nc bnc" id="L91" title="All 2 branches missed.">                while (!loggedIn) {</span>
+<span class="nc" id="L81">                String username = &quot;&quot;;</span>
+<span class="nc" id="L82">                boolean loggedIn = false;</span>
+<span class="nc bnc" id="L83" title="All 2 branches missed.">                while (!loggedIn) {</span>
                     // Prompt user to choose login method
-<span class="nc" id="L93">                    System.out.print(&quot;Choose an option: 1. Login, 2. Forgot Password, 3. Create Account, 4. Exit\n&quot;);</span>
-<span class="nc" id="L94">                    String login = userInput.readLine();</span>
-<span class="nc bnc" id="L95" title="All 4 branches missed.">                    if (login.equals(&quot;1&quot;) || login.equalsIgnoreCase(&quot;Login&quot;)) {</span>
+<span class="nc" id="L85">                    System.out.print(&quot;Choose an option: 1. Login, 2. Forgot Password, 3. Create Account, 4. Exit\n&quot;);</span>
+<span class="nc" id="L86">                    String login = userInput.readLine();</span>
+<span class="nc bnc" id="L87" title="All 4 branches missed.">                    if (login.equals(&quot;1&quot;) || login.equalsIgnoreCase(&quot;Login&quot;)) {</span>
                         // sending action to server
-<span class="nc" id="L97">                        EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);</span>
+<span class="nc" id="L89">                        EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);</span>
                         // Prompt the user for username
-<span class="nc" id="L99">                        System.out.print(&quot;Enter your username: &quot;);</span>
-<span class="nc" id="L100">                        username = userInput.readLine();</span>
+<span class="nc" id="L91">                        System.out.print(&quot;Enter your username: &quot;);</span>
+<span class="nc" id="L92">                        username = userInput.readLine();</span>
                         // case for user not existing
-<span class="nc bnc" id="L102" title="All 2 branches missed.">                        while (!UserExists(username, &quot;normal&quot;)) {</span>
-<span class="nc" id="L103">                            System.out.print(&quot;Username is incorrect or does not exist. Enter another username: &quot;);</span>
-<span class="nc" id="L104">                            username = userInput.readLine();</span>
+<span class="nc bnc" id="L94" title="All 2 branches missed.">                        while (!UserExists(username, &quot;normal&quot;)) {</span>
+<span class="nc" id="L95">                            System.out.print(&quot;Username is incorrect or does not exist. Enter another username: &quot;);</span>
+<span class="nc" id="L96">                            username = userInput.readLine();</span>
                         }
-<span class="nc" id="L106">                        EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream); // Send username to server</span>
+<span class="nc" id="L98">                        EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream); // Send username to server</span>
 
                         // Prompt the user for password
-<span class="nc" id="L109">                        System.out.print(&quot;Enter your password: &quot;);</span>
-<span class="nc" id="L110">                        String password = userInput.readLine();</span>
+<span class="nc" id="L101">                        System.out.print(&quot;Enter your password: &quot;);</span>
+<span class="nc" id="L102">                        String password = userInput.readLine();</span>
                         // Send encrypt password
-<span class="nc" id="L112">                        EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream); // Send password to server</span>
-<span class="nc" id="L113">                    }</span>
-<span class="nc bnc" id="L114" title="All 4 branches missed.">                    else if (login.equals(&quot;2&quot;) || login.equalsIgnoreCase(&quot;Forgot Password&quot;)) {</span>
+<span class="nc" id="L104">                        EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream); // Send password to server</span>
+<span class="nc" id="L105">                    }</span>
+<span class="nc bnc" id="L106" title="All 4 branches missed.">                    else if (login.equals(&quot;2&quot;) || login.equalsIgnoreCase(&quot;Forgot Password&quot;)) {</span>
                         // sending action to server
-<span class="nc" id="L116">                        EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);</span>
+<span class="nc" id="L108">                        EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);</span>
 
-<span class="nc" id="L118">                        username = &quot;&quot;;</span>
-<span class="nc" id="L119">                        String email = &quot;&quot;;</span>
+<span class="nc" id="L110">                        username = &quot;&quot;;</span>
+<span class="nc" id="L111">                        String email = &quot;&quot;;</span>
                         // Get valid email entry
-                        while (true) {
+<span class="nc" id="L113">                        while (true) {</span>
                             // Prompt the user for username
-<span class="nc" id="L123">                            System.out.print(&quot;Enter your username: &quot;);</span>
-<span class="nc" id="L124">                            username = userInput.readLine();</span>
+<span class="nc" id="L115">                            System.out.print(&quot;Enter your username: &quot;);</span>
+<span class="nc" id="L116">                            username = userInput.readLine();</span>
 
                             // case for user not existing
-<span class="nc bnc" id="L127" title="All 2 branches missed.">                            while (!UserExists(username, &quot;normal&quot;)) {</span>
-<span class="nc" id="L128">                                System.out.print(&quot;Username is incorrect or does not exist. Enter another username: &quot;);</span>
-<span class="nc" id="L129">                                username = userInput.readLine();</span>
+<span class="nc bnc" id="L119" title="All 2 branches missed.">                            while (!UserExists(username, &quot;normal&quot;)) {</span>
+<span class="nc" id="L120">                                System.out.print(&quot;Username is incorrect or does not exist. Enter another username: &quot;);</span>
+<span class="nc" id="L121">                                username = userInput.readLine();</span>
                             }
-<span class="nc" id="L131">                            System.out.print(&quot;Enter your email: &quot;);</span>
-<span class="nc" id="L132">                            email = userInput.readLine();</span>
+<span class="nc" id="L123">                            System.out.print(&quot;Enter your email: &quot;);</span>
+<span class="nc" id="L124">                            email = userInput.readLine();</span>
 
-<span class="nc bnc" id="L134" title="All 2 branches missed.">                            if (email.isEmpty()) {</span>
-<span class="nc" id="L135">                                System.out.println(&quot;Email cannot be empty. Please enter valid values.&quot;);</span>
-<span class="nc" id="L136">                                continue;</span>
+<span class="nc bnc" id="L126" title="All 2 branches missed.">                            if (email.isEmpty()) {</span>
+<span class="nc" id="L127">                                System.out.println(&quot;Email cannot be empty. Please enter valid values.&quot;);</span>
+<span class="nc" id="L128">                                continue;</span>
                             }
 
                             // Check if the email is valid
-<span class="nc bnc" id="L140" title="All 2 branches missed.">                            if (!SimpleMailSender.isValidEmail(email)) {</span>
-<span class="nc" id="L141">                                System.out.println(&quot;Invalid email format. Please enter valid values.&quot;);</span>
-<span class="nc" id="L142">                                continue;</span>
+<span class="nc bnc" id="L132" title="All 2 branches missed.">                            if (!SimpleMailSender.isValidEmail(email)) {</span>
+<span class="nc" id="L133">                                System.out.println(&quot;Invalid email format. Please enter valid values.&quot;);</span>
+<span class="nc" id="L134">                                continue;</span>
                             }
 
                             // Check if email and username match
-<span class="nc bnc" id="L146" title="All 2 branches missed.">                            if (!UserEmailMatch(username, email, &quot;normal&quot;)) {</span>
-<span class="nc" id="L147">                                System.out.println(&quot;Username or Email are incorrect. Please enter a valid username and email.&quot;);</span>
-<span class="nc" id="L148">                                continue;</span>
+<span class="nc bnc" id="L138" title="All 2 branches missed.">                            if (!UserEmailMatch(username, email, &quot;normal&quot;)) {</span>
+<span class="nc" id="L139">                                System.out.println(&quot;Username or Email are incorrect. Please enter a valid username and email.&quot;);</span>
+<span class="nc" id="L140">                                continue;</span>
                             }
 
                             // Password re-set email
-<span class="nc" id="L152">                            System.out.println(&quot;Sending one-time passcode to your email...&quot;);</span>
-<span class="nc" id="L153">                            String otpVal = SimpleMailSender.generateOTP();</span>
-<span class="nc" id="L154">                            String emailSubject = &quot;Password Reset&quot;;</span>
-<span class="nc" id="L155">                            String emailBody = &quot;Dear &quot; + username + &quot;,\n\n&quot;</span>
-                                            + &quot;Your one-time passcode for password reset is: &quot; + otpVal + &quot;\n&quot;
-                                            + &quot;Please use this passcode to reset your password.\n\n&quot;
-                                            + &quot;Regards,\n&quot;
-                                            + &quot;Your LodeLM Team&quot;;
-<span class="nc" id="L160">                            SimpleMailSender.sendEmail(email, emailSubject, emailBody);</span>
+<span class="nc" id="L144">                            System.out.println(&quot;Sending one-time passcode to your email...&quot;);</span>
+<span class="nc" id="L145">                            String otpVal = SimpleMailSender.generateOTP();</span>
+<span class="nc" id="L146">                            String emailSubject = &quot;Password Reset&quot;;</span>
+<span class="nc" id="L147">                            String emailBody = &quot;Dear &quot; + username + &quot;,\n\n&quot;</span>
+<span class="nc" id="L148">                                            + &quot;Your one-time passcode for password reset is: &quot; + otpVal + &quot;\n&quot;</span>
+<span class="nc" id="L149">                                            + &quot;Please use this passcode to reset your password.\n\n&quot;</span>
+<span class="nc" id="L150">                                            + &quot;Regards,\n&quot;</span>
+<span class="nc" id="L151">                                            + &quot;Your LodeLM Team&quot;;</span>
+<span class="nc" id="L152">                            SimpleMailSender.sendEmail(email, emailSubject, emailBody);</span>
 
-<span class="nc" id="L162">                            System.out.print(&quot;Enter your one-time passcode: &quot;);</span>
-<span class="nc" id="L163">                            String answer = userInput.readLine();</span>
-<span class="nc bnc" id="L164" title="All 2 branches missed.">                            if (answer.equals(otpVal)) {</span>
-<span class="nc" id="L165">                                System.out.print(&quot;Enter your new password: &quot;);</span>
-<span class="nc" id="L166">                                String password = userInput.readLine();</span>
-<span class="nc bnc" id="L167" title="All 2 branches missed.">                                while (!isPasswordStrong(password)) {</span>
-<span class="nc" id="L168">                                    String errorMessage = &quot;Password is not strong enough. Please choose a password with at least 8 characters, containing at least one digit, one uppercase letter, one lowercase letter, and one special character. \n&quot;;</span>
-<span class="nc" id="L169">                                    System.out.print(errorMessage);</span>
-<span class="nc" id="L170">                                    System.out.print(&quot;Try again please. Enter your password: &quot;);</span>
-<span class="nc" id="L171">                                    password = userInput.readLine();</span>
-<span class="nc" id="L172">                                }</span>
-<span class="nc" id="L173">                                System.out.print(&quot;Retype your password: &quot;);</span>
-<span class="nc" id="L174">                                String password2 = userInput.readLine();</span>
-<span class="nc bnc" id="L175" title="All 2 branches missed.">                                while (!password.equals(password2)){</span>
-<span class="nc" id="L176">                                    System.out.println(&quot;Passwords do not match&quot;); </span>
-<span class="nc" id="L177">                                    System.out.println(&quot;Please try again: &quot;); </span>
-<span class="nc" id="L178">                                    password2 = userInput.readLine();</span>
+<span class="nc" id="L154">                            System.out.print(&quot;Enter your one-time passcode: &quot;);</span>
+<span class="nc" id="L155">                            String answer = userInput.readLine();</span>
+<span class="nc bnc" id="L156" title="All 2 branches missed.">                            if (answer.equals(otpVal)) {</span>
+<span class="nc" id="L157">                                System.out.print(&quot;Enter your new password: &quot;);</span>
+<span class="nc" id="L158">                                String password = userInput.readLine();</span>
+<span class="nc bnc" id="L159" title="All 2 branches missed.">                                while (!isPasswordStrong(password)) {</span>
+<span class="nc" id="L160">                                    String errorMessage = &quot;Password is not strong enough. Please choose a password with at least 8 characters, containing at least one digit, one uppercase letter, one lowercase letter, and one special character. \n&quot;;</span>
+<span class="nc" id="L161">                                    System.out.print(errorMessage);</span>
+<span class="nc" id="L162">                                    System.out.print(&quot;Try again please. Enter your password: &quot;);</span>
+<span class="nc" id="L163">                                    password = userInput.readLine();</span>
                                 }
-<span class="nc" id="L180">                                logAuditAction(username, &quot;Forgot Password&quot;, &quot;Password Recovered&quot;, &quot;audit_log.txt&quot;);</span>
-<span class="nc" id="L181">                                EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);</span>
-<span class="nc" id="L182">                                EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);</span>
-<span class="nc" id="L183">                                EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);</span>
-<span class="nc" id="L184">                                break;</span>
+<span class="nc" id="L165">                                System.out.print(&quot;Retype your password: &quot;);</span>
+<span class="nc" id="L166">                                String password2 = userInput.readLine();</span>
+<span class="nc bnc" id="L167" title="All 2 branches missed.">                                while (!password.equals(password2)){</span>
+<span class="nc" id="L168">                                    System.out.println(&quot;Passwords do not match&quot;); </span>
+<span class="nc" id="L169">                                    System.out.println(&quot;Please try again: &quot;); </span>
+<span class="nc" id="L170">                                    password2 = userInput.readLine();</span>
+                                }
+<span class="nc" id="L172">                                logAuditAction(username, &quot;Forgot Password&quot;, &quot;Password Recovered&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="nc" id="L173">                                EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);</span>
+<span class="nc" id="L174">                                EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);</span>
+<span class="nc" id="L175">                                EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);</span>
+<span class="nc" id="L176">                                break;</span>
                             } else {
                                 // TODO: add reports of inccorect attemps to login AUDIT milestone
-<span class="nc" id="L187">                                System.out.println(&quot;Incorrect Answer&quot;);</span>
-<span class="nc" id="L188">                                logAuditAction(username, &quot;Forgot Password&quot;, &quot;Failed Password Recovery&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="nc" id="L179">                                System.out.println(&quot;Incorrect Answer&quot;);</span>
+<span class="nc" id="L180">                                logAuditAction(username, &quot;Forgot Password&quot;, &quot;Failed Password Recovery&quot;, &quot;audit_log.txt&quot;);</span>
 
                             }
-<span class="nc" id="L191">                        }</span>
-<span class="nc" id="L192">                    }</span>
-<span class="nc bnc" id="L193" title="All 4 branches missed.">                    else if (login.equals(&quot;3&quot;) || login.equalsIgnoreCase(&quot;Create Account&quot;)) {</span>
+                        }
+                    }
+<span class="nc bnc" id="L185" title="All 4 branches missed.">                    else if (login.equals(&quot;3&quot;) || login.equalsIgnoreCase(&quot;Create Account&quot;)) {</span>
                         // Send a signal to the server indicating account creation
-<span class="nc" id="L195">                        EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);</span>
+<span class="nc" id="L187">                        EncryptedCom.sendMessage(login.getBytes(), aesKey, fe, dataOutputStream);</span>
                         // Prompt the user for username
-<span class="nc" id="L197">                        System.out.print(&quot;Enter your username: &quot;);</span>
-<span class="nc" id="L198">                        username = userInput.readLine();</span>
+<span class="nc" id="L189">                        System.out.print(&quot;Enter your username: &quot;);</span>
+<span class="nc" id="L190">                        username = userInput.readLine();</span>
 
-<span class="nc bnc" id="L200" title="All 2 branches missed.">                        while (UserExists(username, &quot;normal&quot;)) {</span>
-<span class="nc" id="L201">                            System.out.print(&quot;Username exists. Enter another username: &quot;);</span>
-<span class="nc" id="L202">                            username = userInput.readLine();</span>
+<span class="nc bnc" id="L192" title="All 2 branches missed.">                        while (UserExists(username, &quot;normal&quot;)) {</span>
+<span class="nc" id="L193">                            System.out.print(&quot;Username exists. Enter another username: &quot;);</span>
+<span class="nc" id="L194">                            username = userInput.readLine();</span>
                         }
-<span class="nc bnc" id="L204" title="All 4 branches missed.">                        if (username.isEmpty() || username.contains(&quot; &quot;)) {</span>
-<span class="nc" id="L205">                            System.out.println(&quot;Username cannot be empty. Please enter valid values.&quot;);</span>
-<span class="nc" id="L206">                            continue;</span>
-                        }
-
-                        // Prompt the user for password
-<span class="nc" id="L210">                        System.out.print(&quot;Enter your password: &quot;);</span>
-<span class="nc" id="L211">                        String password = userInput.readLine();</span>
-<span class="nc bnc" id="L212" title="All 2 branches missed.">                        while (!isPasswordStrong(password)) {</span>
-<span class="nc" id="L213">                            String errorMessage = &quot;Password is not strong enough. Please choose a password with at least 8 characters, containing at least one digit, one uppercase letter, one lowercase letter, and one special character.&quot;;</span>
-<span class="nc" id="L214">                            System.out.print(errorMessage);</span>
-<span class="nc" id="L215">                            System.out.print(&quot;Try again please. Enter your password: &quot;);</span>
-<span class="nc" id="L216">                            password = userInput.readLine();</span>
-<span class="nc" id="L217">                        }</span>
-<span class="nc" id="L218">                        System.out.print(&quot;Enter your password again: &quot;);</span>
-<span class="nc" id="L219">                        String password2 = userInput.readLine();</span>
-<span class="nc bnc" id="L220" title="All 2 branches missed.">                        while (!password.equals(password2)){</span>
-<span class="nc" id="L221">                            System.out.print(&quot;Passwords do not match.&quot;);</span>
-<span class="nc" id="L222">                            System.out.print(&quot;Please try again:&quot;);</span>
-<span class="nc" id="L223">                            password2 = userInput.readLine();</span>
+<span class="nc bnc" id="L196" title="All 4 branches missed.">                        if (username.isEmpty() || username.contains(&quot; &quot;)) {</span>
+<span class="nc" id="L197">                            System.out.println(&quot;Username cannot be empty. Please enter valid values.&quot;);</span>
+<span class="nc" id="L198">                            continue;</span>
                         }
 
-<span class="nc" id="L226">                        String email = &quot;&quot;;</span>
+                        // Prompt the user for password twice
+<span class="nc" id="L202">                        System.out.print(&quot;Enter your password: &quot;);</span>
+<span class="nc" id="L203">                        String password = userInput.readLine();</span>
+<span class="nc bnc" id="L204" title="All 2 branches missed.">                        while (!isPasswordStrong(password)) {</span>
+<span class="nc" id="L205">                            String errorMessage = &quot;Password is not strong enough. Please choose a password with at least 8 characters, containing at least one digit, one uppercase letter, one lowercase letter, and one special character.&quot;;</span>
+<span class="nc" id="L206">                            System.out.print(errorMessage);</span>
+<span class="nc" id="L207">                            System.out.print(&quot;Try again please. Enter your password: &quot;);</span>
+<span class="nc" id="L208">                            password = userInput.readLine();</span>
+                        }
+<span class="nc" id="L210">                        System.out.print(&quot;Enter your password again: &quot;);</span>
+<span class="nc" id="L211">                        String password2 = userInput.readLine();</span>
+<span class="nc bnc" id="L212" title="All 2 branches missed.">                        while (!password.equals(password2)){</span>
+<span class="nc" id="L213">                            System.out.print(&quot;Passwords do not match.&quot;);</span>
+<span class="nc" id="L214">                            System.out.print(&quot;Please try again:&quot;);</span>
+<span class="nc" id="L215">                            password2 = userInput.readLine();</span>
+                        }
+
+<span class="nc" id="L218">                        String email = &quot;&quot;;</span>
                         // Get valid email entry
-                        while (true) {
-<span class="nc" id="L229">                            System.out.print(&quot;Enter your email: &quot;);</span>
-<span class="nc" id="L230">                            email = userInput.readLine();</span>
+<span class="nc" id="L220">                        while (true) {</span>
+<span class="nc" id="L221">                            System.out.print(&quot;Enter your email: &quot;);</span>
+<span class="nc" id="L222">                            email = userInput.readLine();</span>
 
-<span class="nc bnc" id="L232" title="All 2 branches missed.">                            if (email.isEmpty()) {</span>
-<span class="nc" id="L233">                                System.out.println(&quot;Email cannot be empty. Please enter a valid email.&quot;);</span>
-<span class="nc" id="L234">                                continue;</span>
+<span class="nc bnc" id="L224" title="All 2 branches missed.">                            if (email.isEmpty()) {</span>
+<span class="nc" id="L225">                                System.out.println(&quot;Email cannot be empty. Please enter a valid email.&quot;);</span>
+<span class="nc" id="L226">                                continue;</span>
                             }
 
                             // Check if the email is valid
-<span class="nc bnc" id="L238" title="All 2 branches missed.">                            if (!SimpleMailSender.isValidEmail(email)) {</span>
-<span class="nc" id="L239">                                System.out.println(&quot;Invalid email format. Please enter a valid email.&quot;);</span>
-<span class="nc" id="L240">                                continue;</span>
+<span class="nc bnc" id="L230" title="All 2 branches missed.">                            if (!SimpleMailSender.isValidEmail(email)) {</span>
+<span class="nc" id="L231">                                System.out.println(&quot;Invalid email format. Please enter a valid email.&quot;);</span>
+<span class="nc" id="L232">                                continue;</span>
                             }
 
                             // Verifying email
-<span class="nc" id="L244">                            System.out.println(&quot;Sending one-time passcode to your email...&quot;);</span>
-<span class="nc" id="L245">                            String otpVal = SimpleMailSender.generateOTP();</span>
-<span class="nc" id="L246">                            String emailSubject = &quot;Email Verification&quot;;</span>
-<span class="nc" id="L247">                            String emailBody = &quot;Dear &quot; + username + &quot;,\n\n&quot;</span>
-                                            + &quot;Your one-time passcode is: &quot; + otpVal + &quot;\n&quot;
-                                            + &quot;Please use this passcode to verify your email.\n\n&quot;
-                                            + &quot;Regards,\n&quot;
-                                            + &quot;Your LodeLM Team&quot;;
-<span class="nc" id="L252">                            SimpleMailSender.sendEmail(email, emailSubject, emailBody);</span>
+<span class="nc" id="L236">                            System.out.println(&quot;Sending one-time passcode to your email...&quot;);</span>
+<span class="nc" id="L237">                            String otpVal = SimpleMailSender.generateOTP();</span>
+<span class="nc" id="L238">                            String emailSubject = &quot;Email Verification&quot;;</span>
+<span class="nc" id="L239">                            String emailBody = &quot;Dear &quot; + username + &quot;,\n\n&quot;</span>
+<span class="nc" id="L240">                                            + &quot;Your one-time passcode is: &quot; + otpVal + &quot;\n&quot;</span>
+<span class="nc" id="L241">                                            + &quot;Please use this passcode to verify your email.\n\n&quot;</span>
+<span class="nc" id="L242">                                            + &quot;Regards,\n&quot;</span>
+<span class="nc" id="L243">                                            + &quot;Your LodeLM Team&quot;;</span>
+<span class="nc" id="L244">                            SimpleMailSender.sendEmail(email, emailSubject, emailBody);</span>
 
-<span class="nc" id="L254">                            System.out.print(&quot;Enter your one-time passcode: &quot;);</span>
-<span class="nc" id="L255">                            String answer = userInput.readLine();</span>
-<span class="nc bnc" id="L256" title="All 2 branches missed.">                            if (answer.equals(otpVal)) {</span>
-<span class="nc" id="L257">                                System.out.println(&quot;Your email has been verified!&quot;);</span>
-<span class="nc" id="L258">                                break;</span>
+<span class="nc" id="L246">                            System.out.print(&quot;Enter your one-time passcode: &quot;);</span>
+<span class="nc" id="L247">                            String answer = userInput.readLine();</span>
+<span class="nc bnc" id="L248" title="All 2 branches missed.">                            if (answer.equals(otpVal)) {</span>
+<span class="nc" id="L249">                                System.out.println(&quot;Your email has been verified!&quot;);</span>
+<span class="nc" id="L250">                                break;</span>
                             } else {
                                 // TODO: add reports of inccorect attemps to login AUDIT milestone
-<span class="nc" id="L261">                                System.out.println(&quot;Your email was invalid. Please enter a valid email.&quot;);</span>
+<span class="nc" id="L253">                                System.out.println(&quot;Your email was invalid. Please enter a valid email.&quot;);</span>
                             }
-<span class="nc" id="L263">                        }</span>
+                        }
 
                         // Encrypt the password
-<span class="nc" id="L266">                        logAuditAction(username, &quot;Create Account&quot;, &quot;Account Created&quot;, &quot;audit_log.txt&quot;);</span>
-<span class="nc" id="L267">                        EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);</span>
-<span class="nc" id="L268">                        EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);</span>
-<span class="nc" id="L269">                        EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);</span>
+<span class="nc" id="L258">                        logAuditAction(username, &quot;Create Account&quot;, &quot;Account Created&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="nc" id="L259">                        EncryptedCom.sendMessage(username.getBytes(), aesKey, fe, dataOutputStream);</span>
+<span class="nc" id="L260">                        EncryptedCom.sendMessage(password.getBytes(), aesKey, fe, dataOutputStream);</span>
+<span class="nc" id="L261">                        EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);</span>
 
-<span class="nc" id="L271">                    }</span>
-<span class="nc bnc" id="L272" title="All 4 branches missed.">                    else if (login.equals(&quot;4&quot;) || login.equalsIgnoreCase(&quot;Exit&quot;)) {</span>
+<span class="nc" id="L263">                    }</span>
+<span class="nc bnc" id="L264" title="All 4 branches missed.">                    else if (login.equals(&quot;4&quot;) || login.equalsIgnoreCase(&quot;Exit&quot;)) {</span>
                         // Send exit command to the server
-<span class="nc" id="L274">                        EncryptedCom.sendMessage(&quot;exit&quot;.getBytes(), aesKey, fe, dataOutputStream);</span>
+<span class="nc" id="L266">                        EncryptedCom.sendMessage(&quot;exit&quot;.getBytes(), aesKey, fe, dataOutputStream);</span>
                         // Close connections
-<span class="nc" id="L276">                        userInput.close();</span>
-<span class="nc" id="L277">                        socket.close();</span>
-<span class="nc" id="L278">                        dataInputStream.close();</span>
-<span class="nc" id="L279">                        dataOutputStream.close();</span>
-                        // System.exit(0);
-<span class="nc" id="L281">                        logAuditAction(username, &quot;Client&quot;, &quot;Logout&quot;, &quot;audit_log.txt&quot;);</span>
-<span class="nc" id="L282">                        return;</span>
+<span class="nc" id="L268">                        userInput.close();</span>
+<span class="nc" id="L269">                        socket.close();</span>
+<span class="nc" id="L270">                        dataInputStream.close();</span>
+<span class="nc" id="L271">                        dataOutputStream.close();</span>
+<span class="nc" id="L272">                        logAuditAction(username, &quot;Client&quot;, &quot;Logout&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="nc" id="L273">                        return;</span>
                     }
                     else {
-<span class="nc" id="L285">                        System.out.println(&quot;Not a valid login method&quot;);</span>
-<span class="nc" id="L286">                        continue;</span>
-                        // Close connections
-                        // userInput.close();
-                        // socket.close();
-                        // dataInputStream.close();
-                        // dataOutputStream.close();
-                        // return;
+<span class="nc" id="L276">                        System.out.println(&quot;Not a valid login method&quot;);</span>
+<span class="nc" id="L277">                        continue;</span>
                     }
 
                     // Receive and print the greeting message from the server
-<span class="nc" id="L296">                    byte[] greetingByte = EncryptedCom.receiveMessage(aesKey, fe, dataInputStream);</span>
-<span class="nc" id="L297">                    String greeting = new String(greetingByte, StandardCharsets.UTF_8);</span>
-<span class="nc" id="L298">                    System.out.println(greeting);</span>
-<span class="nc bnc" id="L299" title="All 2 branches missed.">                    if (!greeting.equals(&quot;Invalid username or password.&quot;)) {</span>
-<span class="nc" id="L300">                        loggedIn = true;</span>
-<span class="nc" id="L301">                        logAuditAction(username, &quot;Normal&quot;, &quot;Login&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="nc" id="L281">                    byte[] greetingByte = EncryptedCom.receiveMessage(aesKey, fe, dataInputStream);</span>
+<span class="nc" id="L282">                    String greeting = new String(greetingByte, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L283">                    System.out.println(greeting);</span>
+<span class="nc bnc" id="L284" title="All 2 branches missed.">                    if (!greeting.equals(&quot;Invalid username or password.&quot;)) {</span>
+<span class="nc" id="L285">                        loggedIn = true;</span>
+<span class="nc" id="L286">                        logAuditAction(username, &quot;Normal&quot;, &quot;Login&quot;, &quot;audit_log.txt&quot;);</span>
                         // After successful authentication
-<span class="nc" id="L303">                        String loggedInMessage = &quot;logged-in&quot;;</span>
-<span class="nc" id="L304">                        EncryptedCom.sendMessage(loggedInMessage.getBytes(), aesKey, fe, dataOutputStream);</span>
+<span class="nc" id="L288">                        String loggedInMessage = &quot;logged-in&quot;;</span>
+<span class="nc" id="L289">                        EncryptedCom.sendMessage(loggedInMessage.getBytes(), aesKey, fe, dataOutputStream);</span>
                     }
-<span class="nc" id="L306">                }</span>
+                }
 
                 String userMessage;
-<span class="nc bnc" id="L309" title="All 2 branches missed.">                while ((userMessage = userInput.readLine()) != null) {</span>
+<span class="nc bnc" id="L294" title="All 2 branches missed.">                while ((userMessage = userInput.readLine()) != null) {</span>
 
-<span class="nc" id="L311">                    EncryptedCom.sendMessage(userMessage.getBytes(), aesKey, fe, dataOutputStream);</span>
+<span class="nc" id="L296">                    EncryptedCom.sendMessage(userMessage.getBytes(), aesKey, fe, dataOutputStream);</span>
 
-<span class="nc bnc" id="L313" title="All 2 branches missed.">                    if (userMessage.startsWith(&quot;send &quot;)) {</span>
-<span class="nc" id="L314">                        String fileName = userMessage.substring(5);</span>
-<span class="nc" id="L315">                        String filePath = &quot;client_data/&quot; + fileName;</span>
-<span class="nc" id="L316">                        File fileToSend = new File(filePath);</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">                    if (userMessage.startsWith(&quot;send &quot;)) {</span>
+<span class="nc" id="L299">                        String fileName = userMessage.substring(5);</span>
+<span class="nc" id="L300">                        String filePath = &quot;client_data/&quot; + fileName;</span>
+<span class="nc" id="L301">                        File fileToSend = new File(filePath);</span>
 
-<span class="nc bnc" id="L318" title="All 2 branches missed.">                        if (fileToSend.exists()) {</span>
-<span class="nc" id="L319">                        FileHandler fileHandler = new FileHandler(filePath);</span>
+<span class="nc bnc" id="L303" title="All 2 branches missed.">                        if (fileToSend.exists()) {</span>
+<span class="nc" id="L304">                        FileHandler fileHandler = new FileHandler(filePath);</span>
                         try {
-<span class="nc" id="L321">                            fileHandler.sendFile(dataOutputStream, aesKey, false, username);</span>
-<span class="nc" id="L322">                        } catch (Exception e) {</span>
-<span class="nc" id="L323">                            System.out.println(e);</span>
-<span class="nc" id="L324">                        }</span>
-<span class="nc" id="L325">                        }</span>
+<span class="nc" id="L306">                            fileHandler.sendFile(dataOutputStream, aesKey, false, username);</span>
+<span class="nc" id="L307">                        } catch (Exception e) {</span>
+<span class="nc" id="L308">                            System.out.println(e);</span>
+                        }
+<span class="nc" id="L310">                        }</span>
 
                         else {
-<span class="nc" id="L328">                            System.out.println(&quot;This file does not exist or is a directory&quot;);</span>
-<span class="nc" id="L329">                            continue;</span>
+<span class="nc" id="L313">                            System.out.println(&quot;This file does not exist or is a directory&quot;);</span>
+<span class="nc" id="L314">                            continue;</span>
                         }
                         
-<span class="nc" id="L332">                    }</span>
+                    }
 
-<span class="nc bnc" id="L334" title="All 2 branches missed.">                    else if (userMessage.startsWith(&quot;download &quot;)) {</span>
-<span class="nc" id="L335">                        String fileName = userMessage.substring(9);</span>
-<span class="nc" id="L336">                        File fileToDownload = new File(&quot;server_data/&quot; + fileName);</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">                    else if (userMessage.startsWith(&quot;download &quot;)) {</span>
+<span class="nc" id="L320">                        String fileName = userMessage.substring(9);</span>
+<span class="nc" id="L321">                        File fileToDownload = new File(&quot;server_data/&quot; + fileName);</span>
 
-<span class="nc bnc" id="L338" title="All 2 branches missed.">                        if (fileToDownload.exists()) {</span>
-<span class="nc" id="L339">                            FileHandler fileHandler = new FileHandler(&quot;client_data/&quot; + fileName);</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">                        if (fileToDownload.exists()) {</span>
+<span class="nc" id="L324">                            FileHandler fileHandler = new FileHandler(&quot;client_data/&quot; + fileName);</span>
                             try {
-<span class="nc" id="L341">                                fileHandler.receiveFile(dataInputStream, aesKey, false, username);</span>
-<span class="nc" id="L342">                            } catch (Exception e) {</span>
-<span class="nc" id="L343">                                System.out.println(e);</span>
-<span class="nc" id="L344">                            }</span>
-<span class="nc" id="L345">                        }</span>
+<span class="nc" id="L326">                                fileHandler.receiveFile(dataInputStream, aesKey, false, username);</span>
+<span class="nc" id="L327">                            } catch (Exception e) {</span>
+<span class="nc" id="L328">                                System.out.println(e);</span>
+                            }
+<span class="nc" id="L330">                        }</span>
 
                         else {
-<span class="nc" id="L348">                            System.out.println(fileName + &quot; does not exist or is a directory&quot;);</span>
-<span class="nc" id="L349">                            continue;</span>
+<span class="nc" id="L333">                            System.out.println(fileName + &quot; does not exist or is a directory&quot;);</span>
+<span class="nc" id="L334">                            continue;</span>
                         }
 
-<span class="nc" id="L352">                    }</span>
+                    }
 
                     // Exit loop if user types 'exit'
-<span class="nc bnc" id="L355" title="All 2 branches missed.">                    else if (userMessage.equalsIgnoreCase(&quot;exit&quot;)) {</span>
-<span class="nc" id="L356">                        logAuditAction(username, &quot;User&quot;, &quot;Logout&quot;, &quot;audit_log.txt&quot;);</span>
-<span class="nc" id="L357">                        break;</span>
+<span class="nc bnc" id="L340" title="All 2 branches missed.">                    else if (userMessage.equalsIgnoreCase(&quot;exit&quot;)) {</span>
+<span class="nc" id="L341">                        logAuditAction(username, &quot;User&quot;, &quot;Logout&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="nc" id="L342">                        break;</span>
                     }
 
                     // Print server responses
                     String response;
-<span class="nc bnc" id="L362" title="All 2 branches missed.">                    while ((response = new String(EncryptedCom.receiveMessage(aesKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) { </span>
-<span class="nc" id="L363">                        System.out.println(response);</span>
+<span class="nc bnc" id="L347" title="All 2 branches missed.">                    while ((response = new String(EncryptedCom.receiveMessage(aesKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) { </span>
+<span class="nc" id="L348">                        System.out.println(response);</span>
 
                         // Break out of inner loop to return to waiting for user input
                         break;
                     }
 
-<span class="nc" id="L369">                }</span>
+                }
 
                 // Close connections
-<span class="nc" id="L372">                userInput.close();</span>
-<span class="nc" id="L373">                socket.close();</span>
-<span class="nc" id="L374">            } catch (Exception e) {</span>
-<span class="nc" id="L375">                System.out.println(e);</span>
-<span class="nc" id="L376">            }</span>
-<span class="nc" id="L377">        } catch (Exception e) {</span>
-<span class="nc" id="L378">            System.out.println(e);</span>
-<span class="nc" id="L379">        }</span>
-<span class="nc" id="L380">    }</span>
+<span class="nc" id="L357">                userInput.close();</span>
+<span class="nc" id="L358">                socket.close();</span>
+<span class="nc" id="L359">            } catch (Exception e) {</span>
+<span class="nc" id="L360">                System.out.println(e);</span>
+            }
+<span class="nc" id="L362">        } catch (Exception e) {</span>
+<span class="nc" id="L363">            System.out.println(e);</span>
+        }
+<span class="nc" id="L365">    }</span>
 
     public static boolean UserExists(String username, String userMode) {
         Map&lt;String, byte[]&gt; userData;
-<span class="pc bpc" id="L384" title="1 of 2 branches missed.">        if (userMode.equals(&quot;test&quot;)) {</span>
-<span class="fc" id="L385">            userData = Server.testGetUserPasswords().get(username);</span>
-        }
+<span class="pc bpc" id="L369" title="1 of 2 branches missed.">        if (userMode.equals(&quot;test&quot;)) {</span>
+<span class="fc" id="L370">            userData = Server.testGetUserPasswords().get(username);</span>
+<span class="fc" id="L371">        }</span>
         else {
-<span class="nc" id="L388">            userData = Server.getUserPasswords().get(username);</span>
+<span class="nc" id="L373">            userData = Server.getUserPasswords().get(username);</span>
         }
 
-<span class="fc bfc" id="L391" title="All 2 branches covered.">        if (userData == null) {</span>
-<span class="fc" id="L392">            return false;</span>
+<span class="fc bfc" id="L376" title="All 2 branches covered.">        if (userData == null) {</span>
+<span class="fc" id="L377">            return false;</span>
         }
         else {
-<span class="fc" id="L395">            return true;</span>
+<span class="fc" id="L380">            return true;</span>
         }
     }
 
     public static boolean UserEmailMatch (String username, String providedEmail, String userMode) {
         Map&lt;String, byte[]&gt; userData;
-<span class="pc bpc" id="L401" title="1 of 2 branches missed.">        if (userMode.equals(&quot;test&quot;)) {</span>
-<span class="fc" id="L402">            userData = Server.testGetUserPasswords().get(username);</span>
-        }
+<span class="pc bpc" id="L386" title="1 of 2 branches missed.">        if (userMode.equals(&quot;test&quot;)) {</span>
+<span class="fc" id="L387">            userData = Server.testGetUserPasswords().get(username);</span>
+<span class="fc" id="L388">        }</span>
         else {
-<span class="nc" id="L405">            userData = Server.getUserPasswords().get(username);</span>
+<span class="nc" id="L390">            userData = Server.getUserPasswords().get(username);</span>
         }
         
-<span class="fc bfc" id="L408" title="All 2 branches covered.">        if (userData == null) {</span>
-<span class="fc" id="L409">            return false;</span>
+<span class="fc bfc" id="L393" title="All 2 branches covered.">        if (userData == null) {</span>
+<span class="fc" id="L394">            return false;</span>
         }
         else {
             // Get the stored salt and password email
-<span class="fc" id="L413">            byte[] storedSalt = userData.get(&quot;salt&quot;);</span>
-<span class="fc" id="L414">            byte[] storedEmailHash = userData.get(&quot;emailHash&quot;);</span>
-<span class="pc bpc" id="L415" title="2 of 4 branches missed.">            if (storedSalt == null || storedEmailHash == null) {</span>
-<span class="nc" id="L416">                return false;</span>
+<span class="fc" id="L398">            byte[] storedSalt = userData.get(&quot;salt&quot;);</span>
+<span class="fc" id="L399">            byte[] storedEmailHash = userData.get(&quot;emailHash&quot;);</span>
+<span class="pc bpc" id="L400" title="2 of 4 branches missed.">            if (storedSalt == null || storedEmailHash == null) {</span>
+<span class="nc" id="L401">                return false;</span>
             }
             // Hash the provided email
-<span class="fc" id="L419">            byte[] providedEmailHash = Server.hashSalt(providedEmail, storedSalt);</span>
-<span class="fc" id="L420">            return Arrays.equals(providedEmailHash, storedEmailHash);</span>
+<span class="fc" id="L404">            byte[] providedEmailHash = Server.hashSalt(providedEmail, storedSalt);</span>
+<span class="fc" id="L405">            return Arrays.equals(providedEmailHash, storedEmailHash);</span>
         }
     }
 
     public static boolean isPasswordStrong(String password) {
-<span class="pc bpc" id="L425" title="1 of 4 branches missed.">        if (StringUtils.isBlank(password) || password.length() &lt; 8) {</span>
-<span class="fc" id="L426">            return false;</span>
+<span class="pc bpc" id="L410" title="1 of 4 branches missed.">        if (StringUtils.isBlank(password) || password.length() &lt; 8) {</span>
+<span class="fc" id="L411">            return false;</span>
         }
     
         // Count special characters
-<span class="fc" id="L430">        int specialCharCount = 0;</span>
-<span class="fc bfc" id="L431" title="All 2 branches covered.">        for (char ch : password.toCharArray()) {</span>
-<span class="fc bfc" id="L432" title="All 2 branches covered.">            if (!Character.isLetterOrDigit(ch)) {</span>
-<span class="fc" id="L433">                specialCharCount++;</span>
+<span class="fc" id="L415">        int specialCharCount = 0;</span>
+<span class="fc bfc" id="L416" title="All 2 branches covered.">        for (char ch : password.toCharArray()) {</span>
+<span class="fc bfc" id="L417" title="All 2 branches covered.">            if (!Character.isLetterOrDigit(ch)) {</span>
+<span class="fc" id="L418">                specialCharCount++;</span>
             }
         }
     
         // Check if password contains at least one digit, one uppercase, and one lowercase character
-<span class="fc" id="L438">        boolean containsDigit = StringUtils.containsAny(password, &quot;1234567890&quot;);</span>
-<span class="fc" id="L439">        boolean containsUppercase = StringUtils.containsAny(password, &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;);</span>
-<span class="fc" id="L440">        boolean containsLowercase = StringUtils.containsAny(password, &quot;abcdefghijklmnopqrstuvwxyz&quot;);</span>
+<span class="fc" id="L423">        boolean containsDigit = StringUtils.containsAny(password, &quot;1234567890&quot;);</span>
+<span class="fc" id="L424">        boolean containsUppercase = StringUtils.containsAny(password, &quot;ABCDEFGHIJKLMNOPQRSTUVWXYZ&quot;);</span>
+<span class="fc" id="L425">        boolean containsLowercase = StringUtils.containsAny(password, &quot;abcdefghijklmnopqrstuvwxyz&quot;);</span>
     
-<span class="fc bfc" id="L442" title="All 8 branches covered.">        return containsDigit &amp;&amp; containsUppercase &amp;&amp; containsLowercase &amp;&amp; specialCharCount &gt;= 1;</span>
+<span class="fc bfc" id="L427" title="All 8 branches covered.">        return containsDigit &amp;&amp; containsUppercase &amp;&amp; containsLowercase &amp;&amp; specialCharCount &gt;= 1;</span>
     }
 
     // Method to log audit action
     public static void logAuditAction(String username, String permissionLevel, String action, String filename) {
-<span class="fc" id="L447">        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
-<span class="fc" id="L448">        String logEntry = username + &quot;,&quot; + permissionLevel + &quot;,&quot; + timestamp + &quot;,&quot; + action;</span>
+<span class="fc" id="L432">        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
+<span class="fc" id="L433">        String logEntry = username + &quot;,&quot; + permissionLevel + &quot;,&quot; + timestamp + &quot;,&quot; + action;</span>
 
-<span class="fc" id="L450">        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {</span>
-<span class="fc" id="L451">            writer.write(logEntry);</span>
-<span class="fc" id="L452">            writer.newLine();</span>
-<span class="nc" id="L453">        } catch (IOException e) {</span>
-<span class="nc" id="L454">            System.err.println(&quot;Error writing to audit log: &quot; + e.getMessage());</span>
-<span class="fc" id="L455">        }</span>
-<span class="fc" id="L456">    }</span>
+<span class="fc" id="L435">        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {</span>
+<span class="fc" id="L436">            writer.write(logEntry);</span>
+<span class="fc" id="L437">            writer.newLine();</span>
+<span class="nc" id="L438">        } catch (IOException e) {</span>
+<span class="nc" id="L439">            System.err.println(&quot;Error writing to audit log: &quot; + e.getMessage());</span>
+        }
+<span class="fc" id="L441">    }</span>
 
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>
