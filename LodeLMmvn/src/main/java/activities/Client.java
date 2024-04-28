@@ -53,13 +53,10 @@ public class Client {
                 sslContext.init(null, tmf.getTrustManagers(), null);
                 
                 SSLSocketFactory factory = sslContext.getSocketFactory();
-                // SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
                 socket = (SSLSocket) factory.createSocket(SERVER_IP, SERVER_PORT);
-                // socket.setEnabledProtocols(protocols);
                 socket.setEnabledCipherSuites(cipher_suites); 
                 socket.startHandshake(); 
 
-                // Socket socket = new Socket(SERVER_IP, SERVER_PORT);
                 System.out.println("Connected to Server");
 
                 BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in)); //user input stream
@@ -78,13 +75,6 @@ public class Client {
                 dataOutputStream.write(keyData);
                 dataOutputStream.flush();
                 System.out.println("Secret Key Shared");
-
-                // macKey = fe.getHmacKey();
-                // byte[] macKeyData =  macKey.getEncoded();
-                // //TODO: Encrypt keydata
-                // dataOutputStream.write(macKeyData);
-                // dataOutputStream.flush();
-                // System.out.println("MAC Key Shared");
 
                 String username = "";
                 boolean loggedIn = false;
@@ -183,7 +173,6 @@ public class Client {
                                 EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
                                 break;
                             } else {
-                                // TODO: add reports of inccorect attemps to login AUDIT milestone
                                 System.out.println("Incorrect Answer");
                                 logAuditAction(username, "Forgot Password", "Failed Password Recovery", "audit_log.txt");
 
@@ -257,7 +246,7 @@ public class Client {
                                 System.out.println("Your email has been verified!");
                                 break;
                             } else {
-                                // TODO: add reports of inccorect attemps to login AUDIT milestone
+                                logAuditAction(username, "Create Account", "Invalid password", "audit_log.txt");
                                 System.out.println("Your email was invalid. Please enter a valid email.");
                             }
                         }
@@ -277,19 +266,12 @@ public class Client {
                         socket.close();
                         dataInputStream.close();
                         dataOutputStream.close();
-                        // System.exit(0);
                         logAuditAction(username, "Client", "Logout", "audit_log.txt");
                         return;
                     }
                     else {
                         System.out.println("Not a valid login method");
                         continue;
-                        // Close connections
-                        // userInput.close();
-                        // socket.close();
-                        // dataInputStream.close();
-                        // dataOutputStream.close();
-                        // return;
                     }
 
                     // Receive and print the greeting message from the server
