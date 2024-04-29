@@ -1,6 +1,6 @@
 utils/MACUtils.class
-com/security/App.class
 utils/EncryptedCom.class
+com/security/App.class
 activities/ClientHandler.class
 activities/Client.class
 utils/IdleTimeoutManager.class

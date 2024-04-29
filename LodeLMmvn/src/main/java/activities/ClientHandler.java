@@ -526,7 +526,9 @@ public class ClientHandler implements Runnable {
     }
 
     private static void writeToUserFile(String username, byte[] salt, byte[] hashedPassword, byte[] hashedEmail) {
-        File file = new File("src/main/java/activities/users.txt");
+        // File file = new File("src/main/java/activities/users.txt");
+        String userPath = System.getProperty("user.dir") + "/server_data/users.txt";
+        File file = new File (userPath);
         try (FileWriter fw = new FileWriter(file, true);
                 BufferedWriter bw = new BufferedWriter(fw)) {
             String encodedSalt = Base64.getEncoder().encodeToString(salt);
@@ -543,7 +545,9 @@ public class ClientHandler implements Runnable {
     }
 
     private static void updateUserDataFile(String username, Map<String, byte[]> userData) {
-        File inputFile = new File("src/main/java/activities/users.txt");
+        // File inputFile = new File("src/main/java/activities/users.txt");
+        String userPath = System.getProperty("user.dir") + "/server_data/users.txt";
+        File inputFile = new File(userPath);
         File tempFile = new File(inputFile.getAbsolutePath() + ".tmp");
 
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));

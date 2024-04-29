@@ -1,507 +1,588 @@
 <?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClientHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">LodeLMmvn</a> &gt; <a href="index.source.html" class="el_package">activities</a> &gt; <span class="el_source">ClientHandler.java</span></div><h1>ClientHandler.java</h1><pre class="source lang-java linenums">package activities;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Timer;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.*;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import utils.*;
 import javax.crypto.SecretKey;
-
+import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.SSLSocket;
 
+import io.grpc.netty.shaded.io.netty.util.TimerTask;
+import utils.EncryptedCom;
+import utils.FileEncryption;
+import utils.FileHandler;
+import utils.IdleTimeoutManager;
+
 public class ClientHandler implements Runnable {
-<span class="nc" id="L22">    private int AES_KEY_LENGTH = 32;</span>
-<span class="nc" id="L23">    private int MAC_KEY_LENGTH = 32;</span>
-<span class="nc" id="L24">    private int BUFFER_SIZE = 4096;</span>
+<span class="nc" id="L33">    private int AES_KEY_LENGTH = 32;</span>
+<span class="nc" id="L34">    private int MAC_KEY_LENGTH = 32;</span>
+<span class="nc" id="L35">    private int BUFFER_SIZE = 4096;</span>
+<span class="nc" id="L36">    private int wrongPasswordAttempts = 0;</span>
 
     private SSLSocket clientSocket;
+    private IdleTimeoutManager idleTimeoutManager;
 
     DataInputStream dataInputStream;
     DataOutputStream dataOutputStream;
 
-<span class="nc" id="L31">    public ClientHandler(SSLSocket socket) {</span>
-<span class="nc" id="L32">        this.clientSocket = socket;</span>
-<span class="nc" id="L33">    }</span>
-
+<span class="nc" id="L44">    public ClientHandler(SSLSocket socket) throws SocketException {</span>
+<span class="nc" id="L45">        this.clientSocket = socket;</span>
+<span class="nc" id="L46">        socket.setSoTimeout(300000); // set 5 min time manager</span>
+<span class="nc" id="L47">        this.idleTimeoutManager = new IdleTimeoutManager(null, new FileHandler(null));</span>
+<span class="nc" id="L48">    }</span>
+  
     public void run() {
         try {
+<span class="nc" id="L52">            Timer timer = new Timer();</span>
 
-<span class="nc" id="L38">            dataInputStream = new DataInputStream(clientSocket.getInputStream());</span>
-<span class="nc" id="L39">            dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());</span>
+<span class="nc" id="L54">            dataInputStream = new DataInputStream(clientSocket.getInputStream());</span>
+<span class="nc" id="L55">            dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());</span>
 
-<span class="nc" id="L41">            FileEncryption fe = new FileEncryption();</span>
+<span class="nc" id="L57">            FileEncryption fe = new FileEncryption();</span>
 
             // Receive AES Key
-<span class="nc" id="L44">            byte[] aesKey = new byte[AES_KEY_LENGTH];</span>
-<span class="nc" id="L45">            dataInputStream.read(aesKey, 0, AES_KEY_LENGTH);</span>
-            // aesKey = decryptRSA(aesKey, rsaKey);
-<span class="nc" id="L47">            SecretKey aesSecretKey = new SecretKeySpec(aesKey, 0, AES_KEY_LENGTH, &quot;AES&quot;);</span>
-<span class="nc" id="L48">            System.out.println(&quot;AES Key Received&quot;);</span>
-<span class="nc" id="L49">            String username = &quot;&quot;;</span>
+<span class="nc" id="L60">            byte[] aesKey = new byte[AES_KEY_LENGTH];</span>
+<span class="nc" id="L61">            dataInputStream.read(aesKey, 0, AES_KEY_LENGTH);</span>
+<span class="nc" id="L62">            SecretKey aesSecretKey = new SecretKeySpec(aesKey, 0, AES_KEY_LENGTH, &quot;AES&quot;);</span>
+<span class="nc" id="L63">            System.out.println(&quot;AES Key Received&quot;);</span>
+
+<span class="nc" id="L65">            String username = &quot;&quot;;</span>
+<span class="nc" id="L66">            IdleTimeoutManager.updateUserActivity(username);</span>
 
             // Loop until &quot;logged-in&quot; message is received
             String action;
-<span class="nc bnc" id="L53" title="All 2 branches missed.">            while ((action = new String(EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) {</span>
-<span class="nc bnc" id="L54" title="All 2 branches missed.">                if (action.equalsIgnoreCase(&quot;logged-in&quot;)) {</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">            while ((action = new String(EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream),</span>
+<span class="nc" id="L71">                    StandardCharsets.UTF_8)) != null) {</span>
+<span class="nc" id="L72">                IdleTimeoutManager.updateUserActivity(username);</span>
+<span class="nc bnc" id="L73" title="All 2 branches missed.">                if (action.equalsIgnoreCase(&quot;logged-in&quot;)) {</span>
                     // User is logged in, break the loop and proceed to handle commands
-<span class="nc" id="L56">                    break;</span>
+<span class="nc" id="L75">                    break;</span>
                 }
-                // Receive login or create account signal from client
-<span class="nc bnc" id="L59" title="All 4 branches missed.">                else if (action.equals(&quot;Create Account&quot;) || action.equals(&quot;3&quot;)) {</span>
+<span class="nc bnc" id="L77" title="All 4 branches missed.">                else if (action.equals(&quot;Create Account&quot;) || action.equals(&quot;3&quot;)) {</span>
                     // Receive username from client
-<span class="nc" id="L61">                    byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
-<span class="nc" id="L62">                    username = new String(usernameByte, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L79">                    byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
+<span class="nc" id="L80">                    username = new String(usernameByte, StandardCharsets.UTF_8);</span>
 
                     // Receive encrypted password from client
-<span class="nc" id="L65">                    byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
-<span class="nc" id="L66">                    String passwordString = new String(passwordByte, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L83">                    byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
+<span class="nc" id="L84">                    String passwordString = new String(passwordByte, StandardCharsets.UTF_8);</span>
 
-<span class="nc" id="L68">                    String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());</span>
+<span class="nc" id="L86">                    String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());</span>
 
                     // Ensure proper padding by adding '=' characters if necessary
-<span class="nc" id="L71">                    int padding = sub.length() % 4;</span>
-<span class="nc bnc" id="L72" title="All 2 branches missed.">                    if (padding &gt; 0) {</span>
-<span class="nc" id="L73">                        sub += &quot;====&quot;.substring(padding);</span>
+<span class="nc" id="L89">                    int padding = sub.length() % 4;</span>
+<span class="nc bnc" id="L90" title="All 2 branches missed.">                    if (padding &gt; 0) {</span>
+<span class="nc" id="L91">                        sub += &quot;====&quot;.substring(padding);</span>
                     }
 
-<span class="nc" id="L76">                    byte[] password = Base64.getDecoder().decode(sub);</span>
+<span class="nc" id="L94">                    byte[] password = Base64.getDecoder().decode(sub);</span>
 
                     // Receive encrypted email from client
-<span class="nc" id="L79">                    byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
-<span class="nc" id="L80">                    String email = new String(emailByte, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L97">                    byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
+<span class="nc" id="L98">                    String email = new String(emailByte, StandardCharsets.UTF_8);</span>
 
-<span class="nc" id="L82">                    createAccount(username, password, email);</span>
-<span class="nc" id="L83">                    String accountCreation = &quot;Account creation successful. Proceeding with connection...&quot;;</span>
+<span class="nc" id="L100">                    createAccount(username, password, email);</span>
+<span class="nc" id="L101">                    String accountCreation = &quot;Account creation successful. Proceeding with connection...&quot;;</span>
                     try {
-<span class="nc" id="L85">                        EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
-<span class="nc" id="L86">                    } catch (Exception e) {</span>
-<span class="nc" id="L87">                        System.out.println(e);</span>
+<span class="nc" id="L103">                        EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
+<span class="nc" id="L104">                    } catch (SocketTimeoutException e) {</span>
+                        // Handle timeout: log the event
+<span class="nc" id="L106">                        Client.logAuditAction(&quot;Client&quot;, &quot;Idle&quot;, &quot;Idle for 5 min&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="nc" id="L107">                        System.out.println(&quot;Connection timed out due to inactivity.&quot;);</span>
+<span class="nc" id="L108">                    } catch (Exception e) {</span>
+<span class="nc" id="L109">                        System.out.println(e);</span>
                     }
-<span class="nc" id="L89">                }</span>
+<span class="nc" id="L111">                }</span>
 
-<span class="nc bnc" id="L91" title="All 4 branches missed.">                else if (action.equals(&quot;2&quot;) || action.equals(&quot;Forgot Password&quot;)) {</span>
+<span class="nc bnc" id="L113" title="All 4 branches missed.">                else if (action.equals(&quot;2&quot;) || action.equals(&quot;Forgot Password&quot;)) {</span>
                     // Receive username and new password from client
-<span class="nc" id="L93">                    byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
-<span class="nc" id="L94">                    username = new String(usernameByte, StandardCharsets.UTF_8);</span>
-<span class="nc" id="L95">                    byte[] newPasswordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
-<span class="nc" id="L96">                    String newPasswordString = new String(newPasswordByte, StandardCharsets.UTF_8);</span>
-<span class="nc" id="L97">                    String sub = Base64.getEncoder().encodeToString(newPasswordString.getBytes());</span>
-                    // Ensure proper padding by adding '=' characters if necessary
-<span class="nc" id="L99">                    int padding = sub.length() % 4;</span>
-<span class="nc bnc" id="L100" title="All 2 branches missed.">                    if (padding &gt; 0) {</span>
-<span class="nc" id="L101">                        sub += &quot;====&quot;.substring(padding);</span>
-                    }
-<span class="nc" id="L103">                    byte[] newPassword = Base64.getDecoder().decode(sub);</span>
-                    // Receive encrypted email from client
-<span class="nc" id="L105">                    byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
-<span class="nc" id="L106">                    String email = new String(emailByte, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L115">                    byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
+<span class="nc" id="L116">                    username = new String(usernameByte, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L117">                    byte[] newPasswordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
+<span class="nc" id="L118">                    String newPasswordString = new String(newPasswordByte, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L119">                    String sub = Base64.getEncoder().encodeToString(newPasswordString.getBytes());</span>
                     
-<span class="nc" id="L108">                    resetPassword(username, newPassword, email);</span>
-<span class="nc" id="L109">                    String accountCreation = &quot;Password reset successful. Proceeding with connection...&quot;;</span>
-                    try {
-<span class="nc" id="L111">                        EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
-<span class="nc" id="L112">                    } catch (Exception e) {</span>
-<span class="nc" id="L113">                        System.out.println(e);</span>
+<span class="nc" id="L121">                    int padding = sub.length() % 4;</span>
+<span class="nc bnc" id="L122" title="All 2 branches missed.">                    if (padding &gt; 0) {</span>
+<span class="nc" id="L123">                        sub += &quot;====&quot;.substring(padding);</span>
                     }
-<span class="nc" id="L115">                }</span>
+<span class="nc" id="L125">                    byte[] newPassword = Base64.getDecoder().decode(sub);</span>
+                    // Receive encrypted email from client
+<span class="nc" id="L127">                    byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
+<span class="nc" id="L128">                    String email = new String(emailByte, StandardCharsets.UTF_8);</span>
 
-<span class="nc bnc" id="L117" title="All 4 branches missed.">                else if (action.equals(&quot;4&quot;) || action.equals(&quot;exit&quot;)) {</span>
+<span class="nc" id="L130">                    resetPassword(username, newPassword, email);</span>
+<span class="nc" id="L131">                    String accountCreation = &quot;Password reset successful. Proceeding with connection...&quot;;</span>
+                    try {
+<span class="nc" id="L133">                        EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
+<span class="nc" id="L134">                    } catch (SocketTimeoutException e) {</span>
+                        // Handle timeout: log the event
+<span class="nc" id="L136">                        Client.logAuditAction(&quot;Client&quot;, &quot;Idle&quot;, &quot;Idle for 5 min&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="nc" id="L137">                        System.out.println(&quot;Connection timed out due to inactivity.&quot;);</span>
+<span class="nc" id="L138">                    } catch (Exception e) {</span>
+<span class="nc" id="L139">                        System.out.println(e);</span>
+                    }
+<span class="nc" id="L141">                }</span>
+
+<span class="nc bnc" id="L143" title="All 4 branches missed.">                else if (action.equals(&quot;4&quot;) || action.equals(&quot;exit&quot;)) {</span>
                     try {
                         // Close the socket
-<span class="nc" id="L120">                        clientSocket.close();</span>
-<span class="nc" id="L121">                    } catch (IOException e) {</span>
-<span class="nc" id="L122">                        System.out.println(&quot;Error closing socket: &quot; + e.getMessage());</span>
+<span class="nc" id="L146">                        clientSocket.close();</span>
+                        // return;
+<span class="nc" id="L148">                    } catch (SocketTimeoutException e) {</span>
+                        // Handle timeout: log the event
+<span class="nc" id="L150">                        Client.logAuditAction(&quot;Client&quot;, &quot;Idle&quot;, &quot;Idle for 5 min&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="nc" id="L151">                        System.out.println(&quot;Connection timed out due to inactivity.&quot;);</span>
+<span class="nc" id="L152">                    } catch (IOException e) {</span>
+<span class="nc" id="L153">                        System.out.println(&quot;Error closing socket: &quot; + e.getMessage());</span>
                     }
-                    // Exit the loop to terminate the client connection
-<span class="nc" id="L125">                    return;</span>
+<span class="nc" id="L155">                    return;</span>
                 }
 
                 else {
                     // Receive username from client
-<span class="nc" id="L130">                    byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
-<span class="nc" id="L131">                    username = new String(usernameByte, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L160">                    byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
+<span class="nc" id="L161">                    username = new String(usernameByte, StandardCharsets.UTF_8);</span>
 
                     // Receive encrypted password from client
-<span class="nc" id="L134">                    byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
-<span class="nc" id="L135">                    String passwordString = new String(passwordByte, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L164">                    byte[] passwordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);</span>
+<span class="nc" id="L165">                    String passwordString = new String(passwordByte, StandardCharsets.UTF_8);</span>
 
-<span class="nc" id="L137">                    String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());</span>
+<span class="nc" id="L167">                    String sub = Base64.getEncoder().encodeToString(passwordString.getBytes());</span>
 
                     // Ensure proper padding by adding '=' characters if necessary
-<span class="nc" id="L140">                    int padding = sub.length() % 4;</span>
-<span class="nc bnc" id="L141" title="All 2 branches missed.">                    if (padding &gt; 0) {</span>
-<span class="nc" id="L142">                        sub += &quot;====&quot;.substring(padding);</span>
+<span class="nc" id="L170">                    int padding = sub.length() % 4;</span>
+<span class="nc bnc" id="L171" title="All 2 branches missed.">                    if (padding &gt; 0) {</span>
+<span class="nc" id="L172">                        sub += &quot;====&quot;.substring(padding);</span>
                     }
 
-<span class="nc" id="L145">                    byte[] password = Base64.getDecoder().decode(sub);</span>
+<span class="nc" id="L175">                    byte[] password = Base64.getDecoder().decode(sub);</span>
 
                     // Validate username and password
-<span class="nc bnc" id="L148" title="All 2 branches missed.">                    if (authenticateUser(username, password)) {</span>
-<span class="nc" id="L149">                        System.out.println(&quot;username entered: &quot; + username);</span>
-<span class="nc" id="L150">                        System.out.println(&quot;password entered: &quot; + password);</span>
+<span class="nc bnc" id="L178" title="All 2 branches missed.">                    if (authenticateUser(username, password)) {</span>
+                        // System.out.println(&quot;username entered: &quot; + username);
+                        // System.out.println(&quot;password entered: &quot; + password);
                         // If authentication successful, obtain the secret key for the user
-<span class="nc" id="L152">                        byte[] secretKey = Server.getUserSecretKeys().get(username);</span>
+<span class="nc" id="L182">                        byte[] secretKey = Server.getUserSecretKeys().get(username);</span>
 
                         try {
-<span class="nc" id="L155">                            String authenticationSuccess = &quot;Authentication successful. Proceeding with connection...&quot;;</span>
-<span class="nc" id="L156">                            EncryptedCom.sendMessage(authenticationSuccess.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
-<span class="nc" id="L157">                        } catch(Exception e) {</span>
-<span class="nc" id="L158">                            System.out.println(e);</span>
-                        } 
-                        
-<span class="nc" id="L161">                    } else {</span>
+<span class="nc" id="L185">                            String authenticationSuccess = &quot;Authentication successful. Proceeding with connection...&quot;;</span>
+<span class="nc" id="L186">                            EncryptedCom.sendMessage(authenticationSuccess.getBytes(), aesSecretKey, fe,</span>
+<span class="nc" id="L187">                                    dataOutputStream);</span>
+<span class="nc" id="L188">                        } catch (SocketTimeoutException e) {</span>
+                            // Handle timeout: log the event
+<span class="nc" id="L190">                            Client.logAuditAction(&quot;Client&quot;, &quot;Idle&quot;, &quot;Idle for 5 min&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="nc" id="L191">                            System.out.println(&quot;Connection timed out due to inactivity.&quot;);</span>
+<span class="nc" id="L192">                        } catch (Exception e) {</span>
+<span class="nc" id="L193">                            System.out.println(e);</span>
+                        }
+
+<span class="nc" id="L196">                    } else {</span>
                         try {
-<span class="nc" id="L163">                            String authenticationFailure = &quot;Invalid username or password.&quot;;</span>
-<span class="nc" id="L164">                            EncryptedCom.sendMessage(authenticationFailure.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
-<span class="nc" id="L165">                        } catch(Exception e) {</span>
-<span class="nc" id="L166">                            System.out.println(e);</span>
+<span class="nc" id="L198">                            String authenticationFailure = &quot;Invalid username or password.&quot;;</span>
+<span class="nc" id="L199">                            EncryptedCom.sendMessage(authenticationFailure.getBytes(), aesSecretKey, fe,</span>
+<span class="nc" id="L200">                                    dataOutputStream);</span>
+<span class="nc" id="L201">                            wrongPasswordAttempts++;</span>
+<span class="nc" id="L202">                            System.out.println(&quot;wrongPasswordAttempts: &quot; + wrongPasswordAttempts);</span>
+<span class="nc bnc" id="L203" title="All 2 branches missed.">                            if (wrongPasswordAttempts &gt;= 4) {</span>
+<span class="nc" id="L204">                                String action_string = wrongPasswordAttempts + &quot; failed password attempts on login&quot;;</span>
+<span class="nc" id="L205">                                Client.logAuditAction(username, &quot;Admin&quot;, action_string,</span>
+<span class="nc" id="L206">                                        &quot;audit_log.txt&quot;);</span>
+<span class="nc" id="L207">                                String failedAttempts = wrongPasswordAttempts + &quot; Failed login attempts&quot;;</span>
+<span class="nc" id="L208">                                EncryptedCom.sendMessage(failedAttempts.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
+<span class="nc" id="L209">                                clientSocket.close();</span>
+<span class="nc" id="L210">                                return;</span>
+                            }
+                            // else {
+                            //     Client.logAuditAction(&quot;Client&quot;, &quot;Idle&quot;, &quot;Idle for 5 min&quot;, &quot;audit_log.txt&quot;);
+                            //     System.out.println(&quot;CONNECTION timed out due to inactivity.&quot;);
+                            //     return;
+                            // }
+
+<span class="nc" id="L218">                        } catch (SocketTimeoutException e) {</span>
+                            // Handle timeout: log the event
+<span class="nc" id="L220">                            System.out.println(&quot;SocketTimeoutException occurred: &quot; + e.getMessage());</span>
+<span class="nc" id="L221">                            Client.logAuditAction(&quot;Client&quot;, &quot;Idle&quot;, &quot;Idle for 5 min&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="nc" id="L222">                            System.out.println(&quot;Connection timed out due to inactivity.&quot;);</span>
+<span class="nc" id="L223">                        } catch (Exception e) {</span>
+<span class="nc" id="L224">                            System.out.println(e);</span>
                         }
                     }
                 }
             }
-            
+
             // Handle client requests
             try {
                 String output;
                 String inputLine;
-<span class="nc bnc" id="L176" title="All 2 branches missed.">                while ((inputLine = new String(EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) {</span>
+<span class="nc bnc" id="L234" title="All 2 branches missed.">                while ((inputLine = new String(EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream),</span>
+<span class="nc" id="L235">                        StandardCharsets.UTF_8)) != null) {</span>
 
-<span class="nc" id="L178">                    System.out.println(&quot;Received from client: &quot; + inputLine);</span>
+<span class="nc" id="L237">                    System.out.println(&quot;Received from client: &quot; + inputLine);</span>
 
-<span class="nc bnc" id="L180" title="All 2 branches missed.">                    if (inputLine.startsWith(&quot;send &quot;)) {</span>
-<span class="nc" id="L181">                        String fileName = inputLine.substring(5);</span>
-<span class="nc" id="L182">                        String userOutput = null;</span>
+<span class="nc" id="L239">                    IdleTimeoutManager.updateUserActivity(username);</span>
 
-<span class="nc" id="L184">                        File fileToSend = new File(&quot;client_data/&quot; + fileName);</span>
-<span class="nc bnc" id="L185" title="All 4 branches missed.">                        if (!fileToSend.exists() || fileToSend.isDirectory()) {</span>
-                        }
-                        else {
-<span class="nc" id="L188">                            FileHandler fileHandler = new FileHandler(&quot;server_data/&quot; + fileName);</span>
+<span class="nc bnc" id="L241" title="All 2 branches missed.">                    if (inputLine.startsWith(&quot;send &quot;)) {</span>
+<span class="nc" id="L242">                        String fileName = inputLine.substring(5);</span>
+<span class="nc" id="L243">                        String userOutput = null;</span>
+
+<span class="nc" id="L245">                        File fileToSend = new File(&quot;client_data/&quot; + fileName);</span>
+<span class="nc bnc" id="L246" title="All 4 branches missed.">                        if (fileToSend.exists() &amp;&amp; !fileToSend.isDirectory()) {</span>
+<span class="nc" id="L247">                            FileHandler fileHandler = new FileHandler(&quot;server_data/&quot; + fileName);</span>
                             try {
-<span class="nc" id="L190">                                userOutput = fileHandler.receiveFile(dataInputStream, aesSecretKey, true, username);</span>
-<span class="nc" id="L191">                            } catch (Exception e) {</span>
-<span class="nc" id="L192">                                System.out.println(e);</span>
+<span class="nc" id="L249">                                userOutput = fileHandler.receiveFile(dataInputStream, aesSecretKey, true, username);</span>
+<span class="nc" id="L250">                            } catch (Exception e) {</span>
+<span class="nc" id="L251">                                System.out.println(e);</span>
                             }
-<span class="nc bnc" id="L194" title="All 2 branches missed.">                            if (userOutput != null) {</span>
-<span class="nc" id="L195">                                output = userOutput;</span>
-<span class="nc" id="L196">                            } else {</span>
-<span class="nc" id="L197">                                output = fileName + &quot; has been received by server&quot;;</span>
+<span class="nc bnc" id="L253" title="All 2 branches missed.">                            if (userOutput != null) {</span>
+<span class="nc" id="L254">                                output = userOutput;</span>
+<span class="nc" id="L255">                            } else {</span>
+<span class="nc" id="L256">                                output = fileName + &quot; has been received by server&quot;;</span>
                             }
-<span class="nc" id="L199">                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
+<span class="nc" id="L258">                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
+<span class="nc" id="L259">                        } else {</span>
+<span class="nc" id="L260">                            output = fileName + &quot; cannot be sent for some reason. Does this file exist? Is it a file not a directory?&quot;;</span>
+<span class="nc" id="L261">                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
                         }
-<span class="nc" id="L201">                    }</span>
-<span class="nc bnc" id="L202" title="All 2 branches missed.">                    else if (inputLine.startsWith(&quot;download &quot;)) {</span>
-<span class="nc" id="L203">                        String fileName = inputLine.substring(9);</span>
+<span class="nc" id="L263">                    }</span>
+<span class="nc bnc" id="L264" title="All 2 branches missed.">                    else if (inputLine.startsWith(&quot;download &quot;)) {</span>
+<span class="nc" id="L265">                        String fileName = inputLine.substring(9);</span>
 
-<span class="nc" id="L205">                        File fileToDownload = new File(&quot;server_data/&quot; + fileName);</span>
-<span class="nc bnc" id="L206" title="All 4 branches missed.">                        if (!fileToDownload.exists() || fileToDownload.isDirectory()) {</span>
-                        }
-
-                        else {
-<span class="nc" id="L210">                            FileHandler fileHandler = new FileHandler(&quot;server_data/&quot; + fileName);</span>
-<span class="nc" id="L211">                            output = &quot;File was not downloaded for some reason...&quot;;</span>
+<span class="nc" id="L267">                        File fileToDownload = new File(&quot;server_data/&quot; + fileName);</span>
+<span class="nc bnc" id="L268" title="All 4 branches missed.">                        if (fileToDownload.exists() &amp;&amp; !fileToDownload.isDirectory()) {</span>
+<span class="nc" id="L269">                            FileHandler fileHandler = new FileHandler(&quot;server_data/&quot; + fileName);</span>
+<span class="nc" id="L270">                            output = &quot;File was not downloaded for some reason...&quot;;</span>
                             try {
-<span class="nc" id="L213">                                output = fileHandler.sendFile(dataOutputStream, aesSecretKey, true, username);</span>
-<span class="nc" id="L214">                                System.out.println(output);</span>
-<span class="nc" id="L215">                            } catch (Exception e) {</span>
-<span class="nc" id="L216">                                System.out.println(e);</span>
+<span class="nc" id="L272">                                output = fileHandler.sendFile(dataOutputStream, aesSecretKey, true, username);</span>
+<span class="nc" id="L273">                                System.out.println(output);</span>
+<span class="nc" id="L274">                            } catch (Exception e) {</span>
+<span class="nc" id="L275">                                System.out.println(e);</span>
                             }
-<span class="nc" id="L218">                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
+<span class="nc" id="L277">                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
+<span class="nc" id="L278">                        } else {</span>
+<span class="nc" id="L279">                            output = &quot;File was not downloaded for some reason...&quot;;</span>
+<span class="nc" id="L280">                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
                         }
-                        
-<span class="nc" id="L221">                    }</span>
-<span class="nc bnc" id="L222" title="All 2 branches missed.">                    else if (inputLine.startsWith(&quot;delete &quot;)) {</span>
-<span class="nc" id="L223">                        String fileName = inputLine.substring(7);</span>
-<span class="nc" id="L224">                        File fileToDelete = new File(&quot;server_data/&quot; + fileName);</span>
-<span class="nc bnc" id="L225" title="All 4 branches missed.">                        if (!fileToDelete.exists() || fileToDelete.isDirectory()) {</span>
+
+<span class="nc bnc" id="L283" title="All 2 branches missed.">                    } else if (inputLine.startsWith(&quot;delete &quot;)) {</span>
+<span class="nc" id="L284">                        String fileName = inputLine.substring(7);</span>
+<span class="nc" id="L285">                        File fileToDelete = new File(&quot;server_data/&quot; + fileName);</span>
+<span class="nc bnc" id="L286" title="All 4 branches missed.">                        if (!fileToDelete.exists() || fileToDelete.isDirectory()) {</span>
+                        } else {
+<span class="nc" id="L288">                            FileHandler fileHandler = new FileHandler(&quot;server_data/&quot; + fileName);</span>
+<span class="nc" id="L289">                            output = fileHandler.deleteFile(username);</span>
+<span class="nc" id="L290">                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
                         }
-                        else {
-<span class="nc" id="L228">                            FileHandler fileHandler = new FileHandler(&quot;server_data/&quot; + fileName);</span>
-<span class="nc" id="L229">                            output = fileHandler.deleteFile(username);</span>
-<span class="nc" id="L230">                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
+<span class="nc bnc" id="L292" title="All 2 branches missed.">                    } else if (inputLine.equals(&quot;pwd&quot;)) {</span>
+<span class="nc" id="L293">                        FileHandler fileHandler = new FileHandler(&quot;server_data/&quot;);</span>
+<span class="nc" id="L294">                        output = fileHandler.pwd();</span>
+<span class="nc" id="L295">                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
+<span class="nc bnc" id="L296" title="All 2 branches missed.">                    } else if (inputLine.startsWith(&quot;list&quot;)) {</span>
+<span class="nc" id="L297">                        String folder = inputLine.substring(4).trim();</span>
+<span class="nc bnc" id="L298" title="All 2 branches missed.">                        if (folder.length() == 0) {</span>
+<span class="nc" id="L299">                            folder = &quot;server_data/&quot;;</span>
                         }
-<span class="nc" id="L232">                    }</span>
-<span class="nc bnc" id="L233" title="All 2 branches missed.">                    else if (inputLine.equals(&quot;pwd&quot;)) {</span>
-<span class="nc" id="L234">                        FileHandler fileHandler = new FileHandler(&quot;server_data/&quot;);</span>
-<span class="nc" id="L235">                        output = fileHandler.pwd();</span>
-<span class="nc" id="L236">                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
-<span class="nc" id="L237">                    }</span>
-<span class="nc bnc" id="L238" title="All 2 branches missed.">                    else if (inputLine.startsWith(&quot;list&quot;)) {</span>
-<span class="nc" id="L239">                        String folder = inputLine.substring(4).trim();</span>
-<span class="nc bnc" id="L240" title="All 2 branches missed.">                        if (folder.length() == 0) {</span>
-<span class="nc" id="L241">                            folder = &quot;server_data/&quot;;</span>
-                        }
-<span class="nc" id="L243">                        FileHandler fileHandler = new FileHandler(folder);</span>
-<span class="nc" id="L244">                        output = fileHandler.listFiles();</span>
-<span class="nc" id="L245">                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
-<span class="nc" id="L246">                    }</span>
-<span class="nc bnc" id="L247" title="All 2 branches missed.">                    else if (inputLine.startsWith(&quot;share &quot;)) {</span>
-<span class="nc" id="L248">                        String permissionUsernameAndFileName = inputLine.substring(6);</span>
-<span class="nc" id="L249">                        String[] arrOfStr = permissionUsernameAndFileName.split(&quot;\\s+&quot;);</span>
-<span class="nc" id="L250">                        String permission = null;</span>
-<span class="nc" id="L251">                        String sharedUsername = null;</span>
-<span class="nc" id="L252">                        String fileName = null;</span>
-<span class="nc" id="L253">                        output = &quot;File not shared for some reason...&quot;;</span>
-<span class="nc bnc" id="L254" title="All 4 branches missed.">                        if (arrOfStr != null &amp;&amp; arrOfStr.length &gt; 2) {</span>
-<span class="nc" id="L255">                            permission = arrOfStr[0];</span>
-<span class="nc bnc" id="L256" title="All 14 branches missed.">                            if ((permission.length() == 1 &amp;&amp; permission.contains(&quot;w&quot;)) || (permission.length() == 1 &amp;&amp; permission.contains(&quot;r&quot;)) || (permission.length() == 2 &amp;&amp; Character.toString(permission.charAt(1)).equals(&quot;w&quot;) &amp;&amp; Character.toString(permission.charAt(0)).equals(&quot;r&quot;))) {</span>
-<span class="nc" id="L257">                                sharedUsername = arrOfStr[1];</span>
-<span class="nc bnc" id="L258" title="All 2 branches missed.">                                if (!sharedUsername.equals(username)) {</span>
-<span class="nc bnc" id="L259" title="All 2 branches missed.">                                    if (Client.UserExists(sharedUsername, &quot;normal&quot;)) {</span>
-<span class="nc" id="L260">                                        fileName = inputLine.substring(6 + permission.length() + 1 + sharedUsername.length() + 1);</span>
-<span class="nc" id="L261">                                        File fileToShare = new File(&quot;server_data/&quot; + fileName);</span>
-<span class="nc bnc" id="L262" title="All 2 branches missed.">                                        if (fileToShare.exists()) {</span>
-<span class="nc" id="L263">                                            FileHandler fileHandler = new FileHandler(&quot;server_data/&quot; + fileName);</span>
+<span class="nc" id="L301">                        FileHandler fileHandler = new FileHandler(folder);</span>
+<span class="nc" id="L302">                        output = fileHandler.listFiles();</span>
+<span class="nc" id="L303">                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
+<span class="nc bnc" id="L304" title="All 2 branches missed.">                    } else if (inputLine.startsWith(&quot;share &quot;)) {</span>
+<span class="nc" id="L305">                        String permissionUsernameAndFileName = inputLine.substring(6);</span>
+<span class="nc" id="L306">                        String[] arrOfStr = permissionUsernameAndFileName.split(&quot;\\s+&quot;);</span>
+<span class="nc" id="L307">                        String permission = null;</span>
+<span class="nc" id="L308">                        String sharedUsername = null;</span>
+<span class="nc" id="L309">                        String fileName = null;</span>
+<span class="nc" id="L310">                        output = &quot;File not shared for some reason...&quot;;</span>
+<span class="nc bnc" id="L311" title="All 4 branches missed.">                        if (arrOfStr != null &amp;&amp; arrOfStr.length &gt; 2) {</span>
+<span class="nc" id="L312">                            permission = arrOfStr[0];</span>
+<span class="nc bnc" id="L313" title="All 4 branches missed.">                            if ((permission.length() == 1 &amp;&amp; permission.contains(&quot;w&quot;))</span>
+<span class="nc bnc" id="L314" title="All 4 branches missed.">                                    || (permission.length() == 1 &amp;&amp; permission.contains(&quot;r&quot;))</span>
+<span class="nc bnc" id="L315" title="All 4 branches missed.">                                    || (permission.length() == 2 &amp;&amp; Character.toString(permission.charAt(1)).equals(&quot;w&quot;)</span>
+<span class="nc bnc" id="L316" title="All 2 branches missed.">                                            &amp;&amp; Character.toString(permission.charAt(0)).equals(&quot;r&quot;))) {</span>
+<span class="nc" id="L317">                                sharedUsername = arrOfStr[1];</span>
+<span class="nc bnc" id="L318" title="All 2 branches missed.">                                if (!sharedUsername.equals(username)) {</span>
+<span class="nc bnc" id="L319" title="All 2 branches missed.">                                    if (Client.UserExists(sharedUsername, &quot;normal&quot;)) {</span>
+<span class="nc" id="L320">                                        fileName = inputLine</span>
+<span class="nc" id="L321">                                                .substring(6 + permission.length() + 1 + sharedUsername.length() + 1);</span>
+<span class="nc" id="L322">                                        File fileToShare = new File(&quot;server_data/&quot; + fileName);</span>
+<span class="nc bnc" id="L323" title="All 2 branches missed.">                                        if (fileToShare.exists()) {</span>
+<span class="nc" id="L324">                                            FileHandler fileHandler = new FileHandler(&quot;server_data/&quot; + fileName);</span>
                                             try {
-<span class="nc" id="L265">                                                output = fileHandler.shareFile(username, sharedUsername, permission);</span>
-<span class="nc" id="L266">                                            } catch (Exception e) {</span>
-<span class="nc" id="L267">                                                System.out.println(e);</span>
+<span class="nc" id="L326">                                                output = fileHandler.shareFile(username, sharedUsername, permission);</span>
+<span class="nc" id="L327">                                            } catch (Exception e) {</span>
+<span class="nc" id="L328">                                                System.out.println(e);</span>
                                             }
-<span class="nc" id="L269">                                        } else {</span>
-<span class="nc" id="L270">                                            output = fileName + &quot; does not exist&quot;;</span>
+<span class="nc" id="L330">                                        } else {</span>
+<span class="nc" id="L331">                                            output = fileName + &quot; does not exist&quot;;</span>
                                         }
-<span class="nc" id="L272">                                    } else {</span>
-<span class="nc" id="L273">                                        output = &quot;This username is does not exist!&quot;;</span>
+<span class="nc" id="L333">                                    } else {</span>
+<span class="nc" id="L334">                                        output = &quot;This username is does not exist!&quot;;</span>
                                     }
-<span class="nc" id="L275">                                } else {</span>
-<span class="nc" id="L276">                                    output = &quot;You can not share files with yourself. Nice try.&quot;;</span>
-                                }   
-<span class="nc" id="L278">                            }</span>
-                            else {
-<span class="nc" id="L280">                                output = &quot;Permission to enable for share user must be either \'r\', \'w\', or \'rw\'&quot;;</span>
+<span class="nc" id="L336">                                } else {</span>
+<span class="nc" id="L337">                                    output = &quot;You can not share files with yourself. Nice try.&quot;;</span>
+                                }
+<span class="nc" id="L339">                            } else {</span>
+<span class="nc" id="L340">                                output = &quot;Permission to enable for share user must be either \'r\', \'w\', or \'rw\'&quot;;</span>
                             }
-<span class="nc" id="L282">                        } else {</span>
-<span class="nc" id="L283">                            output = &quot;You have not given the arguments required to share a file. \nThe format required is:\n\n share &lt;permission&gt; &lt;share_username&gt; &lt;file_name&gt;&quot;;</span>
-<span class="nc" id="L284">                            output += &quot;\n\n&lt;permission&gt;: permission to enable for share_user, either \'r\', \'w\', or \'rw\'\n&lt;share_username&gt;: username of user to share file with\n&lt;file_name&gt;: name of file to share&quot;;</span>
+<span class="nc" id="L342">                        } else {</span>
+<span class="nc" id="L343">                            output = &quot;You have not given the arguments required to share a file. \nThe format required is:\n\n share &lt;permission&gt; &lt;share_username&gt; &lt;file_name&gt;&quot;;</span>
+<span class="nc" id="L344">                            output += &quot;\n\n&lt;permission&gt;: permission to enable for share_user, either \'r\', \'w\', or \'rw\'\n&lt;share_username&gt;: username of user to share file with\n&lt;file_name&gt;: name of file to share&quot;;</span>
                         }
-<span class="nc" id="L286">                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
-<span class="nc" id="L287">                    }</span>
-<span class="nc bnc" id="L288" title="All 2 branches missed.">                    else if (inputLine.equals(&quot;exit&quot;)) {</span>
-<span class="nc" id="L289">                        break;</span>
+<span class="nc" id="L346">                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
+<span class="nc bnc" id="L347" title="All 2 branches missed.">                    } else if (inputLine.equals(&quot;exit&quot;)) {</span>
+<span class="nc" id="L348">                        break;</span>
+                    } else {
+<span class="nc" id="L350">                        output = &quot;No command like that available&quot;;</span>
+<span class="nc" id="L351">                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
                     }
-                    else {
-<span class="nc" id="L292">                        output = &quot;No command like that available&quot;;</span>
-<span class="nc" id="L293">                        EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);</span>
-                    }
+
+<span class="nc" id="L354">                    IdleTimeoutManager.updateUserActivity(username);</span>
                 }
-<span class="nc" id="L296">            } catch(Exception e) {</span>
-<span class="nc" id="L297">                System.out.println(e);</span>
-            } 
-<span class="nc" id="L299">            clientSocket.close();</span>
-<span class="nc" id="L300">        }</span>
-<span class="nc" id="L301">        catch (EOFException | SocketException e) {</span>
-            // Client has closed the connection abruptly
-<span class="nc" id="L303">            System.out.println(&quot;Client connection terminated.&quot;);</span>
-<span class="nc" id="L304">        } catch (IOException e) {</span>
-            // Other IO exceptions
-<span class="nc" id="L306">            e.printStackTrace();</span>
+<span class="nc" id="L356">            } catch (SocketTimeoutException e) {</span>
+                // Handle timeout: log the event
+<span class="nc" id="L358">                System.out.println(&quot;SocketTimeoutException occurred: &quot; + e.getMessage());</span>
+<span class="nc" id="L359">                Client.logAuditAction(&quot;Client&quot;, &quot;Idle&quot;, &quot;Idle for 5 min&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="nc" id="L360">                System.out.println(&quot;Connection timed out due to inactivity.&quot;);</span>
+<span class="nc" id="L361">            } catch (Exception e) {</span>
+<span class="nc" id="L362">                System.out.println(e);</span>
+            }
+<span class="nc" id="L364">            clientSocket.close();</span>
+<span class="nc" id="L365">        }</span>
+<span class="nc" id="L366">        catch (SocketTimeoutException e) {</span>
+            // Handle timeout: log the event
+<span class="nc" id="L368">            System.out.println(&quot;SocketTimeoutException occurred: &quot; + e.getMessage());</span>
+<span class="nc" id="L369">            Client.logAuditAction(&quot;Client&quot;, &quot;Idle&quot;, &quot;Idle for 5 min&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="nc" id="L370">            System.out.println(&quot;Connection timed out due to inactivity.&quot;);</span>
         }
-        finally {
+<span class="nc" id="L372">        catch (EOFException | SocketException e) {</span>
+            // Client has closed the connection abruptly
+<span class="nc" id="L374">            System.out.println(&quot;Client connection terminated.&quot;);</span>
+<span class="nc" id="L375">        } catch (IOException e) {</span>
+            // Other IO exceptions
+<span class="nc" id="L377">            e.printStackTrace();</span>
+        } finally {
             try {
                 // Close connections
-<span class="nc" id="L311">                dataInputStream.close();</span>
-<span class="nc" id="L312">                dataOutputStream.close();</span>
-<span class="nc bnc" id="L313" title="All 4 branches missed.">                if (clientSocket != null &amp;&amp; !clientSocket.isClosed()) {</span>
-<span class="nc" id="L314">                    clientSocket.close();</span>
+<span class="nc" id="L381">                dataInputStream.close();</span>
+<span class="nc" id="L382">                dataOutputStream.close();</span>
+<span class="nc bnc" id="L383" title="All 4 branches missed.">                if (clientSocket != null &amp;&amp; !clientSocket.isClosed()) {</span>
+<span class="nc" id="L384">                    clientSocket.close();</span>
                 }
-                // clientSocket.close();
-<span class="nc" id="L317">            } catch (IOException e) {</span>
-<span class="nc" id="L318">                e.printStackTrace();</span>
+<span class="nc" id="L386">            } catch (IOException e) {</span>
+<span class="nc" id="L387">                e.printStackTrace();</span>
             }
         }
-<span class="nc" id="L321">    }</span>
+<span class="nc" id="L390">    }</span>
 
     private boolean authenticateUser(String username, byte[] providedPassword) {
-        
+
         // Get the stored user data for the given username
-<span class="nc" id="L326">        Map&lt;String, byte[]&gt; userData = Server.getUserPasswords().get(username);</span>
-<span class="nc bnc" id="L327" title="All 2 branches missed.">        if (userData == null) {</span>
-<span class="nc" id="L328">            return false;</span>
+<span class="nc" id="L395">        Map&lt;String, byte[]&gt; userData = Server.getUserPasswords().get(username);</span>
+<span class="nc bnc" id="L396" title="All 2 branches missed.">        if (userData == null) {</span>
+<span class="nc" id="L397">            return false;</span>
         }
 
-<span class="nc bnc" id="L331" title="All 2 branches missed.">        while (!Client.UserExists(username, &quot;normal&quot;)) {</span>
-<span class="nc" id="L332">            return false;</span>
+<span class="nc bnc" id="L400" title="All 2 branches missed.">        while (!Client.UserExists(username, &quot;normal&quot;)) {</span>
+<span class="nc" id="L401">            return false;</span>
         }
 
         // Get the stored salt and password hash from user data
-<span class="nc" id="L336">        byte[] storedSalt = userData.get(&quot;salt&quot;);</span>
-<span class="nc" id="L337">        byte[] storedPasswordHash = userData.get(&quot;passwordHash&quot;);</span>
+<span class="nc" id="L405">        byte[] storedSalt = userData.get(&quot;salt&quot;);</span>
+<span class="nc" id="L406">        byte[] storedPasswordHash = userData.get(&quot;passwordHash&quot;);</span>
 
-<span class="nc bnc" id="L339" title="All 4 branches missed.">        if (storedSalt == null || storedPasswordHash == null) {</span>
-<span class="nc" id="L340">            return false;</span>
+<span class="nc bnc" id="L408" title="All 4 branches missed.">        if (storedSalt == null || storedPasswordHash == null) {</span>
+<span class="nc" id="L409">            return false;</span>
         }
 
         // Hash the provided password with the stored salt
-<span class="nc" id="L344">        byte[] providedPasswordHash = Server.hashSalt(new String(providedPassword), storedSalt);</span>
+<span class="nc" id="L413">        byte[] providedPasswordHash = Server.hashSalt(new String(providedPassword), storedSalt);</span>
 
         // Convert salt, provided password hash, and stored password hash to Base64 for comparison
-<span class="nc" id="L347">        String encodedSalt = Base64.getEncoder().encodeToString(storedSalt);</span>
-<span class="nc" id="L348">        String encodedHashedPasswordP = Base64.getEncoder().encodeToString(providedPasswordHash);</span>
-<span class="nc" id="L349">        String encodedHashedPasswordS = Base64.getEncoder().encodeToString(storedPasswordHash);</span>
+<span class="nc" id="L416">        String encodedSalt = Base64.getEncoder().encodeToString(storedSalt);</span>
+<span class="nc" id="L417">        String encodedHashedPasswordP = Base64.getEncoder().encodeToString(providedPasswordHash);</span>
+<span class="nc" id="L418">        String encodedHashedPasswordS = Base64.getEncoder().encodeToString(storedPasswordHash);</span>
 
-        // Compare the hashed passwords
-<span class="nc" id="L352">        System.out.println(&quot;provided: &quot; + encodedHashedPasswordP);</span>
-<span class="nc" id="L353">        System.out.println(&quot;stored: &quot; + encodedHashedPasswordS);</span>
-<span class="nc" id="L354">        System.out.println(&quot;salt: &quot; + encodedSalt);</span>
+<span class="nc" id="L420">        return Arrays.equals(providedPasswordHash, storedPasswordHash);</span>
+    }
 
-<span class="nc" id="L356">        return Arrays.equals(providedPasswordHash, storedPasswordHash);</span>
+    private static String bytesToHex(byte[] bytes) {
+<span class="nc" id="L424">        StringBuilder hexString = new StringBuilder(2 * bytes.length);</span>
+<span class="nc bnc" id="L425" title="All 2 branches missed.">        for (byte b : bytes) {</span>
+<span class="nc" id="L426">            String hex = Integer.toHexString(0xff &amp; b);</span>
+<span class="nc bnc" id="L427" title="All 2 branches missed.">            if (hex.length() == 1) {</span>
+<span class="nc" id="L428">                hexString.append('0');</span>
+            }
+<span class="nc" id="L430">            hexString.append(hex);</span>
+        }
+<span class="nc" id="L432">        return hexString.toString();</span>
     }
 
     public static void createAccount(String username, byte[] password, String email) {
 
-<span class="fc" id="L361">        byte[] salt = generateSalt();</span>
+<span class="fc" id="L437">        byte[] salt = generateSalt();</span>
         // Hash the password and email with Salt
-<span class="fc" id="L363">        byte[] hashedPassword = Server.hashSalt(new String(password, StandardCharsets.UTF_8), salt);</span>
-<span class="fc" id="L364">        byte[] hashedEmail = Server.hashSalt(email, salt);</span>
-<span class="fc" id="L365">        Map&lt;String, byte[]&gt; userData = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L366">        userData.put(&quot;salt&quot;, salt);</span>
-<span class="fc" id="L367">        userData.put(&quot;passwordHash&quot;, hashedPassword);</span>
-<span class="fc" id="L368">        userData.put(&quot;emailHash&quot;, hashedEmail);</span>
-<span class="fc" id="L369">        Server.getUserPasswords().put(username, userData);</span>
+<span class="fc" id="L439">        byte[] hashedPassword = Server.hashSalt(new String(password, StandardCharsets.UTF_8), salt);</span>
+<span class="fc" id="L440">        byte[] hashedEmail = Server.hashSalt(email, salt);</span>
+<span class="fc" id="L441">        Map&lt;String, byte[]&gt; userData = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L442">        userData.put(&quot;salt&quot;, salt);</span>
+<span class="fc" id="L443">        userData.put(&quot;passwordHash&quot;, hashedPassword);</span>
+<span class="fc" id="L444">        userData.put(&quot;emailHash&quot;, hashedEmail);</span>
+<span class="fc" id="L445">        Server.getUserPasswords().put(username, userData);</span>
 
-<span class="fc" id="L371">        byte[] storedPasswordHash = userData.get(&quot;passwordHash&quot;);</span>
+<span class="fc" id="L447">        byte[] storedPasswordHash = userData.get(&quot;passwordHash&quot;);</span>
 
         // Generate a secret key for the new account
-<span class="fc" id="L374">        byte[] secretKey = generateSecretKey();</span>
+<span class="fc" id="L450">        byte[] secretKey = generateSecretKey();</span>
         // Write the username, secret key, salt, and hashed pwd
-<span class="fc" id="L376">        writeToSecretKeysFile(username, secretKey);</span>
-<span class="fc" id="L377">        writeToUserFile(username, salt, storedPasswordHash, hashedEmail);</span>
-<span class="fc" id="L378">    }</span>
+<span class="fc" id="L452">        writeToSecretKeysFile(username, secretKey);</span>
+<span class="fc" id="L453">        writeToUserFile(username, salt, storedPasswordHash, hashedEmail);</span>
+<span class="fc" id="L454">    }</span>
 
     public static void resetPassword(String username, byte[] resetPassword, String email) {
 
         // Check if the user exists
-<span class="fc bfc" id="L383" title="All 2 branches covered.">        if (Server.getUserPasswords().containsKey(username)) {</span>
-<span class="fc" id="L384">            byte[] salt = generateSalt();</span>
-<span class="fc" id="L385">            byte[] hashedNewPassword = Server.hashSalt(new String(resetPassword, StandardCharsets.UTF_8), salt);</span>
-<span class="fc" id="L386">            byte[] hashedEmail = Server.hashSalt(email, salt);</span>
-<span class="fc" id="L387">            Map&lt;String, byte[]&gt; userData = Server.getUserPasswords().get(username);</span>
-            
+<span class="fc bfc" id="L459" title="All 2 branches covered.">        if (Server.getUserPasswords().containsKey(username)) {</span>
+<span class="fc" id="L460">            byte[] salt = generateSalt();</span>
+<span class="fc" id="L461">            byte[] hashedNewPassword = Server.hashSalt(new String(resetPassword, StandardCharsets.UTF_8), salt);</span>
+<span class="fc" id="L462">            byte[] hashedEmail = Server.hashSalt(email, salt);</span>
+<span class="fc" id="L463">            Map&lt;String, byte[]&gt; userData = Server.getUserPasswords().get(username);</span>
+
             // Update the user data with the new salt, hashed password, and hashed email
-<span class="fc" id="L390">            userData.put(&quot;salt&quot;, salt);</span>
-<span class="fc" id="L391">            userData.put(&quot;passwordHash&quot;, hashedNewPassword);</span>
-<span class="fc" id="L392">            userData.put(&quot;emailHash&quot;, hashedEmail);</span>
-<span class="fc" id="L393">            Server.getUserPasswords().put(username, userData);</span>
+<span class="fc" id="L466">            userData.put(&quot;salt&quot;, salt);</span>
+<span class="fc" id="L467">            userData.put(&quot;passwordHash&quot;, hashedNewPassword);</span>
+<span class="fc" id="L468">            userData.put(&quot;emailHash&quot;, hashedEmail);</span>
+<span class="fc" id="L469">            Server.getUserPasswords().put(username, userData);</span>
 
             // Write updated data to the user file
-<span class="fc" id="L396">            updateUserDataFile(username, userData);</span>
-<span class="fc" id="L397">        } else {</span>
-<span class="fc" id="L398">            System.out.println(&quot;User does not exist.&quot;);</span>
+<span class="fc" id="L472">            updateUserDataFile(username, userData);</span>
+<span class="fc" id="L473">        } else {</span>
+<span class="fc" id="L474">            System.out.println(&quot;User does not exist.&quot;);</span>
         }
-<span class="fc" id="L400">    }</span>
-    
+<span class="fc" id="L476">    }</span>
+
     private static byte[] generateSecretKey() {
         // Generate new random 32-byte secret-key
-<span class="fc" id="L404">        SecureRandom random = new SecureRandom();</span>
-<span class="fc" id="L405">        byte[] secretKey = new byte[32];</span>
-<span class="fc" id="L406">        random.nextBytes(secretKey);</span>
-<span class="fc" id="L407">        return secretKey;</span>
+<span class="fc" id="L480">        SecureRandom random = new SecureRandom();</span>
+<span class="fc" id="L481">        byte[] secretKey = new byte[32];</span>
+<span class="fc" id="L482">        random.nextBytes(secretKey);</span>
+<span class="fc" id="L483">        return secretKey;</span>
     }
 
     private static byte[] generateSalt() {
-<span class="fc" id="L411">        SecureRandom random = new SecureRandom();</span>
-<span class="fc" id="L412">        byte[] salt = new byte[32];</span>
-<span class="fc" id="L413">        random.nextBytes(salt);</span>
-<span class="fc" id="L414">        return salt;</span>
+<span class="fc" id="L487">        SecureRandom random = new SecureRandom();</span>
+<span class="fc" id="L488">        byte[] salt = new byte[32];</span>
+<span class="fc" id="L489">        random.nextBytes(salt);</span>
+<span class="fc" id="L490">        return salt;</span>
     }
 
     private static void writeToSecretKeysFile(String username, byte[] secretKey) {
-<span class="fc" id="L418">        File file = new File(&quot;src/main/java/activities/secret_keys.txt&quot;);</span>
-<span class="fc" id="L419">        try (FileReader fr = new FileReader(file);</span>
-<span class="fc" id="L420">            BufferedReader br = new BufferedReader(fr)) {</span>
+<span class="fc" id="L494">        File file = new File(&quot;src/main/java/activities/secret_keys.txt&quot;);</span>
+<span class="fc" id="L495">        try (FileReader fr = new FileReader(file);</span>
+<span class="fc" id="L496">                BufferedReader br = new BufferedReader(fr)) {</span>
             String line;
-<span class="fc" id="L422">            StringBuilder fileContent = new StringBuilder();</span>
-<span class="fc" id="L423">            boolean found = false;</span>
-<span class="fc bfc" id="L424" title="All 2 branches covered.">            while ((line = br.readLine()) != null) {</span>
-<span class="fc" id="L425">                String[] parts = line.split(&quot;:&quot;);</span>
-<span class="pc bpc" id="L426" title="2 of 4 branches missed.">                if (parts.length &gt;= 2 &amp;&amp; parts[0].equals(username)) {</span>
+<span class="fc" id="L498">            StringBuilder fileContent = new StringBuilder();</span>
+<span class="fc" id="L499">            boolean found = false;</span>
+<span class="fc bfc" id="L500" title="All 2 branches covered.">            while ((line = br.readLine()) != null) {</span>
+<span class="fc" id="L501">                String[] parts = line.split(&quot;:&quot;);</span>
+<span class="pc bpc" id="L502" title="2 of 4 branches missed.">                if (parts.length &gt;= 2 &amp;&amp; parts[0].equals(username)) {</span>
                     // Update the secret key for the existing user
-<span class="nc" id="L428">                    found = true;</span>
-<span class="nc" id="L429">                    String message = &quot;User already exists. Please log in.&quot;;</span>
-<span class="nc" id="L430">                    System.out.println(message);</span>
-<span class="nc" id="L431">                    break;</span>
+<span class="nc" id="L504">                    found = true;</span>
+<span class="nc" id="L505">                    String message = &quot;User already exists. Please log in.&quot;;</span>
+<span class="nc" id="L506">                    System.out.println(message);</span>
+<span class="nc" id="L507">                    break;</span>
                 } else {
                     // Keep the line unchanged
-<span class="fc" id="L434">                    fileContent.append(line).append(&quot;\n&quot;);</span>
+<span class="fc" id="L510">                    fileContent.append(line).append(&quot;\n&quot;);</span>
                 }
             }
-<span class="pc bpc" id="L437" title="1 of 2 branches missed.">            if (!found) {</span>
+<span class="pc bpc" id="L513" title="1 of 2 branches missed.">            if (!found) {</span>
                 // Append a new entry for the user if not found
-<span class="fc" id="L439">                fileContent.append(username).append(&quot;:&quot;).append(Base64.getEncoder().encodeToString(secretKey)).append(&quot;\n&quot;);</span>
+<span class="fc" id="L515">                fileContent.append(username).append(&quot;:&quot;).append(Base64.getEncoder().encodeToString(secretKey))</span>
+<span class="fc" id="L516">                        .append(&quot;\n&quot;);</span>
             }
-    
+
             // Write the updated file content back to the file
-<span class="fc" id="L443">            try (FileWriter fw = new FileWriter(file)) {</span>
-<span class="fc" id="L444">                fw.write(fileContent.toString());</span>
+<span class="fc" id="L520">            try (FileWriter fw = new FileWriter(file)) {</span>
+<span class="fc" id="L521">                fw.write(fileContent.toString());</span>
             }
-<span class="nc" id="L446">        } catch (IOException e) {</span>
-<span class="nc" id="L447">            e.printStackTrace();</span>
+<span class="nc" id="L523">        } catch (IOException e) {</span>
+<span class="nc" id="L524">            e.printStackTrace();</span>
         }
-<span class="fc" id="L449">    }</span>
+<span class="fc" id="L526">    }</span>
 
     private static void writeToUserFile(String username, byte[] salt, byte[] hashedPassword, byte[] hashedEmail) {
-<span class="fc" id="L452">        File file = new File(&quot;src/main/java/activities/users.txt&quot;);</span>
-<span class="fc" id="L453">        try (FileWriter fw = new FileWriter(file, true);</span>
-<span class="fc" id="L454">             BufferedWriter bw = new BufferedWriter(fw)) {</span>
-<span class="fc" id="L455">            String encodedSalt = Base64.getEncoder().encodeToString(salt);</span>
-<span class="fc" id="L456">            String encodedHashedPassword = Base64.getEncoder().encodeToString(hashedPassword);</span>
-<span class="fc" id="L457">            String encodedHashedEmail = Base64.getEncoder().encodeToString(hashedEmail);</span>
-<span class="pc bpc" id="L458" title="1 of 2 branches missed.">            if (file.length() != 0) {</span>
-<span class="fc" id="L459">                bw.newLine();</span>
-        }
-<span class="fc" id="L461">        bw.write(username + &quot; &quot; + encodedSalt + &quot; &quot; + encodedHashedPassword + &quot; &quot; + encodedHashedEmail);</span>
+        // File file = new File(&quot;src/main/java/activities/users.txt&quot;);
+<span class="fc" id="L530">        String userPath = System.getProperty(&quot;user.dir&quot;) + &quot;/server_data/users.txt&quot;;</span>
+<span class="fc" id="L531">        File file = new File (userPath);</span>
+<span class="fc" id="L532">        try (FileWriter fw = new FileWriter(file, true);</span>
+<span class="fc" id="L533">                BufferedWriter bw = new BufferedWriter(fw)) {</span>
+<span class="fc" id="L534">            String encodedSalt = Base64.getEncoder().encodeToString(salt);</span>
+<span class="fc" id="L535">            String encodedHashedPassword = Base64.getEncoder().encodeToString(hashedPassword);</span>
+<span class="fc" id="L536">            String encodedHashedEmail = Base64.getEncoder().encodeToString(hashedEmail);</span>
+<span class="pc bpc" id="L537" title="1 of 2 branches missed.">            if (file.length() != 0) {</span>
+<span class="fc" id="L538">                bw.newLine();</span>
+            }
+<span class="fc" id="L540">            bw.write(username + &quot; &quot; + encodedSalt + &quot; &quot; + encodedHashedPassword + &quot; &quot; + encodedHashedEmail);</span>
 
-<span class="nc" id="L463">    } catch (IOException e) {</span>
-<span class="nc" id="L464">            e.printStackTrace();</span>
+<span class="nc" id="L542">        } catch (IOException e) {</span>
+<span class="nc" id="L543">            e.printStackTrace();</span>
         }
-<span class="fc" id="L466">    }</span>
+<span class="fc" id="L545">    }</span>
 
     private static void updateUserDataFile(String username, Map&lt;String, byte[]&gt; userData) {
-<span class="fc" id="L469">        File inputFile = new File(&quot;src/main/java/activities/users.txt&quot;);</span>
-<span class="fc" id="L470">        File tempFile = new File(inputFile.getAbsolutePath() + &quot;.tmp&quot;);</span>
-    
-<span class="fc" id="L472">        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));</span>
-<span class="fc" id="L473">             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {</span>
+        // File inputFile = new File(&quot;src/main/java/activities/users.txt&quot;);
+<span class="fc" id="L549">        String userPath = System.getProperty(&quot;user.dir&quot;) + &quot;/server_data/users.txt&quot;;</span>
+<span class="fc" id="L550">        File inputFile = new File(userPath);</span>
+<span class="fc" id="L551">        File tempFile = new File(inputFile.getAbsolutePath() + &quot;.tmp&quot;);</span>
+
+<span class="fc" id="L553">        try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));</span>
+<span class="fc" id="L554">                BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {</span>
             String line;
-    
+
             // Read each line from the original file
-<span class="fc bfc" id="L477" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
+<span class="fc bfc" id="L558" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
                 // Check if the line contains the username to be updated
-<span class="fc bfc" id="L479" title="All 2 branches covered.">                if (line.startsWith(username + &quot; &quot;)) {</span>
+<span class="fc bfc" id="L560" title="All 2 branches covered.">                if (line.startsWith(username + &quot; &quot;)) {</span>
                     // Replace user-specific data with updated data
-<span class="fc" id="L481">                    String updatedLine = username + &quot; &quot; +</span>
-<span class="fc" id="L482">                            Base64.getEncoder().encodeToString(userData.get(&quot;salt&quot;)) + &quot; &quot; +</span>
-<span class="fc" id="L483">                            Base64.getEncoder().encodeToString(userData.get(&quot;passwordHash&quot;)) + &quot; &quot; +</span>
-<span class="fc" id="L484">                            Base64.getEncoder().encodeToString(userData.get(&quot;emailHash&quot;));</span>
+<span class="fc" id="L562">                    String updatedLine = username + &quot; &quot; +</span>
+<span class="fc" id="L563">                            Base64.getEncoder().encodeToString(userData.get(&quot;salt&quot;)) + &quot; &quot; +</span>
+<span class="fc" id="L564">                            Base64.getEncoder().encodeToString(userData.get(&quot;passwordHash&quot;)) + &quot; &quot; +</span>
+<span class="fc" id="L565">                            Base64.getEncoder().encodeToString(userData.get(&quot;emailHash&quot;));</span>
                     // Write the updated line to the temporary file
-<span class="fc" id="L486">                    writer.write(updatedLine + System.lineSeparator());</span>
-<span class="fc" id="L487">                } else {</span>
+<span class="fc" id="L567">                    writer.write(updatedLine + System.lineSeparator());</span>
+<span class="fc" id="L568">                } else {</span>
                     // Write all other lines to the temporary file
-<span class="fc" id="L489">                    writer.write(line + System.lineSeparator());</span>
+<span class="fc" id="L570">                    writer.write(line + System.lineSeparator());</span>
                 }
             }
-<span class="nc" id="L492">        } catch (IOException e) {</span>
-<span class="nc" id="L493">            e.printStackTrace();</span>
+<span class="nc" id="L573">        } catch (IOException e) {</span>
+<span class="nc" id="L574">            e.printStackTrace();</span>
         }
-    
+
         // Replace the original file with the temporary file
-<span class="pc bpc" id="L497" title="1 of 2 branches missed.">        if (!inputFile.delete()) {</span>
-<span class="nc" id="L498">            System.out.println(&quot;Could not delete the original file.&quot;);</span>
-<span class="nc" id="L499">            return;</span>
+<span class="pc bpc" id="L578" title="1 of 2 branches missed.">        if (!inputFile.delete()) {</span>
+<span class="nc" id="L579">            System.out.println(&quot;Could not delete the original file.&quot;);</span>
+<span class="nc" id="L580">            return;</span>
         }
-<span class="pc bpc" id="L501" title="1 of 2 branches missed.">        if (!tempFile.renameTo(inputFile)) {</span>
-<span class="nc" id="L502">            System.out.println(&quot;Could not rename the temporary file.&quot;);</span>
+<span class="pc bpc" id="L582" title="1 of 2 branches missed.">        if (!tempFile.renameTo(inputFile)) {</span>
+<span class="nc" id="L583">            System.out.println(&quot;Could not rename the temporary file.&quot;);</span>
         }
-<span class="fc" id="L504">    }</span>
-    
+<span class="fc" id="L585">    }</span>
+
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

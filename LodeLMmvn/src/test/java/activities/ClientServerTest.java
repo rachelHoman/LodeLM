@@ -735,7 +735,8 @@ public class ClientServerTest {
     }
 
     public static void removeTestUserFromFile() {
-        File usersFile = new File("src/main/java/activities/users.txt");
+        String userPath = System.getProperty("user.dir") + "/server_data/users.txt";
+        File usersFile = new File(userPath);
         File tempFile = new File("src/main/java/activities/users_temp.txt");
     
         try (BufferedReader reader = new BufferedReader(new FileReader(usersFile));

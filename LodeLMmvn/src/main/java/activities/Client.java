@@ -27,9 +27,10 @@ import utils.*;
 import javax.crypto.SecretKey;
 
 public class Client {
-    private static final String SERVER_IP = "13.58.125.157";
-    // private static final int SERVER_PORT = 17639;
-    private static final int SERVER_PORT = 8080;
+    // private static final String SERVER_IP = "13.58.125.157";
+    private static final String SERVER_IP = "127.0.0.1";
+    private static final int SERVER_PORT = 17139;
+    // private static final int SERVER_PORT = 8080;
     private int BUFFER_SIZE = 4096;
 
     private static final String protocol = "TLSv1.2";

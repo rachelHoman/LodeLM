@@ -26,8 +26,8 @@ import java.util.ArrayList;
 public class FileHandler {
     String path;
 <span class="fc" id="L28">    int MAX_BUFFER_SIZE = 4096;</span>
-    // String csv = &quot;/workspaces/LodeLM/user_permissions.csv&quot;;
-<span class="fc" id="L30">    String csv = &quot;/Users/Aniku/Downloads/LodeLM/user_permissions.csv&quot;;</span>
+<span class="fc" id="L29">    String csv = System.getProperty(&quot;user.dir&quot;) + &quot;/&quot; +&quot;user_permissions.csv&quot;;</span>
+    // String csv = &quot;/Users/Aniku/Downloads/LodeLM/user_permissions.csv&quot;;
     private static final int DOWNLOAD_THRESHOLD = 10; // Threshold for excessive file downloads
     private static final int UNAUTHORIZED_ATTEMPT_THRESHOLD = 3; // Threshold for unauthorized access attempts
 <span class="fc" id="L33">    private Map&lt;String, Integer&gt; fileDownloads = new HashMap&lt;&gt;();</span>
@@ -151,7 +151,7 @@ public class FileHandler {
 <span class="fc" id="L151">        File file = new File(this.path);</span>
         // Check if the user has write privileges
 <span class="fc" id="L153">        int row = this.searchUserPermissionsCSV(username);</span>
-<span class="fc bfc" id="L154" title="All 2 branches covered.">        if (row != -1) {</span>
+<span class="pc bpc" id="L154" title="1 of 2 branches missed.">        if (row != -1) {</span>
 <span class="fc" id="L155">            String[] userPermissionInfo = this.retrieveUserPermissionsCSV(username);</span>
 <span class="pc bpc" id="L156" title="3 of 6 branches missed.">            if (userPermissionInfo != null &amp;&amp; userPermissionInfo.length == 3 &amp;&amp; userPermissionInfo[2].contains(&quot;w&quot;)) {</span>
 <span class="fc" id="L157">                boolean deleted = file.delete();</span>
@@ -229,198 +229,200 @@ public class FileHandler {
 
         // See if already in file 
 <span class="fc" id="L231">        int row = this.searchUserPermissionsCSV(username);</span>
-<span class="fc bfc" id="L232" title="All 2 branches covered.">        if (row != -1) {</span>
-<span class="fc" id="L233">            String[] userPermissionInfo = this.retrieveUserPermissionsCSV(username);</span>
-<span class="pc bpc" id="L234" title="3 of 6 branches missed.">            if (userPermissionInfo != null &amp;&amp; userPermissionInfo.length == 3 &amp;&amp; userPermissionInfo[2].contains(&quot;w&quot;)) {</span>
+<span class="pc bpc" id="L232" title="1 of 2 branches missed.">        if (row != -1) {</span>
+<span class="nc" id="L233">            String[] userPermissionInfo = this.retrieveUserPermissionsCSV(username);</span>
+<span class="nc bnc" id="L234" title="All 6 branches missed.">            if (userPermissionInfo != null &amp;&amp; userPermissionInfo.length == 3 &amp;&amp; userPermissionInfo[2].contains(&quot;w&quot;)) {</span>
                 // then we are looking to append new permissions for username
-<span class="pc bpc" id="L236" title="1 of 2 branches missed.">                if (sharedUsername == null) {</span>
+<span class="nc bnc" id="L236" title="All 2 branches missed.">                if (sharedUsername == null) {</span>
                     // Delete line bc needing to override file on server potentially
-<span class="fc" id="L238">                    this.deleteUserPermissions(row);</span>
-<span class="fc" id="L239">                } </span>
+<span class="nc" id="L238">                    this.deleteUserPermissions(row);</span>
+<span class="nc" id="L239">                } </span>
                 // then we are looking to append new permissions for sharedUsername
                 else {
                     // check if the sharedUsername is already in the share file
 <span class="nc" id="L243">                    int sharedRow = this.searchUserPermissionsCSV(sharedUsername);</span>
 <span class="nc bnc" id="L244" title="All 2 branches missed.">                    if (sharedRow != -1) {</span>
-<span class="nc" id="L245">                        String[] sharedUserPermissionInfo = this.retrieveUserPermissionsCSV(username);</span>
+<span class="nc" id="L245">                        String[] sharedUserPermissionInfo = this.retrieveUserPermissionsCSV(sharedUsername);</span>
 <span class="nc bnc" id="L246" title="All 4 branches missed.">                        if (sharedUserPermissionInfo != null &amp;&amp; sharedUserPermissionInfo.length == 3) {</span>
 <span class="nc" id="L247">                            String currentPermissions = sharedUserPermissionInfo[2];</span>
-<span class="nc bnc" id="L248" title="All 2 branches missed.">                            if (privileges.equals(currentPermissions)) {</span>
-<span class="nc" id="L249">                                writer.close();</span>
-<span class="nc" id="L250">                                return true;</span>
+<span class="nc" id="L248">                            System.out.println(currentPermissions);</span>
+<span class="nc" id="L249">                            System.out.println(privileges);</span>
+<span class="nc bnc" id="L250" title="All 2 branches missed.">                            if (privileges.equals(currentPermissions)) {</span>
+<span class="nc" id="L251">                                writer.close();</span>
+<span class="nc" id="L252">                                return true;</span>
                             } else {
-<span class="nc" id="L252">                                this.deleteUserPermissions(sharedRow);</span>
-<span class="nc" id="L253">                                privileges = &quot;rw&quot;;</span>
+<span class="nc" id="L254">                                this.deleteUserPermissions(sharedRow);</span>
+<span class="nc" id="L255">                                privileges = &quot;rw&quot;;</span>
                             }
                         }
                     }
-<span class="nc" id="L257">                    String [] shareKeyInfo = {this.path, sharedUsername, privileges};</span>
-<span class="nc" id="L258">                    writer.writeNext(shareKeyInfo);</span>
-<span class="nc" id="L259">                    writer.close();</span>
-<span class="nc" id="L260">                    return true;</span>
+<span class="nc" id="L259">                    String [] shareKeyInfo = {this.path, sharedUsername, privileges};</span>
+<span class="nc" id="L260">                    writer.writeNext(shareKeyInfo);</span>
+<span class="nc" id="L261">                    writer.close();</span>
+<span class="nc" id="L262">                    return true;</span>
                 }
             }
             // case where user only has read privileges, so shouldn't be able to edit the permissions of the file
             else {
-<span class="nc" id="L265">                writer.close();</span>
-<span class="nc" id="L266">                return false;</span>
+<span class="nc" id="L267">                writer.close();</span>
+<span class="nc" id="L268">                return false;</span>
             }
         }
         else {
-<span class="fc" id="L270">            ArrayList&lt;Integer&gt; rowList = this.searchFilenameCSV();</span>
+<span class="fc" id="L272">            ArrayList&lt;Integer&gt; rowList = this.searchFilenameCSV();</span>
             // This is the case where you don't have permission to write to this file name and someone else does
-<span class="pc bpc" id="L272" title="1 of 2 branches missed.">            if (rowList.size() != 0) {</span>
+<span class="pc bpc" id="L274" title="1 of 2 branches missed.">            if (rowList.size() != 0) {</span>
                 // userOutput = &quot;You do not have permission to override the current file with that name on the server. Please change the name of your file.&quot;;
                 // System.out.println(userOutput);
-<span class="nc" id="L275">                writer.close();</span>
-<span class="nc" id="L276">                return false;</span>
+<span class="nc" id="L277">                writer.close();</span>
+<span class="nc" id="L278">                return false;</span>
             }
         }
     
-<span class="fc" id="L280">        String [] fileKeyInfo = {this.path, username, privileges};</span>
-<span class="fc" id="L281">        writer.writeNext(fileKeyInfo);</span>
-<span class="fc" id="L282">        writer.close();</span>
-<span class="fc" id="L283">        return true;</span>
+<span class="fc" id="L282">        String [] fileKeyInfo = {this.path, username, privileges};</span>
+<span class="fc" id="L283">        writer.writeNext(fileKeyInfo);</span>
+<span class="fc" id="L284">        writer.close();</span>
+<span class="fc" id="L285">        return true;</span>
     }
 
     public String[] retrieveUserPermissionsCSV(String username) throws IOException, CsvValidationException {
         try {
-<span class="fc" id="L288">            FileReader filereader = new FileReader(this.csv); </span>
+<span class="fc" id="L290">            FileReader filereader = new FileReader(this.csv); </span>
         
-<span class="fc" id="L290">            CSVReader csvReader = new CSVReader(filereader); </span>
-<span class="fc" id="L291">            String[] nextRecord = {}; </span>
+<span class="fc" id="L292">            CSVReader csvReader = new CSVReader(filereader); </span>
+<span class="fc" id="L293">            String[] nextRecord = {}; </span>
   
             // we are going to read data line by line 
-<span class="fc bfc" id="L294" title="All 2 branches covered.">            while ((nextRecord = csvReader.readNext()) != null) { </span>
-<span class="pc bpc" id="L295" title="2 of 6 branches missed.">                if (nextRecord.length &gt; 0 &amp;&amp; nextRecord[0].equals(this.path) &amp;&amp; nextRecord[1].equals(username)) {</span>
-<span class="fc" id="L296">                    csvReader.close();</span>
-<span class="fc" id="L297">                    return nextRecord;</span>
+<span class="fc bfc" id="L296" title="All 2 branches covered.">            while ((nextRecord = csvReader.readNext()) != null) { </span>
+<span class="pc bpc" id="L297" title="2 of 6 branches missed.">                if (nextRecord.length &gt; 0 &amp;&amp; nextRecord[0].equals(this.path) &amp;&amp; nextRecord[1].equals(username)) {</span>
+<span class="fc" id="L298">                    csvReader.close();</span>
+<span class="fc" id="L299">                    return nextRecord;</span>
                 }
             }
-<span class="fc" id="L300">        }</span>
-<span class="nc" id="L301">        catch (IOException io) {</span>
-<span class="nc" id="L302">            System.out.println(io);</span>
+<span class="fc" id="L302">        }</span>
+<span class="nc" id="L303">        catch (IOException io) {</span>
+<span class="nc" id="L304">            System.out.println(io);</span>
         }
         // System.out.println(&quot;File Access Denied&quot;);
-<span class="fc" id="L305">        return null;</span>
+<span class="fc" id="L307">        return null;</span>
     }
 
     public int searchUserPermissionsCSV(String username) throws IOException, CsvValidationException {
         try {
-<span class="fc" id="L310">            CSVReader csvReader = new CSVReader(new FileReader(this.csv)); </span>
-<span class="fc" id="L311">            String[] nextRecord = {}; </span>
-<span class="fc" id="L312">            int row = 0;</span>
+<span class="fc" id="L312">            CSVReader csvReader = new CSVReader(new FileReader(this.csv)); </span>
+<span class="fc" id="L313">            String[] nextRecord = {}; </span>
+<span class="fc" id="L314">            int row = 0;</span>
             // we are going to read data line by line 
-<span class="fc bfc" id="L314" title="All 2 branches covered.">            while ((nextRecord = csvReader.readNext()) != null) { </span>
-<span class="pc bpc" id="L315" title="2 of 6 branches missed.">                if (nextRecord.length &gt; 0 &amp;&amp; nextRecord[0].equals(this.path) &amp;&amp; nextRecord[1].equals(username)) {</span>
-<span class="fc" id="L316">                    csvReader.close();</span>
-<span class="fc" id="L317">                    return row;</span>
+<span class="fc bfc" id="L316" title="All 2 branches covered.">            while ((nextRecord = csvReader.readNext()) != null) { </span>
+<span class="pc bpc" id="L317" title="2 of 6 branches missed.">                if (nextRecord.length &gt; 0 &amp;&amp; nextRecord[0].equals(this.path) &amp;&amp; nextRecord[1].equals(username)) {</span>
+<span class="fc" id="L318">                    csvReader.close();</span>
+<span class="fc" id="L319">                    return row;</span>
                 }
-<span class="fc" id="L319">                row++;</span>
+<span class="fc" id="L321">                row++;</span>
             }
-<span class="fc" id="L321">            csvReader.close();</span>
-<span class="fc" id="L322">        }</span>
-<span class="nc" id="L323">        catch (IOException io) {</span>
-<span class="nc" id="L324">            System.out.println(io);</span>
+<span class="fc" id="L323">            csvReader.close();</span>
+<span class="fc" id="L324">        }</span>
+<span class="nc" id="L325">        catch (IOException io) {</span>
+<span class="nc" id="L326">            System.out.println(io);</span>
         }
-<span class="fc" id="L326">        return -1;</span>
+<span class="fc" id="L328">        return -1;</span>
     }
 
     public int searchUserPermissionsCSV() throws IOException, CsvValidationException {
         try {
-<span class="nc" id="L331">            CSVReader csvReader = new CSVReader(new FileReader(this.csv)); </span>
-<span class="nc" id="L332">            String[] nextRecord = {}; </span>
-<span class="nc" id="L333">            int row = 0;</span>
+<span class="nc" id="L333">            CSVReader csvReader = new CSVReader(new FileReader(this.csv)); </span>
+<span class="nc" id="L334">            String[] nextRecord = {}; </span>
+<span class="nc" id="L335">            int row = 0;</span>
             // we are going to read data line by line 
-<span class="nc bnc" id="L335" title="All 2 branches missed.">            while ((nextRecord = csvReader.readNext()) != null) { </span>
-<span class="nc bnc" id="L336" title="All 4 branches missed.">                if (nextRecord.length &gt; 0 &amp;&amp; nextRecord[0].equals(this.path)) {</span>
-<span class="nc" id="L337">                    csvReader.close();</span>
-<span class="nc" id="L338">                    return row;</span>
+<span class="nc bnc" id="L337" title="All 2 branches missed.">            while ((nextRecord = csvReader.readNext()) != null) { </span>
+<span class="nc bnc" id="L338" title="All 4 branches missed.">                if (nextRecord.length &gt; 0 &amp;&amp; nextRecord[0].equals(this.path)) {</span>
+<span class="nc" id="L339">                    csvReader.close();</span>
+<span class="nc" id="L340">                    return row;</span>
                 }
-<span class="nc" id="L340">                row++;</span>
+<span class="nc" id="L342">                row++;</span>
             }
-<span class="nc" id="L342">            csvReader.close();</span>
-<span class="nc" id="L343">        }</span>
-<span class="nc" id="L344">        catch (IOException io) {</span>
-<span class="nc" id="L345">            System.out.println(io);</span>
+<span class="nc" id="L344">            csvReader.close();</span>
+<span class="nc" id="L345">        }</span>
+<span class="nc" id="L346">        catch (IOException io) {</span>
+<span class="nc" id="L347">            System.out.println(io);</span>
         }
-<span class="nc" id="L347">        return -1;</span>
+<span class="nc" id="L349">        return -1;</span>
     }
 
     public ArrayList&lt;Integer&gt; searchFilenameCSV() throws IOException, CsvValidationException {
-<span class="fc" id="L351">        ArrayList&lt;Integer&gt; rowList = new ArrayList&lt;Integer&gt;();</span>
+<span class="fc" id="L353">        ArrayList&lt;Integer&gt; rowList = new ArrayList&lt;Integer&gt;();</span>
         try {
-<span class="fc" id="L353">            CSVReader csvReader = new CSVReader(new FileReader(this.csv)); </span>
-<span class="fc" id="L354">            String[] nextRecord = {}; </span>
-<span class="fc" id="L355">            int row = 0;</span>
+<span class="fc" id="L355">            CSVReader csvReader = new CSVReader(new FileReader(this.csv)); </span>
+<span class="fc" id="L356">            String[] nextRecord = {}; </span>
+<span class="fc" id="L357">            int row = 0;</span>
             // we are going to read data line by line 
-<span class="fc bfc" id="L357" title="All 2 branches covered.">            while ((nextRecord = csvReader.readNext()) != null) { </span>
-<span class="pc bpc" id="L358" title="1 of 4 branches missed.">                if (nextRecord.length &gt; 0 &amp;&amp; nextRecord[0].equals(this.path)) {</span>
-<span class="fc" id="L359">                    rowList.add(row);</span>
+<span class="fc bfc" id="L359" title="All 2 branches covered.">            while ((nextRecord = csvReader.readNext()) != null) { </span>
+<span class="pc bpc" id="L360" title="1 of 4 branches missed.">                if (nextRecord.length &gt; 0 &amp;&amp; nextRecord[0].equals(this.path)) {</span>
+<span class="fc" id="L361">                    rowList.add(row);</span>
                 }
-<span class="fc" id="L361">                row++;</span>
+<span class="fc" id="L363">                row++;</span>
             }
-<span class="fc" id="L363">            csvReader.close();</span>
-<span class="fc" id="L364">        }</span>
-<span class="nc" id="L365">        catch (IOException io) {</span>
-<span class="nc" id="L366">            System.out.println(io);</span>
+<span class="fc" id="L365">            csvReader.close();</span>
+<span class="fc" id="L366">        }</span>
+<span class="nc" id="L367">        catch (IOException io) {</span>
+<span class="nc" id="L368">            System.out.println(io);</span>
         }
-<span class="fc" id="L368">        return rowList;</span>
+<span class="fc" id="L370">        return rowList;</span>
     }
 
     public void deleteUserPermissions(int rowNumber) throws IOException, CsvException, CsvValidationException {
-<span class="fc" id="L372">        CSVReader reader = new CSVReader(new FileReader(this.csv));</span>
-<span class="fc" id="L373">        List&lt;String[]&gt; allElements = reader.readAll();</span>
-<span class="fc" id="L374">        allElements.remove(rowNumber);</span>
-<span class="fc" id="L375">        FileWriter sw = new FileWriter(this.csv);</span>
-<span class="fc" id="L376">        CSVWriter writer = new CSVWriter(sw);</span>
-<span class="fc" id="L377">        writer.writeAll(allElements);</span>
-<span class="fc" id="L378">        reader.close();</span>
-<span class="fc" id="L379">        writer.close();</span>
-<span class="fc" id="L380">    }</span>
+<span class="nc" id="L374">        CSVReader reader = new CSVReader(new FileReader(this.csv));</span>
+<span class="nc" id="L375">        List&lt;String[]&gt; allElements = reader.readAll();</span>
+<span class="nc" id="L376">        allElements.remove(rowNumber);</span>
+<span class="nc" id="L377">        FileWriter sw = new FileWriter(this.csv);</span>
+<span class="nc" id="L378">        CSVWriter writer = new CSVWriter(sw);</span>
+<span class="nc" id="L379">        writer.writeAll(allElements);</span>
+<span class="nc" id="L380">        reader.close();</span>
+<span class="nc" id="L381">        writer.close();</span>
+<span class="nc" id="L382">    }</span>
 
     public void deleteFileCSV(ArrayList&lt;Integer&gt; rowList) throws IOException, CsvException, CsvValidationException {
-<span class="fc" id="L383">        CSVReader reader = new CSVReader(new FileReader(this.csv));</span>
-<span class="fc" id="L384">        List&lt;String[]&gt; allElements = reader.readAll();</span>
-<span class="fc bfc" id="L385" title="All 2 branches covered.">        for (int i = rowList.size() - 1; i &gt;= 0; i--) {</span>
-<span class="fc" id="L386">            int row = rowList.get(i);</span>
-<span class="fc" id="L387">            allElements.remove(row);</span>
+<span class="fc" id="L385">        CSVReader reader = new CSVReader(new FileReader(this.csv));</span>
+<span class="fc" id="L386">        List&lt;String[]&gt; allElements = reader.readAll();</span>
+<span class="fc bfc" id="L387" title="All 2 branches covered.">        for (int i = rowList.size() - 1; i &gt;= 0; i--) {</span>
+<span class="fc" id="L388">            int row = rowList.get(i);</span>
+<span class="fc" id="L389">            allElements.remove(row);</span>
         }
-<span class="fc" id="L389">        System.out.println(allElements);</span>
-<span class="fc" id="L390">        CSVWriter writer = new CSVWriter(new FileWriter(this.csv));</span>
-<span class="fc" id="L391">        writer.writeAll(allElements);</span>
-<span class="fc" id="L392">        reader.close();</span>
-<span class="fc" id="L393">        writer.close();</span>
-<span class="fc" id="L394">    }</span>
+<span class="fc" id="L391">        System.out.println(allElements);</span>
+<span class="fc" id="L392">        CSVWriter writer = new CSVWriter(new FileWriter(this.csv));</span>
+<span class="fc" id="L393">        writer.writeAll(allElements);</span>
+<span class="fc" id="L394">        reader.close();</span>
+<span class="fc" id="L395">        writer.close();</span>
+<span class="fc" id="L396">    }</span>
 
     public static void logAuditAction(String username, String permissionLevel, String action, String filename) {
-<span class="fc" id="L397">        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
-<span class="fc" id="L398">        String logEntry = username + &quot;,&quot; + permissionLevel + &quot;,&quot; + timestamp + &quot;,&quot; + action;</span>
+<span class="fc" id="L399">        String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss&quot;));</span>
+<span class="fc" id="L400">        String logEntry = username + &quot;,&quot; + permissionLevel + &quot;,&quot; + timestamp + &quot;,&quot; + action;</span>
 
-<span class="fc" id="L400">        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {</span>
-<span class="fc" id="L401">            writer.write(logEntry);</span>
-<span class="fc" id="L402">            writer.newLine();</span>
-<span class="nc" id="L403">        } catch (IOException e) {</span>
-<span class="nc" id="L404">            System.err.println(&quot;Error writing to audit log: &quot; + e.getMessage());</span>
+<span class="fc" id="L402">        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {</span>
+<span class="fc" id="L403">            writer.write(logEntry);</span>
+<span class="fc" id="L404">            writer.newLine();</span>
+<span class="nc" id="L405">        } catch (IOException e) {</span>
+<span class="nc" id="L406">            System.err.println(&quot;Error writing to audit log: &quot; + e.getMessage());</span>
         }
-<span class="fc" id="L406">    }</span>
+<span class="fc" id="L408">    }</span>
 
     private void handleExcessiveDownloads(String username) {
-<span class="fc" id="L409">        int downloads = fileDownloads.getOrDefault(username, 0);</span>
-<span class="fc" id="L410">        downloads++;</span>
-<span class="fc" id="L411">        fileDownloads.put(username, downloads);</span>
-<span class="pc bpc" id="L412" title="1 of 2 branches missed.">        if (downloads &gt;= DOWNLOAD_THRESHOLD) {</span>
-<span class="nc" id="L413">            logAuditAction(username, &quot;User&quot;, &quot;Exceeded download threshold&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="fc" id="L411">        int downloads = fileDownloads.getOrDefault(username, 0);</span>
+<span class="fc" id="L412">        downloads++;</span>
+<span class="fc" id="L413">        fileDownloads.put(username, downloads);</span>
+<span class="pc bpc" id="L414" title="1 of 2 branches missed.">        if (downloads &gt;= DOWNLOAD_THRESHOLD) {</span>
+<span class="nc" id="L415">            logAuditAction(username, &quot;User&quot;, &quot;Exceeded download threshold&quot;, &quot;audit_log.txt&quot;);</span>
         }
-<span class="fc" id="L415">    }</span>
+<span class="fc" id="L417">    }</span>
 
     private void handleUnauthorizedAccess(String username) {
-<span class="fc" id="L418">        int attempts = unauthorizedAccessAttempts.getOrDefault(username, 0);</span>
-<span class="fc" id="L419">        attempts++;</span>
-<span class="fc" id="L420">        unauthorizedAccessAttempts.put(username, attempts);</span>
-<span class="pc bpc" id="L421" title="1 of 2 branches missed.">        if (attempts &gt;= UNAUTHORIZED_ATTEMPT_THRESHOLD) {</span>
-<span class="nc" id="L422">            logAuditAction(username, &quot;User&quot;, &quot;Repeated unauthorized access attempts&quot;, &quot;audit_log.txt&quot;);</span>
+<span class="fc" id="L420">        int attempts = unauthorizedAccessAttempts.getOrDefault(username, 0);</span>
+<span class="fc" id="L421">        attempts++;</span>
+<span class="fc" id="L422">        unauthorizedAccessAttempts.put(username, attempts);</span>
+<span class="pc bpc" id="L423" title="1 of 2 branches missed.">        if (attempts &gt;= UNAUTHORIZED_ATTEMPT_THRESHOLD) {</span>
+<span class="nc" id="L424">            logAuditAction(username, &quot;User&quot;, &quot;Repeated unauthorized access attempts&quot;, &quot;audit_log.txt&quot;);</span>
         }
-<span class="fc" id="L424">    }</span>
+<span class="fc" id="L426">    }</span>
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

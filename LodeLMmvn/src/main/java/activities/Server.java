@@ -20,8 +20,8 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManagerFactory;
 
 public class Server {
-    // private static final int PORT = 17639;
-    private static final int PORT = 8080;
+    private static final int PORT = 17139;
+    // private static final int PORT = 8080;
 
     private static final String protocol = "TLSv1.2";
     private static final String[] cipher_suites = new String[]{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"};
@@ -33,7 +33,7 @@ public class Server {
     private static Map<String, byte[]> testuserSecretKeys = new HashMap<>();
     private static Map<String, Map<String, byte[]>> userPasswords = new HashMap<>();
     private static Map<String, Map<String, byte[]>> testuserPasswords = new HashMap<>();
-    private static String userPath = "src/main/java/activities/users.txt";
+    private static String userPath = System.getProperty("user.dir") + "/server_data/users.txt";
     private static String testPath = "src/test/java/activities/test_users.txt";
     private static String secretPath = "src/main/java/activities/secret_keys.txt";
     private static String testsecretPath = "src/test/java/activities/test_secret_keys.txt";
