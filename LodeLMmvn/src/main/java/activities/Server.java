@@ -21,7 +21,7 @@ import javax.net.ssl.TrustManagerFactory;
 
 public class Server {
     // private static final int PORT = 17639;
-    private static final int PORT = 57719;
+    private static final int PORT = 8080;
 
     private static final String protocol = "TLSv1.2";
     private static final String[] cipher_suites = new String[]{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"};
