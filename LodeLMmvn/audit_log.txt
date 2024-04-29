@@ -151,3 +151,21 @@ rachel,Admin,2024-04-28 20:23:02,4failed password attempts on login
 rachel,Client,2024-04-28 20:23:09,Logout
 ,Client,2024-04-28 20:32:13,Logout
 ,Admin,2024-04-28 20:32:13,3 failed password attempts on login
+alice,Normal,2024-04-28 10:28:14,Login
+alice,User,2024-04-28 10:33:26,Logout
+,Client,2024-04-28 13:29:30,Logout
+anika,Create Account,2024-04-28 13:32:13,Account Created
+anika,Normal,2024-04-28 13:32:13,Login
+alice,Normal,2024-04-28 13:34:59,Login
+anika,User,2024-04-28 13:36:11,Logout
+alice,User,2024-04-28 13:36:15,Logout
+anika,Forgot Password,2024-04-28 13:39:32,Password Recovered
+anika,Normal,2024-04-28 13:39:32,Login
+anika,User,2024-04-28 13:39:38,Logout
+anika,Normal,2024-04-28 13:40:50,Login
+anika,User,2024-04-28 13:41:13,Logout
+christy,Forgot Password,2024-04-29 02:07:10,Password Recovered
+christy,Normal,2024-04-29 02:07:10,Login
+christy,Normal,2024-04-29 03:10:51,Login
+christy,Normal,2024-04-29 03:12:58,Login
+christy,User,2024-04-29 03:14:52,Logout

@@ -73,7 +73,6 @@ public class Client {
                 // AES KEY Communication
                 aesKey = fe.getAESKey();
                 byte[] keyData =  aesKey.getEncoded();
-                //TODO: Encrypt keydata
                 dataOutputStream.write(keyData);
                 dataOutputStream.flush();
                 System.out.println("Secret Key Shared");
@@ -197,7 +196,7 @@ public class Client {
                             continue;
                         }
 
-                        // Prompt the user for password
+                        // Prompt the user for password twice
                         System.out.print("Enter your password: ");
                         String password = userInput.readLine();
                         while (!isPasswordStrong(password)) {

@@ -242,9 +242,11 @@ public class FileHandler {
                     // check if the sharedUsername is already in the share file
                     int sharedRow = this.searchUserPermissionsCSV(sharedUsername);
                     if (sharedRow != -1) {
-                        String[] sharedUserPermissionInfo = this.retrieveUserPermissionsCSV(username);
+                        String[] sharedUserPermissionInfo = this.retrieveUserPermissionsCSV(sharedUsername);
                         if (sharedUserPermissionInfo != null && sharedUserPermissionInfo.length == 3) {
                             String currentPermissions = sharedUserPermissionInfo[2];
+                            System.out.println(currentPermissions);
+                            System.out.println(privileges);
                             if (privileges.equals(currentPermissions)) {
                                 writer.close();
                                 return true;

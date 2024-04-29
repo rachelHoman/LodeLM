@@ -31,7 +31,7 @@ import utils.IdleTimeoutManager;
 
 public class ClientHandler implements Runnable {
     private int AES_KEY_LENGTH = 32;
-    private int MAC_KEY_LENGTH = 32; // 256 bits to 32 bytes
+    private int MAC_KEY_LENGTH = 32;
     private int BUFFER_SIZE = 4096;
     private int wrongPasswordAttempts = 0;
 
@@ -46,7 +46,7 @@ public class ClientHandler implements Runnable {
         socket.setSoTimeout(600000); // set 5 min time manager
         this.idleTimeoutManager = new IdleTimeoutManager(null, new FileHandler(null));
     }
-    
+  
     public void run() {
         try {
             Timer timer = new Timer();
@@ -74,7 +74,6 @@ public class ClientHandler implements Runnable {
                     // User is logged in, break the loop and proceed to handle commands
                     break;
                 }
-
                 else if (action.equals("Create Account") || action.equals("3")) {
                     // Receive username from client
                     byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
@@ -117,7 +116,6 @@ public class ClientHandler implements Runnable {
                     username = new String(usernameByte, StandardCharsets.UTF_8);
                     byte[] newPasswordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
                     String newPasswordString = new String(newPasswordByte, StandardCharsets.UTF_8);
-                    
                     String sub = Base64.getEncoder().encodeToString(newPasswordString.getBytes());
                     
                     int padding = sub.length() % 4;
@@ -260,8 +258,8 @@ public class ClientHandler implements Runnable {
                             }
                             EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                         }
-
-                    } else if (inputLine.startsWith("download ")) {
+                    }
+                    else if (inputLine.startsWith("download ")) {
                         String fileName = inputLine.substring(9);
 
                         File fileToDownload = new File("server_data/" + fileName);
@@ -394,7 +392,7 @@ public class ClientHandler implements Runnable {
         // Get the stored user data for the given username
         Map<String, byte[]> userData = Server.getUserPasswords().get(username);
         if (userData == null) {
-            return false; // User not found
+            return false;
         }
 
         while (!Client.UserExists(username, "normal")) {
@@ -406,7 +404,7 @@ public class ClientHandler implements Runnable {
         byte[] storedPasswordHash = userData.get("passwordHash");
 
         if (storedSalt == null || storedPasswordHash == null) {
-            return false; // Salt or password hash not found
+            return false;
         }
 
         // Hash the provided password with the stored salt
@@ -416,14 +414,6 @@ public class ClientHandler implements Runnable {
         String encodedSalt = Base64.getEncoder().encodeToString(storedSalt);
         String encodedHashedPasswordP = Base64.getEncoder().encodeToString(providedPasswordHash);
         String encodedHashedPasswordS = Base64.getEncoder().encodeToString(storedPasswordHash);
-
-        // Compare the hashed passwords
-        // System.out.println("provided: " + encodedHashedPasswordP);
-        // System.out.println("stored: " + encodedHashedPasswordS);
-        // System.out.println("salt: " + encodedSalt);
-
-        // System.out.println("p: " + bytesToHex(providedPasswordHash));
-        // System.out.println("s: " + bytesToHex(storedPasswordHash));
 
         return Arrays.equals(providedPasswordHash, storedPasswordHash);
     }
@@ -440,7 +430,7 @@ public class ClientHandler implements Runnable {
         return hexString.toString();
     }
 
-    private static void createAccount(String username, byte[] password, String email) {
+    public static void createAccount(String username, byte[] password, String email) {
 
         byte[] salt = generateSalt();
         // Hash the password and email with Salt
@@ -461,7 +451,7 @@ public class ClientHandler implements Runnable {
         writeToUserFile(username, salt, storedPasswordHash, hashedEmail);
     }
 
-    private static void resetPassword(String username, byte[] resetPassword, String email) {
+    public static void resetPassword(String username, byte[] resetPassword, String email) {
 
         // Check if the user exists
         if (Server.getUserPasswords().containsKey(username)) {
@@ -475,6 +465,8 @@ public class ClientHandler implements Runnable {
             userData.put("passwordHash", hashedNewPassword);
             userData.put("emailHash", hashedEmail);
             Server.getUserPasswords().put(username, userData);
+
+            // Write updated data to the user file
             updateUserDataFile(username, userData);
         } else {
             System.out.println("User does not exist.");
