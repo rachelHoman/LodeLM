@@ -17,11 +17,13 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Timer;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.SSLSocket;
 
+import io.grpc.netty.shaded.io.netty.util.TimerTask;
 import utils.EncryptedCom;
 import utils.FileEncryption;
 import utils.FileHandler;
@@ -41,12 +43,13 @@ public class ClientHandler implements Runnable {
 
     public ClientHandler(SSLSocket socket) throws SocketException {
         this.clientSocket = socket;
-        socket.setSoTimeout(300000); // set 5 min time manager
+        socket.setSoTimeout(600000); // set 5 min time manager
         this.idleTimeoutManager = new IdleTimeoutManager(null, new FileHandler(null));
     }
-
+    
     public void run() {
         try {
+            Timer timer = new Timer();
 
             dataInputStream = new DataInputStream(clientSocket.getInputStream());
             dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
@@ -199,21 +202,24 @@ public class ClientHandler implements Runnable {
                                     dataOutputStream);
                             wrongPasswordAttempts++;
                             System.out.println("wrongPasswordAttempts: " + wrongPasswordAttempts);
-                            if (wrongPasswordAttempts == 2 || wrongPasswordAttempts == 3) {
-                                Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
-                                System.out.println("Connection timed out due to inactivity.");
-                            }
-                            else if (wrongPasswordAttempts == 4) {
-                                Client.logAuditAction(username, "Admin", "4 failed password attempts on login",
+                            if (wrongPasswordAttempts >= 3) {
+                                String action_string = wrongPasswordAttempts + " failed password attempts on login";
+                                Client.logAuditAction(username, "Admin", action_string,
                                         "audit_log.txt");
                                 String failedAttempts = wrongPasswordAttempts + " Failed login attempts";
                                 EncryptedCom.sendMessage(failedAttempts.getBytes(), aesSecretKey, fe, dataOutputStream);
-                                // clientSocket.close();
+                                clientSocket.close();
                                 return;
                             }
+                            // else {
+                            //     Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                            //     System.out.println("CONNECTION timed out due to inactivity.");
+                            //     return;
+                            // }
 
                         } catch (SocketTimeoutException e) {
                             // Handle timeout: log the event
+                            System.out.println("SocketTimeoutException occurred: " + e.getMessage());
                             Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
                             System.out.println("Connection timed out due to inactivity.");
                         } catch (Exception e) {
@@ -349,6 +355,7 @@ public class ClientHandler implements Runnable {
                 }
             } catch (SocketTimeoutException e) {
                 // Handle timeout: log the event
+                System.out.println("SocketTimeoutException occurred: " + e.getMessage());
                 Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
                 System.out.println("Connection timed out due to inactivity.");
             } catch (Exception e) {
@@ -358,6 +365,7 @@ public class ClientHandler implements Runnable {
         }
         catch (SocketTimeoutException e) {
             // Handle timeout: log the event
+            System.out.println("SocketTimeoutException occurred: " + e.getMessage());
             Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
             System.out.println("Connection timed out due to inactivity.");
         }

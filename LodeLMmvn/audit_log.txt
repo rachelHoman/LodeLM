@@ -109,3 +109,45 @@ Client,Idle,2024-04-28 18:13:59,Idle for 5 min
 Client,Idle,2024-04-28 18:15:18,Idle for 5 min
 exit,Admin,2024-04-28 18:15:25,4 failed password attempts on login
 rachel,Client,2024-04-28 18:15:25,Logout
+,Client,2024-04-28 18:18:32,Logout
+rachel,Client,2024-04-28 18:21:49,Logout
+,Client,2024-04-28 18:24:07,Logout
+Client,Idle,2024-04-28 18:24:07,Idle for 5 min
+Client,Idle,2024-04-28 18:24:08,Idle for 5 min
+,Admin,2024-04-28 18:24:08,4 failed password attempts on login
+Client,Idle,2024-04-28 18:26:49,Idle for 5 min
+,Client,2024-04-28 18:37:09,Logout
+Client,Idle,2024-04-28 18:40:12,Idle for 5 min
+,Client,2024-04-28 18:40:12,Logout
+Client,Idle,2024-04-28 18:41:27,Idle for 5 min
+rachel,Normal,2024-04-28 18:41:36,Login
+rachel,User,2024-04-28 18:41:40,Logout
+,Client,2024-04-28 19:19:39,Logout
+Client,Idle,2024-04-28 19:33:45,Idle for 5 min
+rachel,Client,2024-04-28 19:34:04,Logout
+Client,Idle,2024-04-28 19:34:30,Idle for 5 min
+rachel,Admin,2024-04-28 19:36:04,3 failed password attempts on login
+rachel,Normal,2024-04-28 19:36:11,Login
+rachel,User,2024-04-28 19:36:17,Logout
+,Admin,2024-04-28 19:41:06,3 failed password attempts on login
+,Client,2024-04-28 19:46:21,Logout
+rachel,Admin,2024-04-28 20:10:50,3 failed password attempts on login
+rachel,Normal,2024-04-28 20:11:02,Login
+rachel,User,2024-04-28 20:11:07,Logout
+rachel,Client,2024-04-28 20:12:32,Logout
+exit,Admin,2024-04-28 20:12:32,3 failed password attempts on login
+rachel,Client,2024-04-28 20:16:52,Logout
+,Admin,2024-04-28 20:16:52,3 failed password attempts on login
+,Client,2024-04-28 20:18:16,Logout
+,Admin,2024-04-28 20:18:16,4 failed password attempts on login
+rachel,Client,2024-04-28 20:20:51,Logout
+,Admin,2024-04-28 20:20:51,4failed password attempts on login
+rachel,Admin,2024-04-28 20:21:34,4failed password attempts on login
+rachel,Normal,2024-04-28 20:21:48,Login
+rachel,User,2024-04-28 20:21:55,Logout
+rachel,Normal,2024-04-28 20:22:35,Login
+rachel,User,2024-04-28 20:22:45,Logout
+rachel,Admin,2024-04-28 20:23:02,4failed password attempts on login
+rachel,Client,2024-04-28 20:23:09,Logout
+,Client,2024-04-28 20:32:13,Logout
+,Admin,2024-04-28 20:32:13,3 failed password attempts on login
