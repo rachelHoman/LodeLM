@@ -243,8 +243,7 @@ public class ClientHandler implements Runnable {
                         String userOutput = null;
 
                         File fileToSend = new File("client_data/" + fileName);
-                        if (!fileToSend.exists() || fileToSend.isDirectory()) {
-                        } else {
+                        if (fileToSend.exists() && !fileToSend.isDirectory()) {
                             FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                             try {
                                 userOutput = fileHandler.receiveFile(dataInputStream, aesSecretKey, true, username);
@@ -257,16 +256,16 @@ public class ClientHandler implements Runnable {
                                 output = fileName + " has been received by server";
                             }
                             EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
+                        } else {
+                            output = fileName + " cannot be sent for some reason. Does this file exist? Is it a file not a directory?";
+                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                         }
                     }
                     else if (inputLine.startsWith("download ")) {
                         String fileName = inputLine.substring(9);
 
                         File fileToDownload = new File("server_data/" + fileName);
-                        if (!fileToDownload.exists() || fileToDownload.isDirectory()) {
-                        }
-
-                        else {
+                        if (fileToDownload.exists() && !fileToDownload.isDirectory()) {
                             FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                             output = "File was not downloaded for some reason...";
                             try {
@@ -275,6 +274,9 @@ public class ClientHandler implements Runnable {
                             } catch (Exception e) {
                                 System.out.println(e);
                             }
+                            EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
+                        } else {
+                            output = "File was not downloaded for some reason...";
                             EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                         }
 

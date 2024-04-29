@@ -316,22 +316,13 @@ public class Client {
 
                     else if (userMessage.startsWith("download ")) {
                         String fileName = userMessage.substring(9);
-                        File fileToDownload = new File("server_data/" + fileName);
 
-                        if (fileToDownload.exists()) {
-                            FileHandler fileHandler = new FileHandler("client_data/" + fileName);
-                            try {
-                                fileHandler.receiveFile(dataInputStream, aesKey, false, username);
-                            } catch (Exception e) {
-                                System.out.println(e);
-                            }
+                        FileHandler fileHandler = new FileHandler("client_data/" + fileName);
+                        try {
+                            fileHandler.receiveFile(dataInputStream, aesKey, false, username);
+                        } catch (Exception e) {
+                            System.out.println(e);
                         }
-
-                        else {
-                            System.out.println(fileName + " does not exist or is a directory");
-                            continue;
-                        }
-
                     }
 
                     // Exit loop if user types 'exit'
