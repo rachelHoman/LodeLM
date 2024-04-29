@@ -26,3 +26,8 @@ anika,Normal,2024-04-28 13:39:32,Login
 anika,User,2024-04-28 13:39:38,Logout
 anika,Normal,2024-04-28 13:40:50,Login
 anika,User,2024-04-28 13:41:13,Logout
+christy,Forgot Password,2024-04-29 02:07:10,Password Recovered
+christy,Normal,2024-04-29 02:07:10,Login
+christy,Normal,2024-04-29 03:10:51,Login
+christy,Normal,2024-04-29 03:12:58,Login
+christy,User,2024-04-29 03:14:52,Logout
