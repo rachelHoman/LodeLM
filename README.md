@@ -20,35 +20,13 @@ to override the main class:
 - runs Server.java: mvn exec:java -Dexec.mainClass="activities.Server"
 - runs Client.java: mvn exec:java -Dexec.mainClass="activities.Client"
 
-To run the servers and code first compile the java classes:
 
-`javac Client.java`
+The Client will first be prompted to choose a login option: (1) Login, (2) Forgot Password, (3) Create Account, and (4) Exit. 
 
-or with new file system: `javac ./app/activities/Client.java`
-
-`javac ClientHandler.java`
-
-or with new file system: `javac ./app/activities/ClientHandler.java`
-
-`javac Server.java`
-
-or with new file system: `javac ./app/activities/Server.java`
-
-
-Then start up the Server.java with:
-
-`java Server.java`
-
-or with new file system: `java app/activities/Server`
-
-Then start the Client:
-
-`java Client.java`
-
-or with new file system: `java app/activities/Client`
-
-
-The Client will first be prompted to enter a username. After the user puts in their uid the Server recieves that, and tells the Client hi.
+1. Login: This is for returning users to log on. The user to prompted to enter their username and then respective password. If they match what is stored on the server (hashed and encrypted) then they are allowed on.
+2. Forgot Password: This is for returning users to recover their passwords. The user is prompted to enter their username along with their email that they signed up with. If they match was is stored on the server then a one-time passcode(OTP) is sent to their email. If they enter the correct 6-digit code, then they are prompted to enter a new password (twice to ensue correctness and must meet strong password requirements). Then they are logged into the server.
+3. Create Account: This is for any user. For users who want to create a new account they are prompted to enter a username (cannot be empty or used), then a password (twice to ensue correctness and must meet strong password requirements), then email. Upon entering an email they are sent an OTP which they will enter and if correct, their account is created and they are let on the server.
+4. Exit: This is for any user. If they user does not want to log on then they can simply exit the connection. 
 
 
 ;; The user can then create a project file with
