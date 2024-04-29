@@ -31,3 +31,81 @@ rachel,Admin,2024-04-26 22:16:07,Too many failed password attempts
 rachel,Admin,2024-04-26 22:17:44,Too many failed password attempts
 rachel,Normal,2024-04-26 22:17:52,Login
 rachel,User,2024-04-26 22:17:58,Logout
+rachel,Admin,2024-04-27 15:02:12,Too many failed password attempts
+rachel,Client,2024-04-27 15:02:17,Logout
+rachel,Admin,2024-04-27 15:09:25,Too many failed password attempts
+rachel,Normal,2024-04-27 15:09:41,Login
+rachel,User,2024-04-27 15:09:46,Logout
+rachel,Admin,2024-04-27 15:10:35,Too many failed password attempts
+rachel,Admin,2024-04-27 15:14:14,Too many failed password attempts
+rachel,Normal,2024-04-27 15:14:27,Login
+rachel,User,2024-04-27 15:14:41,Logout
+,Client,2024-04-27 15:14:50,Logout
+rachel,Admin,2024-04-27 15:24:38,Too many failed password attempts
+rachel,Client,2024-04-27 15:25:45,Logout
+rachel,Admin,2024-04-27 15:26:05,Too many failed password attempts
+rachel,Client,2024-04-27 15:26:34,Logout
+rachel,Admin,2024-04-27 15:26:58,3 failed password attempts on login
+rachel,Normal,2024-04-27 15:27:12,Login
+rachel,Admin,2024-04-27 15:28:03,3 failed password attempts on login
+rachel,Normal,2024-04-27 15:28:10,Login
+rachel,User,2024-04-27 15:28:16,Logout
+rachel,Admin,2024-04-27 15:30:38,3 failed password attempts on login
+rachel,Normal,2024-04-27 15:30:59,Login
+rachel,User,2024-04-27 15:31:02,Logout
+rachel,Admin,2024-04-27 15:33:50,3 failed password attempts on login
+rachel,Normal,2024-04-27 15:33:57,Login
+rachel,User,2024-04-27 15:33:59,Logout
+rachel,Normal,2024-04-28 12:59:34,Login
+rachel,User,2024-04-28 13:06:01,Logout
+rachel,Normal,2024-04-28 13:27:28,Login
+rachel,User,2024-04-28 13:39:45,Logout
+rachel,Normal,2024-04-28 13:41:10,Login
+rachel,Normal,2024-04-28 13:54:30,Login
+rachel,Normal,2024-04-28 13:56:00,Login
+rachel,Normal,2024-04-28 14:28:13,Login
+rachel,User,2024-04-28 14:36:20,Logout
+rachel,Admin,2024-04-28 14:38:48,3 failed password attempts on login
+rachel,Normal,2024-04-28 14:38:57,Login
+rachel,User,2024-04-28 14:39:02,Logout
+rachel,Normal,2024-04-28 14:39:23,Login
+rachel,User,2024-04-28 14:59:05,Logout
+rachel,Normal,2024-04-28 15:00:33,Login
+rachel,User,2024-04-28 15:07:02,Logout
+rachel,Client,2024-04-28 15:23:28,Logout
+compSci10!,Admin,2024-04-28 15:23:28,3 failed password attempts on login
+rachel,Normal,2024-04-28 15:23:46,Login
+rachel,User,2024-04-28 15:23:54,Logout
+,Client,2024-04-28 15:30:22,Logout
+,Admin,2024-04-28 15:30:22,3 failed password attempts on login
+,Client,2024-04-28 15:38:30,Logout
+1,Admin,2024-04-28 15:47:05,3 failed password attempts on login
+rachel,Client,2024-04-28 15:47:30,Logout
+,Client,2024-04-28 15:53:25,Logout
+rachel,Normal,2024-04-28 15:53:42,Login
+rachel,User,2024-04-28 15:53:47,Logout
+,Client,2024-04-28 15:54:58,Logout
+,Admin,2024-04-28 15:54:58,3 failed password attempts on login
+rachel,Client,2024-04-28 15:56:46,Logout
+exit,Admin,2024-04-28 15:56:46,3 failed password attempts on login
+rachel,Admin,2024-04-28 16:05:23,3 failed password attempts on login
+rachel,Normal,2024-04-28 16:05:34,Login
+rachel,User,2024-04-28 16:05:45,Logout
+,Client,2024-04-28 16:08:12,Logout
+rachel,Normal,2024-04-28 16:10:46,Login
+rachel,User,2024-04-28 16:10:50,Logout
+rachel,Client,2024-04-28 16:12:28,Logout
+rachel,Client,2024-04-28 16:18:28,Logout
+,Admin,2024-04-28 16:18:28,3 failed password attempts on login
+rachel,Client,2024-04-28 16:21:07,Logout
+Client,Idle,2024-04-28 16:21:07,Idle for 5 min
+,Admin,2024-04-28 16:21:07,4 failed password attempts on login
+,Client,2024-04-28 16:24:49,Logout
+Client,Idle,2024-04-28 16:24:49,Idle for 5 min
+Client,Idle,2024-04-28 16:24:49,Idle for 5 min
+,Admin,2024-04-28 16:24:49,4 failed password attempts on login
+,Client,2024-04-28 16:29:15,Logout
+Client,Idle,2024-04-28 18:13:59,Idle for 5 min
+Client,Idle,2024-04-28 18:15:18,Idle for 5 min
+exit,Admin,2024-04-28 18:15:25,4 failed password attempts on login
+rachel,Client,2024-04-28 18:15:25,Logout

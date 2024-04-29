@@ -1,22 +1,31 @@
 package activities;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.*;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import utils.*;
 import javax.crypto.SecretKey;
-
+import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.SSLSocket;
+
+import utils.EncryptedCom;
+import utils.FileEncryption;
+import utils.FileHandler;
+import utils.IdleTimeoutManager;
 
 public class ClientHandler implements Runnable {
     private int AES_KEY_LENGTH = 32;
@@ -90,6 +99,10 @@ public class ClientHandler implements Runnable {
                     String accountCreation = "Account creation successful. Proceeding with connection...";
                     try {
                         EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
+                    } catch (SocketTimeoutException e) {
+                        // Handle timeout: log the event
+                        Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                        System.out.println("Connection timed out due to inactivity.");
                     } catch (Exception e) {
                         System.out.println(e);
                     }
@@ -117,6 +130,10 @@ public class ClientHandler implements Runnable {
                     String accountCreation = "Password reset successful. Proceeding with connection...";
                     try {
                         EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
+                    } catch (SocketTimeoutException e) {
+                        // Handle timeout: log the event
+                        Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                        System.out.println("Connection timed out due to inactivity.");
                     } catch (Exception e) {
                         System.out.println(e);
                     }
@@ -127,6 +144,10 @@ public class ClientHandler implements Runnable {
                         // Close the socket
                         clientSocket.close();
                         // return;
+                    } catch (SocketTimeoutException e) {
+                        // Handle timeout: log the event
+                        Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                        System.out.println("Connection timed out due to inactivity.");
                     } catch (IOException e) {
                         System.out.println("Error closing socket: " + e.getMessage());
                     }
@@ -154,8 +175,8 @@ public class ClientHandler implements Runnable {
 
                     // Validate username and password
                     if (authenticateUser(username, password)) {
-                        System.out.println("username entered: " + username);
-                        System.out.println("password entered: " + password);
+                        // System.out.println("username entered: " + username);
+                        // System.out.println("password entered: " + password);
                         // If authentication successful, obtain the secret key for the user
                         byte[] secretKey = Server.getUserSecretKeys().get(username);
 
@@ -163,6 +184,10 @@ public class ClientHandler implements Runnable {
                             String authenticationSuccess = "Authentication successful. Proceeding with connection...";
                             EncryptedCom.sendMessage(authenticationSuccess.getBytes(), aesSecretKey, fe,
                                     dataOutputStream);
+                        } catch (SocketTimeoutException e) {
+                            // Handle timeout: log the event
+                            Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                            System.out.println("Connection timed out due to inactivity.");
                         } catch (Exception e) {
                             System.out.println(e);
                         }
@@ -173,15 +198,24 @@ public class ClientHandler implements Runnable {
                             EncryptedCom.sendMessage(authenticationFailure.getBytes(), aesSecretKey, fe,
                                     dataOutputStream);
                             wrongPasswordAttempts++;
-                            if (wrongPasswordAttempts >= 3) {
-                                Client.logAuditAction(username, "Admin", "3 failed password attempts on login",
+                            System.out.println("wrongPasswordAttempts: " + wrongPasswordAttempts);
+                            if (wrongPasswordAttempts == 2 || wrongPasswordAttempts == 3) {
+                                Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                                System.out.println("Connection timed out due to inactivity.");
+                            }
+                            else if (wrongPasswordAttempts == 4) {
+                                Client.logAuditAction(username, "Admin", "4 failed password attempts on login",
                                         "audit_log.txt");
-                                String failedAttempts = "3 Failed login attempts";
+                                String failedAttempts = wrongPasswordAttempts + " Failed login attempts";
                                 EncryptedCom.sendMessage(failedAttempts.getBytes(), aesSecretKey, fe, dataOutputStream);
-                                clientSocket.close();
+                                // clientSocket.close();
                                 return;
                             }
 
+                        } catch (SocketTimeoutException e) {
+                            // Handle timeout: log the event
+                            Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                            System.out.println("Connection timed out due to inactivity.");
                         } catch (Exception e) {
                             System.out.println(e);
                         }
@@ -313,10 +347,19 @@ public class ClientHandler implements Runnable {
 
                     IdleTimeoutManager.updateUserActivity(username);
                 }
+            } catch (SocketTimeoutException e) {
+                // Handle timeout: log the event
+                Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                System.out.println("Connection timed out due to inactivity.");
             } catch (Exception e) {
                 System.out.println(e);
             }
             clientSocket.close();
+        }
+        catch (SocketTimeoutException e) {
+            // Handle timeout: log the event
+            Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+            System.out.println("Connection timed out due to inactivity.");
         }
         catch (EOFException | SocketException e) {
             // Client has closed the connection abruptly
@@ -367,12 +410,12 @@ public class ClientHandler implements Runnable {
         String encodedHashedPasswordS = Base64.getEncoder().encodeToString(storedPasswordHash);
 
         // Compare the hashed passwords
-        System.out.println("provided: " + encodedHashedPasswordP);
-        System.out.println("stored: " + encodedHashedPasswordS);
-        System.out.println("salt: " + encodedSalt);
+        // System.out.println("provided: " + encodedHashedPasswordP);
+        // System.out.println("stored: " + encodedHashedPasswordS);
+        // System.out.println("salt: " + encodedSalt);
 
-        System.out.println("p: " + bytesToHex(providedPasswordHash));
-        System.out.println("s: " + bytesToHex(storedPasswordHash));
+        // System.out.println("p: " + bytesToHex(providedPasswordHash));
+        // System.out.println("s: " + bytesToHex(storedPasswordHash));
 
         return Arrays.equals(providedPasswordHash, storedPasswordHash);
     }
