@@ -43,7 +43,7 @@ public class ClientHandler implements Runnable {
 
     public ClientHandler(SSLSocket socket) throws SocketException {
         this.clientSocket = socket;
-        socket.setSoTimeout(600000); // set 5 min time manager
+        socket.setSoTimeout(300000); // set 5 min time manager
         this.idleTimeoutManager = new IdleTimeoutManager(null, new FileHandler(null));
     }
   
@@ -200,7 +200,7 @@ public class ClientHandler implements Runnable {
                                     dataOutputStream);
                             wrongPasswordAttempts++;
                             System.out.println("wrongPasswordAttempts: " + wrongPasswordAttempts);
-                            if (wrongPasswordAttempts >= 3) {
+                            if (wrongPasswordAttempts >= 4) {
                                 String action_string = wrongPasswordAttempts + " failed password attempts on login";
                                 Client.logAuditAction(username, "Admin", action_string,
                                         "audit_log.txt");
