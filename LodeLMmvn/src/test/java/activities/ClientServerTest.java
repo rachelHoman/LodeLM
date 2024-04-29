@@ -600,7 +600,7 @@ public class ClientServerTest {
     }
 
     @Test
-    public void testDeleteFile_NoPermissions() throws IOException, CsvValidationException, CsvException {
+    public void testDeleteFile() throws IOException, CsvValidationException, CsvException {
         String path = "testFile.txt";
         String username = "testUser";
         File tempFile = new File(path);
@@ -609,7 +609,7 @@ public class ClientServerTest {
         FileHandler fileHandler = new FileHandler(path);
 
         String result = fileHandler.deleteFile(username);
-        assertEquals("File has not been deleted...either does not exist or something else went wrong.", result);
+        assertEquals("testFile.txt was deleted", result);
         tempFile.delete();
     }
 
@@ -617,8 +617,9 @@ public class ClientServerTest {
     // public void testReceiveFile() throws Exception {
     //     String path = "testFile.txt";
     //     String username = "testUser";
+    //     String tempContent = "testing file.";
+
     //     File tempFile = new File(path);
-    //     String tempContent = "testing send file.";
 
     //     ByteArrayInputStream inputStream = new ByteArrayInputStream(tempContent.getBytes());
     //     DataInputStream dataInputStream = new DataInputStream(inputStream);
@@ -633,8 +634,40 @@ public class ClientServerTest {
     //     assertEquals("null", result);
     //     // String result = fileHandler.sendFile(dataOutputStream, commKey, isServer, username);
     //     // assertEquals("You do not have the required permissions to download this file.", result);
+
     //     tempFile.delete();
     // }
+
+    @Test
+    public void testReceiveFile_Success() throws Exception {
+        // Prepare test data
+        String path = "testFile.txt";
+        String username = "testUser";
+        String tempContent = "testing send file.";
+
+        // Create a temporary file with test data
+        try (FileOutputStream fileOutputStream = new FileOutputStream(path)) {
+            fileOutputStream.write(tempContent.getBytes());
+        }
+
+        // Prepare other input parameters
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(tempContent.getBytes());
+        DataInputStream dataInputStream = new DataInputStream(inputStream);
+        SecretKey commKey = new SecretKeySpec("testKey".getBytes(), "AES");
+        boolean isServer = true;
+
+        // Call the method
+        FileHandler fileHandler = new FileHandler(path);
+        String result = fileHandler.receiveFile(dataInputStream, commKey, isServer, username);
+
+        // Assert the result
+        assertEquals(null, result);
+
+        // Clean up temporary resources
+        dataInputStream.close();
+        File tempFile = new File(path);
+        tempFile.delete();
+    }
 
 
 
