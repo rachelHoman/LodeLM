@@ -2,8 +2,10 @@ utils/MACUtils.class
 com/security/App.class
 utils/EncryptedCom.class
 activities/ClientHandler.class
-utils/SimpleMailSender.class
 activities/Client.class
+utils/IdleTimeoutManager.class
 utils/FileHandler.class
-activities/Server.class
+utils/IdleTimeoutManager$1.class
 utils/FileEncryption.class
+utils/SimpleMailSender.class
+activities/Server.class
