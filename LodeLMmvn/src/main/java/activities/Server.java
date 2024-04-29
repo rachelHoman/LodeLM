@@ -94,18 +94,12 @@ public class Server {
                 SSLServerSocketFactory factory = sslContext.getServerSocketFactory();
 
                 // Bind server to specified port and enable protocols and cipher suites.
-                // this.server = (SSLServerSocket) factory.createServerSocket(PORT);
-
-                // SSLServerSocketFactory factory = (SSLServerSocketFactory) SSLServerSocketFactory.getDefault();
                 serverSocket = (SSLServerSocket) factory.createServerSocket(PORT);
-                // serverSocket.setEnabledProtocols(protocols);
                 serverSocket.setEnabledCipherSuites(cipher_suites);
 
-                // ServerSocket serverSocket = new ServerSocket(PORT);
                 System.out.println("Server started. Waiting for clients...");
 
                 while (true) {
-                    // Socket clientSocket = serverSocket.accept();
                     SSLSocket clientSocket = (SSLSocket) serverSocket.accept();
                     System.out.println("Client connected: " + clientSocket);
 

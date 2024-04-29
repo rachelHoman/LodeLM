@@ -1,39 +1,55 @@
 package activities;
 
-import java.io.*;
-import java.net.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.EOFException;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.net.SocketException;
+import java.net.SocketTimeoutException;
+import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.Timer;
 
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.security.*;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
-import utils.*;
 import javax.crypto.SecretKey;
-
+import javax.crypto.spec.SecretKeySpec;
 import javax.net.ssl.SSLSocket;
+
+import io.grpc.netty.shaded.io.netty.util.TimerTask;
+import utils.EncryptedCom;
+import utils.FileEncryption;
+import utils.FileHandler;
+import utils.IdleTimeoutManager;
 
 public class ClientHandler implements Runnable {
     private int AES_KEY_LENGTH = 32;
     private int MAC_KEY_LENGTH = 32;
     private int BUFFER_SIZE = 4096;
+    private int wrongPasswordAttempts = 0;
 
     private SSLSocket clientSocket;
+    private IdleTimeoutManager idleTimeoutManager;
 
     DataInputStream dataInputStream;
     DataOutputStream dataOutputStream;
 
-    public ClientHandler(SSLSocket socket) {
+    public ClientHandler(SSLSocket socket) throws SocketException {
         this.clientSocket = socket;
+        socket.setSoTimeout(600000); // set 5 min time manager
+        this.idleTimeoutManager = new IdleTimeoutManager(null, new FileHandler(null));
     }
-
+  
     public void run() {
         try {
+            Timer timer = new Timer();
 
             dataInputStream = new DataInputStream(clientSocket.getInputStream());
             dataOutputStream = new DataOutputStream(clientSocket.getOutputStream());
@@ -43,19 +59,21 @@ public class ClientHandler implements Runnable {
             // Receive AES Key
             byte[] aesKey = new byte[AES_KEY_LENGTH];
             dataInputStream.read(aesKey, 0, AES_KEY_LENGTH);
-            // aesKey = decryptRSA(aesKey, rsaKey);
             SecretKey aesSecretKey = new SecretKeySpec(aesKey, 0, AES_KEY_LENGTH, "AES");
             System.out.println("AES Key Received");
+
             String username = "";
+            IdleTimeoutManager.updateUserActivity(username);
 
             // Loop until "logged-in" message is received
             String action;
-            while ((action = new String(EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) {
+            while ((action = new String(EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream),
+                    StandardCharsets.UTF_8)) != null) {
+                IdleTimeoutManager.updateUserActivity(username);
                 if (action.equalsIgnoreCase("logged-in")) {
                     // User is logged in, break the loop and proceed to handle commands
                     break;
                 }
-                // Receive login or create account signal from client
                 else if (action.equals("Create Account") || action.equals("3")) {
                     // Receive username from client
                     byte[] usernameByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
@@ -83,6 +101,10 @@ public class ClientHandler implements Runnable {
                     String accountCreation = "Account creation successful. Proceeding with connection...";
                     try {
                         EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
+                    } catch (SocketTimeoutException e) {
+                        // Handle timeout: log the event
+                        Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                        System.out.println("Connection timed out due to inactivity.");
                     } catch (Exception e) {
                         System.out.println(e);
                     }
@@ -95,7 +117,7 @@ public class ClientHandler implements Runnable {
                     byte[] newPasswordByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
                     String newPasswordString = new String(newPasswordByte, StandardCharsets.UTF_8);
                     String sub = Base64.getEncoder().encodeToString(newPasswordString.getBytes());
-                    // Ensure proper padding by adding '=' characters if necessary
+                    
                     int padding = sub.length() % 4;
                     if (padding > 0) {
                         sub += "====".substring(padding);
@@ -104,11 +126,15 @@ public class ClientHandler implements Runnable {
                     // Receive encrypted email from client
                     byte[] emailByte = EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream);
                     String email = new String(emailByte, StandardCharsets.UTF_8);
-                    
+
                     resetPassword(username, newPassword, email);
                     String accountCreation = "Password reset successful. Proceeding with connection...";
                     try {
                         EncryptedCom.sendMessage(accountCreation.getBytes(), aesSecretKey, fe, dataOutputStream);
+                    } catch (SocketTimeoutException e) {
+                        // Handle timeout: log the event
+                        Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                        System.out.println("Connection timed out due to inactivity.");
                     } catch (Exception e) {
                         System.out.println(e);
                     }
@@ -118,10 +144,14 @@ public class ClientHandler implements Runnable {
                     try {
                         // Close the socket
                         clientSocket.close();
+                        // return;
+                    } catch (SocketTimeoutException e) {
+                        // Handle timeout: log the event
+                        Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                        System.out.println("Connection timed out due to inactivity.");
                     } catch (IOException e) {
                         System.out.println("Error closing socket: " + e.getMessage());
                     }
-                    // Exit the loop to terminate the client connection
                     return;
                 }
 
@@ -146,36 +176,67 @@ public class ClientHandler implements Runnable {
 
                     // Validate username and password
                     if (authenticateUser(username, password)) {
-                        System.out.println("username entered: " + username);
-                        System.out.println("password entered: " + password);
+                        // System.out.println("username entered: " + username);
+                        // System.out.println("password entered: " + password);
                         // If authentication successful, obtain the secret key for the user
                         byte[] secretKey = Server.getUserSecretKeys().get(username);
 
                         try {
                             String authenticationSuccess = "Authentication successful. Proceeding with connection...";
-                            EncryptedCom.sendMessage(authenticationSuccess.getBytes(), aesSecretKey, fe, dataOutputStream);
-                        } catch(Exception e) {
+                            EncryptedCom.sendMessage(authenticationSuccess.getBytes(), aesSecretKey, fe,
+                                    dataOutputStream);
+                        } catch (SocketTimeoutException e) {
+                            // Handle timeout: log the event
+                            Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                            System.out.println("Connection timed out due to inactivity.");
+                        } catch (Exception e) {
                             System.out.println(e);
-                        } 
-                        
+                        }
+
                     } else {
                         try {
                             String authenticationFailure = "Invalid username or password.";
-                            EncryptedCom.sendMessage(authenticationFailure.getBytes(), aesSecretKey, fe, dataOutputStream);
-                        } catch(Exception e) {
+                            EncryptedCom.sendMessage(authenticationFailure.getBytes(), aesSecretKey, fe,
+                                    dataOutputStream);
+                            wrongPasswordAttempts++;
+                            System.out.println("wrongPasswordAttempts: " + wrongPasswordAttempts);
+                            if (wrongPasswordAttempts >= 3) {
+                                String action_string = wrongPasswordAttempts + " failed password attempts on login";
+                                Client.logAuditAction(username, "Admin", action_string,
+                                        "audit_log.txt");
+                                String failedAttempts = wrongPasswordAttempts + " Failed login attempts";
+                                EncryptedCom.sendMessage(failedAttempts.getBytes(), aesSecretKey, fe, dataOutputStream);
+                                clientSocket.close();
+                                return;
+                            }
+                            // else {
+                            //     Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                            //     System.out.println("CONNECTION timed out due to inactivity.");
+                            //     return;
+                            // }
+
+                        } catch (SocketTimeoutException e) {
+                            // Handle timeout: log the event
+                            System.out.println("SocketTimeoutException occurred: " + e.getMessage());
+                            Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                            System.out.println("Connection timed out due to inactivity.");
+                        } catch (Exception e) {
                             System.out.println(e);
                         }
                     }
                 }
             }
-            
+
             // Handle client requests
             try {
                 String output;
                 String inputLine;
-                while ((inputLine = new String(EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream), StandardCharsets.UTF_8)) != null) {
+                while ((inputLine = new String(EncryptedCom.receiveMessage(aesSecretKey, fe, dataInputStream),
+                        StandardCharsets.UTF_8)) != null) {
 
                     System.out.println("Received from client: " + inputLine);
+
+                    IdleTimeoutManager.updateUserActivity(username);
 
                     if (inputLine.startsWith("send ")) {
                         String fileName = inputLine.substring(5);
@@ -183,8 +244,7 @@ public class ClientHandler implements Runnable {
 
                         File fileToSend = new File("client_data/" + fileName);
                         if (!fileToSend.exists() || fileToSend.isDirectory()) {
-                        }
-                        else {
+                        } else {
                             FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                             try {
                                 userOutput = fileHandler.receiveFile(dataInputStream, aesSecretKey, true, username);
@@ -217,25 +277,21 @@ public class ClientHandler implements Runnable {
                             }
                             EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                         }
-                        
-                    }
-                    else if (inputLine.startsWith("delete ")) {
+
+                    } else if (inputLine.startsWith("delete ")) {
                         String fileName = inputLine.substring(7);
                         File fileToDelete = new File("server_data/" + fileName);
                         if (!fileToDelete.exists() || fileToDelete.isDirectory()) {
-                        }
-                        else {
+                        } else {
                             FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                             output = fileHandler.deleteFile(username);
                             EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                         }
-                    }
-                    else if (inputLine.equals("pwd")) {
+                    } else if (inputLine.equals("pwd")) {
                         FileHandler fileHandler = new FileHandler("server_data/");
                         output = fileHandler.pwd();
                         EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
-                    }
-                    else if (inputLine.startsWith("list")) {
+                    } else if (inputLine.startsWith("list")) {
                         String folder = inputLine.substring(4).trim();
                         if (folder.length() == 0) {
                             folder = "server_data/";
@@ -243,8 +299,7 @@ public class ClientHandler implements Runnable {
                         FileHandler fileHandler = new FileHandler(folder);
                         output = fileHandler.listFiles();
                         EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
-                    }
-                    else if (inputLine.startsWith("share ")) {
+                    } else if (inputLine.startsWith("share ")) {
                         String permissionUsernameAndFileName = inputLine.substring(6);
                         String[] arrOfStr = permissionUsernameAndFileName.split("\\s+");
                         String permission = null;
@@ -253,11 +308,15 @@ public class ClientHandler implements Runnable {
                         output = "File not shared for some reason...";
                         if (arrOfStr != null && arrOfStr.length > 2) {
                             permission = arrOfStr[0];
-                            if ((permission.length() == 1 && permission.contains("w")) || (permission.length() == 1 && permission.contains("r")) || (permission.length() == 2 && Character.toString(permission.charAt(1)).equals("w") && Character.toString(permission.charAt(0)).equals("r"))) {
+                            if ((permission.length() == 1 && permission.contains("w"))
+                                    || (permission.length() == 1 && permission.contains("r"))
+                                    || (permission.length() == 2 && Character.toString(permission.charAt(1)).equals("w")
+                                            && Character.toString(permission.charAt(0)).equals("r"))) {
                                 sharedUsername = arrOfStr[1];
                                 if (!sharedUsername.equals(username)) {
                                     if (Client.UserExists(sharedUsername, "normal")) {
-                                        fileName = inputLine.substring(6 + permission.length() + 1 + sharedUsername.length() + 1);
+                                        fileName = inputLine
+                                                .substring(6 + permission.length() + 1 + sharedUsername.length() + 1);
                                         File fileToShare = new File("server_data/" + fileName);
                                         if (fileToShare.exists()) {
                                             FileHandler fileHandler = new FileHandler("server_data/" + fileName);
@@ -274,9 +333,8 @@ public class ClientHandler implements Runnable {
                                     }
                                 } else {
                                     output = "You can not share files with yourself. Nice try.";
-                                }   
-                            }
-                            else {
+                                }
+                            } else {
                                 output = "Permission to enable for share user must be either \'r\', \'w\', or \'rw\'";
                             }
                         } else {
@@ -284,19 +342,30 @@ public class ClientHandler implements Runnable {
                             output += "\n\n<permission>: permission to enable for share_user, either \'r\', \'w\', or \'rw\'\n<share_username>: username of user to share file with\n<file_name>: name of file to share";
                         }
                         EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
-                    }
-                    else if (inputLine.equals("exit")) {
+                    } else if (inputLine.equals("exit")) {
                         break;
-                    }
-                    else {
+                    } else {
                         output = "No command like that available";
                         EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                     }
+
+                    IdleTimeoutManager.updateUserActivity(username);
                 }
-            } catch(Exception e) {
+            } catch (SocketTimeoutException e) {
+                // Handle timeout: log the event
+                System.out.println("SocketTimeoutException occurred: " + e.getMessage());
+                Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                System.out.println("Connection timed out due to inactivity.");
+            } catch (Exception e) {
                 System.out.println(e);
-            } 
+            }
             clientSocket.close();
+        }
+        catch (SocketTimeoutException e) {
+            // Handle timeout: log the event
+            System.out.println("SocketTimeoutException occurred: " + e.getMessage());
+            Client.logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+            System.out.println("Connection timed out due to inactivity.");
         }
         catch (EOFException | SocketException e) {
             // Client has closed the connection abruptly
@@ -304,8 +373,7 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             // Other IO exceptions
             e.printStackTrace();
-        }
-        finally {
+        } finally {
             try {
                 // Close connections
                 dataInputStream.close();
@@ -313,7 +381,6 @@ public class ClientHandler implements Runnable {
                 if (clientSocket != null && !clientSocket.isClosed()) {
                     clientSocket.close();
                 }
-                // clientSocket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -321,7 +388,7 @@ public class ClientHandler implements Runnable {
     }
 
     private boolean authenticateUser(String username, byte[] providedPassword) {
-        
+
         // Get the stored user data for the given username
         Map<String, byte[]> userData = Server.getUserPasswords().get(username);
         if (userData == null) {
@@ -348,12 +415,19 @@ public class ClientHandler implements Runnable {
         String encodedHashedPasswordP = Base64.getEncoder().encodeToString(providedPasswordHash);
         String encodedHashedPasswordS = Base64.getEncoder().encodeToString(storedPasswordHash);
 
-        // Compare the hashed passwords
-        System.out.println("provided: " + encodedHashedPasswordP);
-        System.out.println("stored: " + encodedHashedPasswordS);
-        System.out.println("salt: " + encodedSalt);
-
         return Arrays.equals(providedPasswordHash, storedPasswordHash);
+    }
+
+    private static String bytesToHex(byte[] bytes) {
+        StringBuilder hexString = new StringBuilder(2 * bytes.length);
+        for (byte b : bytes) {
+            String hex = Integer.toHexString(0xff & b);
+            if (hex.length() == 1) {
+                hexString.append('0');
+            }
+            hexString.append(hex);
+        }
+        return hexString.toString();
     }
 
     public static void createAccount(String username, byte[] password, String email) {
@@ -385,7 +459,7 @@ public class ClientHandler implements Runnable {
             byte[] hashedNewPassword = Server.hashSalt(new String(resetPassword, StandardCharsets.UTF_8), salt);
             byte[] hashedEmail = Server.hashSalt(email, salt);
             Map<String, byte[]> userData = Server.getUserPasswords().get(username);
-            
+
             // Update the user data with the new salt, hashed password, and hashed email
             userData.put("salt", salt);
             userData.put("passwordHash", hashedNewPassword);
@@ -398,7 +472,7 @@ public class ClientHandler implements Runnable {
             System.out.println("User does not exist.");
         }
     }
-    
+
     private static byte[] generateSecretKey() {
         // Generate new random 32-byte secret-key
         SecureRandom random = new SecureRandom();
@@ -417,7 +491,7 @@ public class ClientHandler implements Runnable {
     private static void writeToSecretKeysFile(String username, byte[] secretKey) {
         File file = new File("src/main/java/activities/secret_keys.txt");
         try (FileReader fr = new FileReader(file);
-            BufferedReader br = new BufferedReader(fr)) {
+                BufferedReader br = new BufferedReader(fr)) {
             String line;
             StringBuilder fileContent = new StringBuilder();
             boolean found = false;
@@ -436,9 +510,10 @@ public class ClientHandler implements Runnable {
             }
             if (!found) {
                 // Append a new entry for the user if not found
-                fileContent.append(username).append(":").append(Base64.getEncoder().encodeToString(secretKey)).append("\n");
+                fileContent.append(username).append(":").append(Base64.getEncoder().encodeToString(secretKey))
+                        .append("\n");
             }
-    
+
             // Write the updated file content back to the file
             try (FileWriter fw = new FileWriter(file)) {
                 fw.write(fileContent.toString());
@@ -451,16 +526,16 @@ public class ClientHandler implements Runnable {
     private static void writeToUserFile(String username, byte[] salt, byte[] hashedPassword, byte[] hashedEmail) {
         File file = new File("src/main/java/activities/users.txt");
         try (FileWriter fw = new FileWriter(file, true);
-             BufferedWriter bw = new BufferedWriter(fw)) {
+                BufferedWriter bw = new BufferedWriter(fw)) {
             String encodedSalt = Base64.getEncoder().encodeToString(salt);
             String encodedHashedPassword = Base64.getEncoder().encodeToString(hashedPassword);
             String encodedHashedEmail = Base64.getEncoder().encodeToString(hashedEmail);
             if (file.length() != 0) {
                 bw.newLine();
-        }
-        bw.write(username + " " + encodedSalt + " " + encodedHashedPassword + " " + encodedHashedEmail);
+            }
+            bw.write(username + " " + encodedSalt + " " + encodedHashedPassword + " " + encodedHashedEmail);
 
-    } catch (IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
@@ -468,11 +543,11 @@ public class ClientHandler implements Runnable {
     private static void updateUserDataFile(String username, Map<String, byte[]> userData) {
         File inputFile = new File("src/main/java/activities/users.txt");
         File tempFile = new File(inputFile.getAbsolutePath() + ".tmp");
-    
+
         try (BufferedReader reader = new BufferedReader(new FileReader(inputFile));
-             BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
+                BufferedWriter writer = new BufferedWriter(new FileWriter(tempFile))) {
             String line;
-    
+
             // Read each line from the original file
             while ((line = reader.readLine()) != null) {
                 // Check if the line contains the username to be updated
@@ -492,7 +567,7 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    
+
         // Replace the original file with the temporary file
         if (!inputFile.delete()) {
             System.out.println("Could not delete the original file.");
@@ -502,5 +577,5 @@ public class ClientHandler implements Runnable {
             System.out.println("Could not rename the temporary file.");
         }
     }
-    
+
 }

@@ -7,6 +7,8 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
 import java.security.*;
+import java.security.cert.CertificateException;
+
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.BadPaddingException;
@@ -33,8 +35,9 @@ public class Client {
     private static final String protocol = "TLSv1.2";
     private static final String[] cipher_suites = new String[]{"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"};
 
-    public static void main(String[] args) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException {
+    public static void main(String[] args) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException, KeyStoreException, CertificateException, KeyManagementException {
         SSLSocket socket = null;
+        BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in)); //user input stream
 
         try {
             String truststorePath = "./trust.keystore"; // Contains the self-signed cert or CA
@@ -53,16 +56,12 @@ public class Client {
                 sslContext.init(null, tmf.getTrustManagers(), null);
                 
                 SSLSocketFactory factory = sslContext.getSocketFactory();
-                // SSLSocketFactory factory = (SSLSocketFactory) SSLSocketFactory.getDefault();
                 socket = (SSLSocket) factory.createSocket(SERVER_IP, SERVER_PORT);
-                // socket.setEnabledProtocols(protocols);
                 socket.setEnabledCipherSuites(cipher_suites); 
                 socket.startHandshake(); 
 
-                // Socket socket = new Socket(SERVER_IP, SERVER_PORT);
                 System.out.println("Connected to Server");
 
-                BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in)); //user input stream
                 
                 DataInputStream dataInputStream = new DataInputStream(socket.getInputStream());
                 DataOutputStream dataOutputStream = new DataOutputStream(socket.getOutputStream());
@@ -175,7 +174,6 @@ public class Client {
                                 EncryptedCom.sendMessage(email.getBytes(), aesKey, fe, dataOutputStream);
                                 break;
                             } else {
-                                // TODO: add reports of inccorect attemps to login AUDIT milestone
                                 System.out.println("Incorrect Answer");
                                 logAuditAction(username, "Forgot Password", "Failed Password Recovery", "audit_log.txt");
 
@@ -249,7 +247,7 @@ public class Client {
                                 System.out.println("Your email has been verified!");
                                 break;
                             } else {
-                                // TODO: add reports of inccorect attemps to login AUDIT milestone
+                                logAuditAction(username, "Create Account", "Invalid password", "audit_log.txt");
                                 System.out.println("Your email was invalid. Please enter a valid email.");
                             }
                         }
@@ -356,11 +354,27 @@ public class Client {
                 // Close connections
                 userInput.close();
                 socket.close();
-            } catch (Exception e) {
-                System.out.println(e);
+
+            } catch (SocketTimeoutException e) {
+                // Handle timeout: log the event
+                logAuditAction("Client", "Idle", "Idle for 5 min", "audit_log.txt");
+                System.out.println("Connection timed out due to inactivity.");
+            } catch (IOException e) {
+                // Handle other IO exceptions
+                e.printStackTrace();
+            } finally {
+                // Close resources
+                try {
+                    if (userInput != null)
+                        userInput.close();
+                    if (socket != null)
+                        socket.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        } catch (Exception e) {
-            System.out.println(e);
+        } catch (NoSuchAlgorithmException | NoSuchProviderException | InvalidKeyException | InvalidAlgorithmParameterException e) {
+            e.printStackTrace();
         }
     }
 
@@ -438,6 +452,19 @@ public class Client {
         } catch (IOException e) {
             System.err.println("Error writing to audit log: " + e.getMessage());
         }
+    }
+
+    public static void logoutUser(Socket clientSocket, DataInputStream dataInputStream, DataOutputStream dataOutputStream, BufferedReader userInput){
+        try {
+            // Close the socket
+            clientSocket.close();
+            dataInputStream.close();
+            dataOutputStream.close();
+            userInput.close();
+        } catch (IOException e) {
+            System.out.println("Error closing socket: " + e.getMessage());
+        }
+        return;
     }
 
 }
