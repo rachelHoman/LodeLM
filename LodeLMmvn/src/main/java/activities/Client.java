@@ -27,10 +27,10 @@ import utils.*;
 import javax.crypto.SecretKey;
 
 public class Client {
-    // private static final String SERVER_IP = "13.58.125.157";
-    private static final String SERVER_IP = "127.0.0.1";
-    private static final int SERVER_PORT = 17139;
-    // private static final int SERVER_PORT = 8080;
+    private static final String SERVER_IP = "13.58.125.157";
+    // private static final String SERVER_IP = "127.0.0.1";
+    // private static final int SERVER_PORT = 17139;
+    private static final int SERVER_PORT = 8080;
     private int BUFFER_SIZE = 4096;
 
     private static final String protocol = "TLSv1.2";
@@ -38,10 +38,12 @@ public class Client {
 
     public static void main(String[] args) throws NoSuchProviderException, NoSuchAlgorithmException, InvalidKeyException, InvalidAlgorithmParameterException, KeyStoreException, CertificateException, KeyManagementException {
         SSLSocket socket = null;
-        BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in)); //user input stream
+         //user input stream
+        BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in));
 
         try {
-            String truststorePath = "./trust.keystore"; // Contains the self-signed cert or CA
+             // Contains the self-signed cert or CA
+            String truststorePath = "./trust.keystore";
             String truststorePassword = "lodelm"; 
 
             try {
@@ -294,6 +296,7 @@ public class Client {
 
                     EncryptedCom.sendMessage(userMessage.getBytes(), aesKey, fe, dataOutputStream);
 
+                    // deal with file transfer inputs after initial login/account recovery
                     if (userMessage.startsWith("send ")) {
                         String fileName = userMessage.substring(5);
                         String filePath = "client_data/" + fileName;
@@ -370,8 +373,18 @@ public class Client {
         }
     }
 
+    /***
+     * 
+     * Checks if user with that username already exists
+     * 
+     * String username: the username being checked
+     * String userMode: 'test' is used to test this function
+     * Else the input can be anything. Can default to 'normal' if not testing
+     * 
+     */
     public static boolean UserExists(String username, String userMode) {
         Map<String, byte[]> userData;
+        // checks the users.txt file for user list
         if (userMode.equals("test")) {
             userData = Server.testGetUserPasswords().get(username);
         }
@@ -387,8 +400,19 @@ public class Client {
         }
     }
 
+    /***
+     * 
+     * Checks if the input username and email match the stored emailid for that username
+     * 
+     * String username: the username in question
+     * String providedEmail: the input email being checked
+     * String userMode: 'test' is used to test this function
+     * Else the input can be anything. Can default to 'normal' if not testing
+     * 
+     */
     public static boolean UserEmailMatch (String username, String providedEmail, String userMode) {
         Map<String, byte[]> userData;
+        // testing code
         if (userMode.equals("test")) {
             userData = Server.testGetUserPasswords().get(username);
         }
@@ -399,6 +423,7 @@ public class Client {
         if (userData == null) {
             return false;
         }
+        // check the input email if not false
         else {
             // Get the stored salt and password email
             byte[] storedSalt = userData.get("salt");
@@ -412,7 +437,17 @@ public class Client {
         }
     }
 
+    /***
+     * 
+     * Checks if the password is strong or not: 
+     * if it has at least 8 characters, 1 digit, 1 uppercase 
+     * letter 1 lowercase letter, and 1 special char
+     * 
+     * String password: the password input being checked for strength
+     * 
+     */
     public static boolean isPasswordStrong(String password) {
+        // check length
         if (StringUtils.isBlank(password) || password.length() < 8) {
             return false;
         }
@@ -433,12 +468,23 @@ public class Client {
         return containsDigit && containsUppercase && containsLowercase && specialCharCount >= 1;
     }
 
-    // Method to log audit action
+    /***
+     * 
+     * Method to log audit action
+     * 
+     * String username: the username being logged
+     * String permissionLevel: the permission level of the username for the file
+     * String action: the action that's being logged
+     * String filename: the filename being accessed
+     * 
+     */
     public static void logAuditAction(String username, String permissionLevel, String action, String filename) {
+        // getting timestamp
         String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
         String logEntry = username + "," + permissionLevel + "," + timestamp + "," + action;
 
         try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename, true))) {
+            // writing the formatted log entry
             writer.write(logEntry);
             writer.newLine();
         } catch (IOException e) {
@@ -446,6 +492,16 @@ public class Client {
         }
     }
 
+    /***
+     * 
+     * Method to log out user
+     * 
+     * Socket clientSocket: the client socket being closed
+     * DataInputStream dataInputStream: the DataInputStream being closed
+     * DataOutputStream dataOutputStream: the DataOutputStream being closed
+     * BufferedReader userInput: the BufferedReader being closed
+     * 
+     */
     public static void logoutUser(Socket clientSocket, DataInputStream dataInputStream, DataOutputStream dataOutputStream, BufferedReader userInput){
         try {
             // Close the socket

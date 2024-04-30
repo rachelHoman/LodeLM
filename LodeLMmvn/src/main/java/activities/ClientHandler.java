@@ -43,7 +43,8 @@ public class ClientHandler implements Runnable {
 
     public ClientHandler(SSLSocket socket) throws SocketException {
         this.clientSocket = socket;
-        socket.setSoTimeout(300000); // set 5 min time manager
+        // set 5 min time manager
+        socket.setSoTimeout(300000);
         this.idleTimeoutManager = new IdleTimeoutManager(null, new FileHandler(null));
     }
   
@@ -176,8 +177,6 @@ public class ClientHandler implements Runnable {
 
                     // Validate username and password
                     if (authenticateUser(username, password)) {
-                        // System.out.println("username entered: " + username);
-                        // System.out.println("password entered: " + password);
                         // If authentication successful, obtain the secret key for the user
                         byte[] secretKey = Server.getUserSecretKeys().get(username);
 
@@ -238,11 +237,14 @@ public class ClientHandler implements Runnable {
 
                     IdleTimeoutManager.updateUserActivity(username);
 
+                    // handling send case
                     if (inputLine.startsWith("send ")) {
                         String fileName = inputLine.substring(5);
                         String userOutput = null;
 
+                        // file sent to client_data
                         File fileToSend = new File("client_data/" + fileName);
+                        // check to ensure file exists
                         if (fileToSend.exists() && !fileToSend.isDirectory()) {
                             FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                             try {
@@ -261,10 +263,12 @@ public class ClientHandler implements Runnable {
                             EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                         }
                     }
+                    // download case handler
                     else if (inputLine.startsWith("download ")) {
                         String fileName = inputLine.substring(9);
 
                         File fileToDownload = new File("server_data/" + fileName);
+                        // check to see if file is valid
                         if (fileToDownload.exists() && !fileToDownload.isDirectory()) {
                             FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                             output = "File was not downloaded for some reason...";
@@ -283,17 +287,22 @@ public class ClientHandler implements Runnable {
                     } else if (inputLine.startsWith("delete ")) {
                         String fileName = inputLine.substring(7);
                         File fileToDelete = new File("server_data/" + fileName);
+                        // check if file is valid
                         if (!fileToDelete.exists() || fileToDelete.isDirectory()) {
                         } else {
+                            // delete file if valid
                             FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                             output = fileHandler.deleteFile(username);
                             EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
                         }
-                    } else if (inputLine.equals("pwd")) {
+                    } 
+                    else if (inputLine.equals("pwd")) {
                         FileHandler fileHandler = new FileHandler("server_data/");
                         output = fileHandler.pwd();
                         EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
-                    } else if (inputLine.startsWith("list")) {
+                    }
+                    // list all files on server 
+                    else if (inputLine.startsWith("list")) {
                         String folder = inputLine.substring(4).trim();
                         if (folder.length() == 0) {
                             folder = "server_data/";
@@ -301,7 +310,9 @@ public class ClientHandler implements Runnable {
                         FileHandler fileHandler = new FileHandler(folder);
                         output = fileHandler.listFiles();
                         EncryptedCom.sendMessage(output.getBytes(), aesSecretKey, fe, dataOutputStream);
-                    } else if (inputLine.startsWith("share ")) {
+                    }
+                    // case to share permissions of a file 
+                    else if (inputLine.startsWith("share ")) {
                         String permissionUsernameAndFileName = inputLine.substring(6);
                         String[] arrOfStr = permissionUsernameAndFileName.split("\\s+");
                         String permission = null;
@@ -310,16 +321,19 @@ public class ClientHandler implements Runnable {
                         output = "File not shared for some reason...";
                         if (arrOfStr != null && arrOfStr.length > 2) {
                             permission = arrOfStr[0];
+                            // check to ensure correct input format
                             if ((permission.length() == 1 && permission.contains("w"))
                                     || (permission.length() == 1 && permission.contains("r"))
                                     || (permission.length() == 2 && Character.toString(permission.charAt(1)).equals("w")
                                             && Character.toString(permission.charAt(0)).equals("r"))) {
                                 sharedUsername = arrOfStr[1];
                                 if (!sharedUsername.equals(username)) {
+                                    // check if user exists
                                     if (Client.UserExists(sharedUsername, "normal")) {
                                         fileName = inputLine
                                                 .substring(6 + permission.length() + 1 + sharedUsername.length() + 1);
                                         File fileToShare = new File("server_data/" + fileName);
+                                        // check if file is valid
                                         if (fileToShare.exists()) {
                                             FileHandler fileHandler = new FileHandler("server_data/" + fileName);
                                             try {
@@ -389,6 +403,14 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /***
+     * 
+     * authenticates username and password credentials being input
+     * 
+     * String username: the username being checked
+     * byte[] providedPassword: the input password being checked
+     * 
+     */
     private boolean authenticateUser(String username, byte[] providedPassword) {
 
         // Get the stored user data for the given username
@@ -420,24 +442,23 @@ public class ClientHandler implements Runnable {
         return Arrays.equals(providedPasswordHash, storedPasswordHash);
     }
 
-    private static String bytesToHex(byte[] bytes) {
-        StringBuilder hexString = new StringBuilder(2 * bytes.length);
-        for (byte b : bytes) {
-            String hex = Integer.toHexString(0xff & b);
-            if (hex.length() == 1) {
-                hexString.append('0');
-            }
-            hexString.append(hex);
-        }
-        return hexString.toString();
-    }
 
+    /***
+     * 
+     * creates new user account
+     * 
+     * String username: username being used for new account
+     * byte[] password: the password being stored for the new user
+     * String email: the associated email
+     * 
+     */
     public static void createAccount(String username, byte[] password, String email) {
 
         byte[] salt = generateSalt();
         // Hash the password and email with Salt
         byte[] hashedPassword = Server.hashSalt(new String(password, StandardCharsets.UTF_8), salt);
         byte[] hashedEmail = Server.hashSalt(email, salt);
+        // populate the userData
         Map<String, byte[]> userData = new HashMap<>();
         userData.put("salt", salt);
         userData.put("passwordHash", hashedPassword);
@@ -453,10 +474,21 @@ public class ClientHandler implements Runnable {
         writeToUserFile(username, salt, storedPasswordHash, hashedEmail);
     }
 
+
+    /***
+     * 
+     * resets password for account recovery purpose
+     * 
+     * String username: username being updated
+     * byte[] resetPassword: the new password
+     * String email: the associated email
+     * 
+     */
     public static void resetPassword(String username, byte[] resetPassword, String email) {
 
         // Check if the user exists
         if (Server.getUserPasswords().containsKey(username)) {
+            // get new salt and hash new password and associated email with it
             byte[] salt = generateSalt();
             byte[] hashedNewPassword = Server.hashSalt(new String(resetPassword, StandardCharsets.UTF_8), salt);
             byte[] hashedEmail = Server.hashSalt(email, salt);
@@ -475,6 +507,11 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /***
+     * 
+     * generates random 32 byte secret key
+     * 
+     */
     private static byte[] generateSecretKey() {
         // Generate new random 32-byte secret-key
         SecureRandom random = new SecureRandom();
@@ -483,6 +520,11 @@ public class ClientHandler implements Runnable {
         return secretKey;
     }
 
+    /***
+     * 
+     * generates random 32 byte salt
+     * 
+     */
     private static byte[] generateSalt() {
         SecureRandom random = new SecureRandom();
         byte[] salt = new byte[32];
@@ -490,6 +532,14 @@ public class ClientHandler implements Runnable {
         return salt;
     }
 
+    /***
+     * 
+     * write secret key to to secret_key file
+     * 
+     * String username: username in question
+     * byte[] secretKey: the secretKey being written
+     * 
+     */
     private static void writeToSecretKeysFile(String username, byte[] secretKey) {
         File file = new File("src/main/java/activities/secret_keys.txt");
         try (FileReader fr = new FileReader(file);
@@ -525,18 +575,29 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /***
+     * 
+     * write user information to users.txt file
+     * 
+     * String username: username being written
+     * byte[] salt: salt used for hashing
+     * byte[] hashedPassword: hashed password to store
+     * byte[] hashedEmail: hashed email to store
+     * 
+     */
     private static void writeToUserFile(String username, byte[] salt, byte[] hashedPassword, byte[] hashedEmail) {
-        // File file = new File("src/main/java/activities/users.txt");
         String userPath = System.getProperty("user.dir") + "/server_data/users.txt";
         File file = new File (userPath);
         try (FileWriter fw = new FileWriter(file, true);
                 BufferedWriter bw = new BufferedWriter(fw)) {
+            // encode salt, hashedPwd and hashed email
             String encodedSalt = Base64.getEncoder().encodeToString(salt);
             String encodedHashedPassword = Base64.getEncoder().encodeToString(hashedPassword);
             String encodedHashedEmail = Base64.getEncoder().encodeToString(hashedEmail);
             if (file.length() != 0) {
                 bw.newLine();
             }
+            // format and write the information
             bw.write(username + " " + encodedSalt + " " + encodedHashedPassword + " " + encodedHashedEmail);
 
         } catch (IOException e) {
@@ -544,8 +605,15 @@ public class ClientHandler implements Runnable {
         }
     }
 
+    /***
+     * 
+     * updated user information being written to users.txt
+     * 
+     * String username: username being written
+     * Map<String, byte[]> userData: userData with updated information
+     * 
+     */
     private static void updateUserDataFile(String username, Map<String, byte[]> userData) {
-        // File inputFile = new File("src/main/java/activities/users.txt");
         String userPath = System.getProperty("user.dir") + "/server_data/users.txt";
         File inputFile = new File(userPath);
         File tempFile = new File(inputFile.getAbsolutePath() + ".tmp");
