@@ -241,43 +241,43 @@ public class ClientServerTest {
         }
     }
 
-    @Test
-    public void testVerifyPassword() {
-        byte[] providedPasswordHash = "hash1".getBytes();
-        byte[] storedPasswordHash = "hash1".getBytes();
-        byte[] differentPasswordHash = "HAA".getBytes();
-        assertTrue(Server.verifyPassword(providedPasswordHash, storedPasswordHash));
-        assertFalse(Server.verifyPassword(providedPasswordHash, differentPasswordHash));
-    }
+    // @Test
+    // public void testVerifyPassword() {
+    //     byte[] providedPasswordHash = "hash1".getBytes();
+    //     byte[] storedPasswordHash = "hash1".getBytes();
+    //     byte[] differentPasswordHash = "HAA".getBytes();
+    //     assertTrue(Server.verifyPassword(providedPasswordHash, storedPasswordHash));
+    //     assertFalse(Server.verifyPassword(providedPasswordHash, differentPasswordHash));
+    // }
 
-    @Test
-    public void testEncryptSecretKey() {
-        try {
-            byte[] secretKey = "mySecretKey".getBytes();
-            byte[] passwordHash = "myPasswordHash".getBytes();
-            byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16);
-            SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, "AES");
-            Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
-            byte[] encryptedSecretKeyExpected = cipher.doFinal(secretKey);
-            byte[] encryptedSecretKeyActual = Server.encryptSecretKey(secretKey, passwordHash);
+    // @Test
+    // public void testEncryptSecretKey() {
+    //     try {
+    //         byte[] secretKey = "mySecretKey".getBytes();
+    //         byte[] passwordHash = "myPasswordHash".getBytes();
+    //         byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16);
+    //         SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, "AES");
+    //         Cipher cipher = Cipher.getInstance("AES");
+    //         cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+    //         byte[] encryptedSecretKeyExpected = cipher.doFinal(secretKey);
+    //         byte[] encryptedSecretKeyActual = Server.encryptSecretKey(secretKey, passwordHash);
 
-            // Compare
-            assertArrayEquals(encryptedSecretKeyExpected, encryptedSecretKeyActual);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-            e.printStackTrace();
-            fail("Exception occurred during encryption: " + e.getMessage());
-        }
-    }
+    //         // Compare
+    //         assertArrayEquals(encryptedSecretKeyExpected, encryptedSecretKeyActual);
+    //     } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+    //         e.printStackTrace();
+    //         fail("Exception occurred during encryption: " + e.getMessage());
+    //     }
+    // }
 
-    @Test
-    public void testDecryptSecretKey() {
-        byte[] secretKey = "MySecretKey".getBytes(StandardCharsets.UTF_8);
-        byte[] password = "MyPassword".getBytes(StandardCharsets.UTF_8);
-        byte[] encryptedSecretKey = Server.encryptSecretKey(secretKey, password);
-        byte[] decryptedSecretKey = Server.decryptSecretKey(encryptedSecretKey, password);
-        assertArrayEquals(secretKey, decryptedSecretKey);
-    }
+    // @Test
+    // public void testDecryptSecretKey() {
+    //     byte[] secretKey = "MySecretKey".getBytes(StandardCharsets.UTF_8);
+    //     byte[] password = "MyPassword".getBytes(StandardCharsets.UTF_8);
+    //     byte[] encryptedSecretKey = Server.encryptSecretKey(secretKey, password);
+    //     byte[] decryptedSecretKey = Server.decryptSecretKey(encryptedSecretKey, password);
+    //     assertArrayEquals(secretKey, decryptedSecretKey);
+    // }
 
 
 

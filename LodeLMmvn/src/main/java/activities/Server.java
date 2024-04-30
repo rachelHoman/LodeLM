@@ -131,6 +131,13 @@ public class Server {
         return testuserPasswords;
     }
 
+    /***
+     * 
+     * retrieve the data from users.txt to create userinformation hashmap
+     * 
+     * String filePath: the file being parsed to get userData
+     * 
+     */
     private static void loadUserPasswords(String filePath) {
 
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
@@ -176,6 +183,13 @@ public class Server {
         }
     }
 
+    /***
+     * 
+     * retrieve the secret keys
+     * 
+     * String filePath: the file being parsed to get secret keys
+     * 
+     */
     private static void loadUserSecretKeysFromFile(String filePath) {
         // Load encrypted secret keys from a file
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
@@ -197,13 +211,21 @@ public class Server {
     }
     
 
-    public static byte[] hashSalt(String password, byte[] salt) {
+    /***
+     * 
+     * iterative hashing with SHA-256 and unique salt
+     * 
+     * String hashinput: input to be hashed
+     * byte[] salt = the randomly generate salt value used for hashing
+     * 
+     */
+    public static byte[] hashSalt(String hashinput, byte[] salt) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             digest.reset();
             digest.update(salt);
-            byte[] hashedBytes = digest.digest(password.getBytes(StandardCharsets.UTF_8));
-            // iterations
+            byte[] hashedBytes = digest.digest(hashinput.getBytes(StandardCharsets.UTF_8));
+            // iterations of hashing
             for (int i = 0; i < 20000; i++) {
                 digest.reset();
                 hashedBytes = digest.digest(hashedBytes);
@@ -215,44 +237,53 @@ public class Server {
         }
     }
 
-    public static boolean verifyPassword(byte[] providedPasswordHash, byte[] storedPasswordHash) {
-        // Compare the provided password hash with the stored password hash
-        return Arrays.equals(providedPasswordHash, storedPasswordHash);
-    }
 
-    public static byte[] encryptSecretKey(byte[] secretKey, byte[] passwordHash) {
-        try {
-            // Ensure the password hash is of appropriate length for AES
-            byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16); // 16 bytes for AES-128
+    // public static boolean verifyPassword(byte[] providedPasswordHash, byte[] storedPasswordHash) {
+    //     // Compare the provided password hash with the stored password hash
+    //     return Arrays.equals(providedPasswordHash, storedPasswordHash);
+    // }
 
-            // Derive a secret key from the trimmed password hash
-            SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, "AES");
+    /***
+     * 
+     * encrypt secrey key method
+     * 
+     * byte[] secretKey: secret key to be used for encrypted
+     * byte[] passwordHash = the passwordHash that will be 
+     * 
+     */
+    // public static byte[] encryptSecretKey(byte[] secretKey, byte[] passwordHash) {
+    //     try {
+    //         // Ensure the password hash is of appropriate length for AES
+    //         byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16); // 16 bytes for AES-128
 
-            // Encrypt the secret key using AES
-            Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
-            return cipher.doFinal(secretKey);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
+    //         // Derive a secret key from the trimmed password hash
+    //         SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, "AES");
 
-    public static byte[] decryptSecretKey(byte[] encryptedSecretKey, byte[] passwordHash) {
-        try {
-            // Ensure the password hash is of appropriate length for AES
-            byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16); // 16 bytes for AES-128
+    //         // Encrypt the secret key using AES
+    //         Cipher cipher = Cipher.getInstance("AES");
+    //         cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+    //         return cipher.doFinal(secretKey);
+    //     } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+    //         e.printStackTrace();
+    //         return null;
+    //     }
+    // }
 
-            // Derive a secret key from the trimmed password hash
-            SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, "AES");
+    // public static byte[] decryptSecretKey(byte[] encryptedSecretKey, byte[] passwordHash) {
+    //     try {
+    //         // Ensure the password hash is of appropriate length for AES
+    //         byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16); // 16 bytes for AES-128
 
-            // Decrypt the secret key using AES
-            Cipher cipher = Cipher.getInstance("AES");
-            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
-            return cipher.doFinal(encryptedSecretKey);
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
+    //         // Derive a secret key from the trimmed password hash
+    //         SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, "AES");
+
+    //         // Decrypt the secret key using AES
+    //         Cipher cipher = Cipher.getInstance("AES");
+    //         cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+    //         return cipher.doFinal(encryptedSecretKey);
+    //     } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+    //         e.printStackTrace();
+    //         return null;
+    //     }
+    // }
 }

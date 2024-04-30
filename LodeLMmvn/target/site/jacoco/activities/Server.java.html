@@ -20,8 +20,8 @@ import javax.net.ssl.SSLSocket;
 import javax.net.ssl.TrustManagerFactory;
 
 <span class="nc" id="L22">public class Server {</span>
-    // private static final int PORT = 17139;
-    private static final int PORT = 8080;
+    private static final int PORT = 17139;
+    // private static final int PORT = 8080;
 
     private static final String protocol = &quot;TLSv1.2&quot;;
 <span class="fc" id="L27">    private static final String[] cipher_suites = new String[]{&quot;TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256&quot;};</span>
@@ -131,129 +131,168 @@ import javax.net.ssl.TrustManagerFactory;
 <span class="fc" id="L131">        return testuserPasswords;</span>
     }
 
+    /***
+     * 
+     * retrieve the data from users.txt to create userinformation hashmap
+     * 
+     * String filePath: the file being parsed to get userData
+     * 
+     */
     private static void loadUserPasswords(String filePath) {
 
-<span class="fc" id="L136">        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {</span>
+<span class="fc" id="L143">        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {</span>
             String line;
-<span class="fc bfc" id="L138" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
+<span class="fc bfc" id="L145" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
                 // Split the line into tokens
-<span class="fc" id="L140">                String[] tokens = line.split(&quot; &quot;);</span>
-<span class="pc bpc" id="L141" title="1 of 2 branches missed.">                if (tokens.length == 4) {</span>
-<span class="fc" id="L142">                    String uid = tokens[0];</span>
-<span class="fc" id="L143">                    byte[] salt = Base64.getDecoder().decode(tokens[1]);</span>
-<span class="fc" id="L144">                    byte[] hashedPassword = Base64.getDecoder().decode(tokens[2]);</span>
-<span class="fc" id="L145">                    byte[] hashedEmail = Base64.getDecoder().decode(tokens[3]);</span>
-<span class="fc bfc" id="L146" title="All 2 branches covered.">                    if (filePath.equals(userPath)) {</span>
+<span class="fc" id="L147">                String[] tokens = line.split(&quot; &quot;);</span>
+<span class="pc bpc" id="L148" title="1 of 2 branches missed.">                if (tokens.length == 4) {</span>
+<span class="fc" id="L149">                    String uid = tokens[0];</span>
+<span class="fc" id="L150">                    byte[] salt = Base64.getDecoder().decode(tokens[1]);</span>
+<span class="fc" id="L151">                    byte[] hashedPassword = Base64.getDecoder().decode(tokens[2]);</span>
+<span class="fc" id="L152">                    byte[] hashedEmail = Base64.getDecoder().decode(tokens[3]);</span>
+<span class="fc bfc" id="L153" title="All 2 branches covered.">                    if (filePath.equals(userPath)) {</span>
                         // Create a nested map to store salt and hashed password
-<span class="fc" id="L148">                        Map&lt;String, byte[]&gt; userData = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L149">                        userData.put(&quot;salt&quot;, salt);</span>
-<span class="fc" id="L150">                        userData.put(&quot;passwordHash&quot;, hashedPassword);</span>
-<span class="fc" id="L151">                        userData.put(&quot;emailHash&quot;, hashedEmail);</span>
+<span class="fc" id="L155">                        Map&lt;String, byte[]&gt; userData = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L156">                        userData.put(&quot;salt&quot;, salt);</span>
+<span class="fc" id="L157">                        userData.put(&quot;passwordHash&quot;, hashedPassword);</span>
+<span class="fc" id="L158">                        userData.put(&quot;emailHash&quot;, hashedEmail);</span>
         
                         // Store the user information in the map
-<span class="fc" id="L154">                        userPasswords.put(uid, userData);</span>
-<span class="fc" id="L155">                    }</span>
-<span class="pc bpc" id="L156" title="1 of 2 branches missed.">                    else if (filePath.equals(testPath)) {</span>
+<span class="fc" id="L161">                        userPasswords.put(uid, userData);</span>
+<span class="fc" id="L162">                    }</span>
+<span class="pc bpc" id="L163" title="1 of 2 branches missed.">                    else if (filePath.equals(testPath)) {</span>
                         // hash password and email for test
-<span class="fc" id="L158">                        byte[] hashedPasswordForTest = hashSalt(new String(Base64.getDecoder().decode(tokens[2]), StandardCharsets.UTF_8), salt);</span>
-<span class="fc" id="L159">                        byte[] hashedEmailForTest = hashSalt(new String(Base64.getDecoder().decode(tokens[3]), StandardCharsets.UTF_8), salt);</span>
+<span class="fc" id="L165">                        byte[] hashedPasswordForTest = hashSalt(new String(Base64.getDecoder().decode(tokens[2]), StandardCharsets.UTF_8), salt);</span>
+<span class="fc" id="L166">                        byte[] hashedEmailForTest = hashSalt(new String(Base64.getDecoder().decode(tokens[3]), StandardCharsets.UTF_8), salt);</span>
                         // Create a nested map to store salt and hashed password
-<span class="fc" id="L161">                        Map&lt;String, byte[]&gt; testuserData = new HashMap&lt;&gt;();</span>
-<span class="fc" id="L162">                        testuserData.put(&quot;salt&quot;, salt);</span>
-<span class="fc" id="L163">                        testuserData.put(&quot;passwordHash&quot;, hashedPasswordForTest);</span>
-<span class="fc" id="L164">                        testuserData.put(&quot;emailHash&quot;, hashedEmailForTest);</span>
+<span class="fc" id="L168">                        Map&lt;String, byte[]&gt; testuserData = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L169">                        testuserData.put(&quot;salt&quot;, salt);</span>
+<span class="fc" id="L170">                        testuserData.put(&quot;passwordHash&quot;, hashedPasswordForTest);</span>
+<span class="fc" id="L171">                        testuserData.put(&quot;emailHash&quot;, hashedEmailForTest);</span>
         
                         // Store the user information in the map
-<span class="fc" id="L167">                        testuserPasswords.put(uid, testuserData);</span>
+<span class="fc" id="L174">                        testuserPasswords.put(uid, testuserData);</span>
                     }
-<span class="fc" id="L169">                } else {</span>
-<span class="nc" id="L170">                    System.out.println(&quot;testData: &quot; + testuserPasswords);</span>
-<span class="nc" id="L171">                    System.out.println(&quot;Invalid format for user entry: &quot; + line);</span>
+<span class="fc" id="L176">                } else {</span>
+<span class="nc" id="L177">                    System.out.println(&quot;testData: &quot; + testuserPasswords);</span>
+<span class="nc" id="L178">                    System.out.println(&quot;Invalid format for user entry: &quot; + line);</span>
                 }
             }
-<span class="nc" id="L174">        } catch (IOException e) {</span>
-<span class="nc" id="L175">            System.out.println(&quot;Error reading user file: &quot; + e.getMessage());</span>
+<span class="nc" id="L181">        } catch (IOException e) {</span>
+<span class="nc" id="L182">            System.out.println(&quot;Error reading user file: &quot; + e.getMessage());</span>
         }
-<span class="fc" id="L177">    }</span>
+<span class="fc" id="L184">    }</span>
 
+    /***
+     * 
+     * retrieve the secret keys
+     * 
+     * String filePath: the file being parsed to get secret keys
+     * 
+     */
     private static void loadUserSecretKeysFromFile(String filePath) {
         // Load encrypted secret keys from a file
-<span class="fc" id="L181">        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {</span>
+<span class="fc" id="L195">        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {</span>
             String line;
-<span class="fc bfc" id="L183" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
-<span class="fc" id="L184">                String[] parts = line.split(&quot;:&quot;);</span>
-<span class="fc" id="L185">                String username = parts[0];</span>
-<span class="fc" id="L186">                byte[] encryptedSecretKey = Base64.getDecoder().decode(parts[1]);</span>
-<span class="fc bfc" id="L187" title="All 2 branches covered.">                if (filePath.equals(testsecretPath)) {</span>
-<span class="fc" id="L188">                    testuserSecretKeys.put(username, encryptedSecretKey);</span>
-<span class="fc" id="L189">                }</span>
+<span class="fc bfc" id="L197" title="All 2 branches covered.">            while ((line = reader.readLine()) != null) {</span>
+<span class="fc" id="L198">                String[] parts = line.split(&quot;:&quot;);</span>
+<span class="fc" id="L199">                String username = parts[0];</span>
+<span class="fc" id="L200">                byte[] encryptedSecretKey = Base64.getDecoder().decode(parts[1]);</span>
+<span class="fc bfc" id="L201" title="All 2 branches covered.">                if (filePath.equals(testsecretPath)) {</span>
+<span class="fc" id="L202">                    testuserSecretKeys.put(username, encryptedSecretKey);</span>
+<span class="fc" id="L203">                }</span>
                 else {
-<span class="fc" id="L191">                    userSecretKeys.put(username, encryptedSecretKey);</span>
+<span class="fc" id="L205">                    userSecretKeys.put(username, encryptedSecretKey);</span>
                 }
             }
-<span class="nc" id="L194">        } catch (IOException e) {</span>
-<span class="nc" id="L195">            e.printStackTrace();</span>
+<span class="nc" id="L208">        } catch (IOException e) {</span>
+<span class="nc" id="L209">            e.printStackTrace();</span>
         }
-<span class="fc" id="L197">    }</span>
+<span class="fc" id="L211">    }</span>
     
 
-    public static byte[] hashSalt(String password, byte[] salt) {
+    /***
+     * 
+     * iterative hashing with SHA-256 and unique salt
+     * 
+     * String hashinput: input to be hashed
+     * byte[] salt = the randomly generate salt value used for hashing
+     * 
+     */
+    public static byte[] hashSalt(String hashinput, byte[] salt) {
         try {
-<span class="fc" id="L202">            MessageDigest digest = MessageDigest.getInstance(&quot;SHA-256&quot;);</span>
-<span class="fc" id="L203">            digest.reset();</span>
-<span class="fc" id="L204">            digest.update(salt);</span>
-<span class="fc" id="L205">            byte[] hashedBytes = digest.digest(password.getBytes(StandardCharsets.UTF_8));</span>
-            // iterations
-<span class="fc bfc" id="L207" title="All 2 branches covered.">            for (int i = 0; i &lt; 20000; i++) {</span>
-<span class="fc" id="L208">                digest.reset();</span>
-<span class="fc" id="L209">                hashedBytes = digest.digest(hashedBytes);</span>
+<span class="fc" id="L224">            MessageDigest digest = MessageDigest.getInstance(&quot;SHA-256&quot;);</span>
+<span class="fc" id="L225">            digest.reset();</span>
+<span class="fc" id="L226">            digest.update(salt);</span>
+<span class="fc" id="L227">            byte[] hashedBytes = digest.digest(hashinput.getBytes(StandardCharsets.UTF_8));</span>
+            // iterations of hashing
+<span class="fc bfc" id="L229" title="All 2 branches covered.">            for (int i = 0; i &lt; 20000; i++) {</span>
+<span class="fc" id="L230">                digest.reset();</span>
+<span class="fc" id="L231">                hashedBytes = digest.digest(hashedBytes);</span>
             }
-<span class="fc" id="L211">            return hashedBytes;</span>
-<span class="nc" id="L212">        } catch (NoSuchAlgorithmException e) {</span>
-<span class="nc" id="L213">            e.printStackTrace();</span>
-<span class="nc" id="L214">            return null;</span>
+<span class="fc" id="L233">            return hashedBytes;</span>
+<span class="nc" id="L234">        } catch (NoSuchAlgorithmException e) {</span>
+<span class="nc" id="L235">            e.printStackTrace();</span>
+<span class="nc" id="L236">            return null;</span>
         }
     }
 
-    public static boolean verifyPassword(byte[] providedPasswordHash, byte[] storedPasswordHash) {
-        // Compare the provided password hash with the stored password hash
-<span class="fc" id="L220">        return Arrays.equals(providedPasswordHash, storedPasswordHash);</span>
-    }
 
-    public static byte[] encryptSecretKey(byte[] secretKey, byte[] passwordHash) {
-        try {
-            // Ensure the password hash is of appropriate length for AES
-<span class="fc" id="L226">            byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16); // 16 bytes for AES-128</span>
+    /***
+     * 
+     * verifyPassword
+     * 
+     * String hashinput: input to be hashed
+     * byte[] salt = the randomly generate salt value used for hashing
+     * 
+     */
+    // public static boolean verifyPassword(byte[] providedPasswordHash, byte[] storedPasswordHash) {
+    //     // Compare the provided password hash with the stored password hash
+    //     return Arrays.equals(providedPasswordHash, storedPasswordHash);
+    // }
 
-            // Derive a secret key from the trimmed password hash
-<span class="fc" id="L229">            SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, &quot;AES&quot;);</span>
+    /***
+     * 
+     * encrypt secrey key method
+     * 
+     * byte[] secretKey: secret key to be used for encrypted
+     * byte[] passwordHash = the passwordHash that will be 
+     * 
+     */
+    // public static byte[] encryptSecretKey(byte[] secretKey, byte[] passwordHash) {
+    //     try {
+    //         // Ensure the password hash is of appropriate length for AES
+    //         byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16); // 16 bytes for AES-128
 
-            // Encrypt the secret key using AES
-<span class="fc" id="L232">            Cipher cipher = Cipher.getInstance(&quot;AES&quot;);</span>
-<span class="fc" id="L233">            cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);</span>
-<span class="fc" id="L234">            return cipher.doFinal(secretKey);</span>
-<span class="nc" id="L235">        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {</span>
-<span class="nc" id="L236">            e.printStackTrace();</span>
-<span class="nc" id="L237">            return null;</span>
-        }
-    }
+    //         // Derive a secret key from the trimmed password hash
+    //         SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, &quot;AES&quot;);
 
-    public static byte[] decryptSecretKey(byte[] encryptedSecretKey, byte[] passwordHash) {
-        try {
-            // Ensure the password hash is of appropriate length for AES
-<span class="fc" id="L244">            byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16); // 16 bytes for AES-128</span>
+    //         // Encrypt the secret key using AES
+    //         Cipher cipher = Cipher.getInstance(&quot;AES&quot;);
+    //         cipher.init(Cipher.ENCRYPT_MODE, secretKeySpec);
+    //         return cipher.doFinal(secretKey);
+    //     } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+    //         e.printStackTrace();
+    //         return null;
+    //     }
+    // }
 
-            // Derive a secret key from the trimmed password hash
-<span class="fc" id="L247">            SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, &quot;AES&quot;);</span>
+    // public static byte[] decryptSecretKey(byte[] encryptedSecretKey, byte[] passwordHash) {
+    //     try {
+    //         // Ensure the password hash is of appropriate length for AES
+    //         byte[] trimmedPasswordHash = Arrays.copyOf(passwordHash, 16); // 16 bytes for AES-128
 
-            // Decrypt the secret key using AES
-<span class="fc" id="L250">            Cipher cipher = Cipher.getInstance(&quot;AES&quot;);</span>
-<span class="fc" id="L251">            cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);</span>
-<span class="fc" id="L252">            return cipher.doFinal(encryptedSecretKey);</span>
-<span class="nc" id="L253">        } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {</span>
-<span class="nc" id="L254">            e.printStackTrace();</span>
-<span class="nc" id="L255">            return null;</span>
-        }
-    }
+    //         // Derive a secret key from the trimmed password hash
+    //         SecretKeySpec secretKeySpec = new SecretKeySpec(trimmedPasswordHash, &quot;AES&quot;);
+
+    //         // Decrypt the secret key using AES
+    //         Cipher cipher = Cipher.getInstance(&quot;AES&quot;);
+    //         cipher.init(Cipher.DECRYPT_MODE, secretKeySpec);
+    //         return cipher.doFinal(encryptedSecretKey);
+    //     } catch (NoSuchAlgorithmException | NoSuchPaddingException | InvalidKeyException | IllegalBlockSizeException | BadPaddingException e) {
+    //         e.printStackTrace();
+    //         return null;
+    //     }
+    // }
 }
 </pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.7.202105040129</span></div></body></html>

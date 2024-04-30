@@ -188,3 +188,5 @@ james,Normal,2024-04-29 15:01:44,Login
 james,User,2024-04-29 15:01:48,Logout
 james,Normal,2024-04-29 15:21:34,Login
 james,User,2024-04-29 15:21:52,Logout
+james,Normal,2024-04-29 17:50:40,Login
+james,User,2024-04-29 17:50:53,Logout
